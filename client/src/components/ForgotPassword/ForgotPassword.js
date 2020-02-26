@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import {ButtonGroup, Grow, Typography, TextField, Button, Container, Grid, Link } from '@material-ui/core';
+import {Grow, Typography, TextField, Button, Container, Grid, Link } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import FacebookIcon from '@material-ui/icons/Facebook';
-import Logo from './../../assets/img/hypairtube-logov2.png'
+import Logo from '../../assets/img/hypairtube-logov2.png'
 
 const useStyles = makeStyles(theme => ({
     loginContainer: {
@@ -36,28 +35,9 @@ const useStyles = makeStyles(theme => ({
     },
     signupButton: {
         background: 'linear-gradient(-317deg, #207af4 -25%, #0b1123, #0b1123 70%, #f02678 160% )',
-        margin: theme.spacing(3, 0, 1, 0),
+        margin: theme.spacing(3, 0, 3, 0),
         borderRadius: '10px !important',
         color: 'white',
-    },
-    buttonFacebook: {
-        '&:hover':{
-            backgroundColor: '#35528d',
-        },
-        backgroundColor: '#4267b2',
-        color: 'white'
-    },
-    button42: {
-        '&:hover':{
-            backgroundColor: '#1f1f1f',
-        },
-        backgroundColor: '#000000',
-        color: 'white'
-    },
-    buttonGroup: {
-        margin: theme.spacing(0, 0, 3, 0),
-        borderRadius: '10px !important',
-        overflow: 'hidden'
     },
     textfield: {
         '& fieldset': {
@@ -71,7 +51,7 @@ const useStyles = makeStyles(theme => ({
   }));
 
 
-  export default function Login(props) {
+  export default function ForgotPassword(props) {
     const classes = useStyles();
     const [mounted, setMounted] = useState(true);
 
@@ -94,7 +74,7 @@ const useStyles = makeStyles(theme => ({
                     {/* <CssBaseline /> */}
                     <div className={classes.paper}>
                         <Typography component="h1" variant="h5">
-                            Sign in
+                            Forgot Password
                         </Typography>
                         <form className={classes.form} noValidate>
                             <Grid alignContent="center" alignItems="center" container spacing={2}>
@@ -110,19 +90,6 @@ const useStyles = makeStyles(theme => ({
                                         className={classes.textfield}
                                     />
                                 </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        variant="filled"
-                                        required
-                                        fullWidth
-                                        name="password"
-                                        label="Password"
-                                        type="password"
-                                        id="password"
-                                        autoComplete="current-password"
-                                        className={classes.textfield}
-                                    />
-                                </Grid>
                             </Grid>
                             <Button
                                 fullWidth
@@ -131,18 +98,9 @@ const useStyles = makeStyles(theme => ({
                                 color="primary"
                                 className={classes.signupButton}
                             >
-                                Sign in
+                                Send reset mail
                             </Button>
-                            <ButtonGroup 
-                                    fullWidth 
-                                    size="large"
-                                    variant="contained"
-                                    aria-label="contained primary button group" 
-                                    className={classes.buttonGroup}>
-                                <Button  className={classes.button42}>42</Button>
-                                <Button startIcon={<FacebookIcon />} className={classes.buttonFacebook}>Facebook</Button>
-                            </ButtonGroup>
-                            <Grid container justify="center">
+                            <Grid container justify="flex-end">
                                 <Grid item>
                                     <Link onClick={handleRedirectSignup} href="#" variant="body2">
                                         Don't have an account? Sign up

@@ -3,7 +3,7 @@ import { fade, makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
+import Logo from './../../assets/img/hypairtube-logov2-mini.png'
 import InputBase from '@material-ui/core/InputBase';
 import Badge from '@material-ui/core/Badge';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -14,6 +14,7 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import MailIcon from '@material-ui/icons/Mail';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import MoreIcon from '@material-ui/icons/MoreVert';
+import API from '../../utils/API';
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -78,9 +79,19 @@ const useStyles = makeStyles(theme => ({
       display: 'none',
     },
   },
+  mobileDotContainer: {
+    '& .MuiPaper-rounded': {
+        color: 'white',
+        background: 'linear-gradient(-317deg, rgba(32, 122, 244, 0.5) -25%, #0b1123, #0b1123 70%, rgba(240, 38, 120, 1) 160% ) !important',
+    },
+  },
+  logo:{
+      height: '50px',
+      marginRight: '30px',
+  }
 }));
 
-export default function PrimarySearchAppBar() {
+export default function PrimarySearchAppBar(props) {
     const classes = useStyles();
 
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -102,6 +113,14 @@ export default function PrimarySearchAppBar() {
         handleMobileMenuClose();
     };
 
+    const handleLogout = () => {
+        API.logout()
+            .then(res => {
+                if (res.status === 200)
+                    props.history.push('/login');
+            });
+        handleMenuClose();
+    }
     const handleMobileMenuOpen = event => {
         setMobileMoreAnchorEl(event.currentTarget);
     };
@@ -119,6 +138,7 @@ export default function PrimarySearchAppBar() {
             >
             <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
             <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+            <MenuItem onClick={handleLogout}>Log out</MenuItem>
         </Menu>
     );
 
@@ -132,6 +152,7 @@ export default function PrimarySearchAppBar() {
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             open={isMobileMenuOpen}
             onClose={handleMobileMenuClose}
+            className={classes.mobileDotContainer}
         >
             <MenuItem>
                 <IconButton aria-label="show 4 new mails" color="inherit">
@@ -164,7 +185,7 @@ export default function PrimarySearchAppBar() {
     );
     return (
         <div className={classes.grow}>
-            <AppBar position="static">
+            <AppBar position="fixed">
                 <Toolbar>
                 <IconButton
                     edge="start"
@@ -174,9 +195,11 @@ export default function PrimarySearchAppBar() {
                 >
                     <MenuIcon />
                 </IconButton>
-                <Typography className={classes.title} variant="h6" noWrap>
-                    Hypeertube
-                </Typography>
+                <img 
+                    src={Logo}
+                    alt='Hypeertube'
+                    className={classes.logo}
+                />
                 <div className={classes.search}>
                     <div className={classes.searchIcon}>
                         <SearchIcon />
