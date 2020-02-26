@@ -12,3 +12,12 @@ html {
 #root {
   height: 100%;
 }
+
+@keyframes textdefilant {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(0, -100%);
+  }
+}
