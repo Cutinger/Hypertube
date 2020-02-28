@@ -5,6 +5,7 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
 import AddCircle from '@material-ui/icons/AddCircle';
 import StarRatings from 'react-star-ratings';
+import { withRouter } from 'react-router-dom';
 import axios from 'axios';
 
 const useStyles = makeStyles(theme => ({
@@ -15,7 +16,7 @@ const useStyles = makeStyles(theme => ({
         display: 'block',
         height: '100%',
         opacity: '0.5',
-        padding: '1.2em',
+        // padding: '1.2em',
         transition: 'all 0.2s ease-in-out',
         webkitFilter: 'blur(15px)', /* Safari 6.0 - 9.0 */
         filter: 'blur(15px)'
@@ -192,7 +193,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-export default function Home(props) {
+export default withRouter(function Home(props) {
     const classes = useStyles();
     const [topMoviesList, setTopMoviesList] = useState(false);
     const [movieFocus, setMovieFocus] = useState(false);
@@ -200,8 +201,8 @@ export default function Home(props) {
     const [activeTextAutoScroll, setActiveTextAutoScroll] = useState(false);
 
     useEffect(() => {
-        function getTopMoviesList() {
-            axios.get('http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=50')
+        async function getTopMoviesList() {
+            axios.get('https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=50')
             .then(res => {
                 if (res.data && res.data.results && res.data.results.length)
                     setTopMoviesList(res.data.results)
@@ -292,7 +293,7 @@ export default function Home(props) {
                                             // MOVIE CARD
                                             <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} onMouseEnter={() => handleMouseEnterMovie(key) }>
                                                 <img
-                                                    src={obj.poster_path ? `http://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
+                                                    src={obj.poster_path ? `https://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
                                                     alt={obj.title}
                                                     className={classes.movieCover}
                                                 />
@@ -300,7 +301,7 @@ export default function Home(props) {
                                             // FOCUS MOVIE CARD
                                             <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} >
                                                 <img
-                                                    src={obj.poster_path ? `http://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
+                                                    src={obj.poster_path ? `https://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
                                                     alt={obj.title}
                                                     className={classes.movieCoverFocus}
                                                 />
@@ -338,7 +339,13 @@ export default function Home(props) {
                                                         </Grid>
                                                         <Grid alignItems="flex-end" direction="column" justify="flex-end" container>
                                                             <Grid item xs >
-                                                                <PlayCircleFilled className={classes.buttonWatch}/>
+                                                                <PlayCircleFilled
+                                                                    className={classes.buttonWatch}
+                                                                    onClick={() => {
+                                                                        props.setMovieDetails(obj);
+                                                                        props.history.push(`/movie/${obj.id}`);
+                                                                    }}
+                                                                />
                                                             </Grid>
                                                         </Grid>
                                                     </Grid>
@@ -354,4 +361,4 @@ export default function Home(props) {
             </div>
         </Container>
     )
-}
+});

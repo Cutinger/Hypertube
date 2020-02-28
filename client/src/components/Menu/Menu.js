@@ -88,7 +88,7 @@ const useStyles = makeStyles(theme => ({
   logo:{
       height: '50px',
       marginRight: '30px',
-  }
+  },
 }));
 
 export default function PrimarySearchAppBar(props) {
@@ -197,6 +197,7 @@ export default function PrimarySearchAppBar(props) {
                 </IconButton>
                 <img 
                     src={Logo}
+                    onClick={() => props.history.push('/')}
                     alt='Hypeertube'
                     className={classes.logo}
                 />
