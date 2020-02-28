@@ -202,7 +202,7 @@ export default withRouter(function Home(props) {
 
     useEffect(() => {
         async function getTopMoviesList() {
-            axios.get('https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=50')
+            axios.get('https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=1')
             .then(res => {
                 if (res.data && res.data.results && res.data.results.length)
                     setTopMoviesList(res.data.results)
@@ -339,13 +339,15 @@ export default withRouter(function Home(props) {
                                                         </Grid>
                                                         <Grid alignItems="flex-end" direction="column" justify="flex-end" container>
                                                             <Grid item xs >
-                                                                <PlayCircleFilled
-                                                                    className={classes.buttonWatch}
-                                                                    onClick={() => {
-                                                                        props.setMovieDetails(obj);
-                                                                        props.history.push(`/movie/${obj.id}`);
-                                                                    }}
-                                                                />
+                                                                <a href={'#  '}>
+                                                                    <PlayCircleFilled
+                                                                        className={classes.buttonWatch}
+                                                                        onClick={() => {
+                                                                            props.setMovieDetails(obj);
+                                                                            props.history.push(`/movie/${obj.id}`);
+                                                                        }}
+                                                                    />
+                                                                </a>
                                                             </Grid>
                                                         </Grid>
                                                     </Grid>

@@ -38,5 +38,15 @@ export default {
                 headers: headers,
             }
         )
+    },
+    stream: (quality, imdb_id) => {
+        return axios.get(
+            `http://localhost:80/movies/yts/${quality}/${imdb_id}`,
+            {},
+            {
+                // withCredentials: 'true',
+                headers: headers,
+            }
+        )
     }
 }
