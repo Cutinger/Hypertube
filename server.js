@@ -4,11 +4,13 @@ const bodyParser = require('body-parser');
 const passport = require("passport");
 const users = require("./routes/api/users");
 const app = express();
-const cors = require('cors');
+const stream = require('./routes/api/Stream/DownloadTorrent.js');
+const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const db = require("./config/keys").mongoURI
+const db = require("./config/keys").mongoURI;
 require("./config/passport")(passport);
 
+app.use(helmet());
 app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Origin', req.headers.origin);
@@ -30,6 +32,9 @@ app.use(passport.initialize());;
 
 // UsersRoute
 app.use ("/api/users", users);
+// Stream routes
+app.get('/api/movies/:stream/:quality/:imdbid', (req, res) => { stream.getDataMovie(req, res) })
+
 
 // Connect to server
 const port = process.env.PORT || 5000;

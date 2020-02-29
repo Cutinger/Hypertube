@@ -128,18 +128,6 @@ export default function MovieCard(props){
         setMovieDetail();
     }, [props.movieDetails, props.match.params.movieId]);
 
-    useEffect(()=> {
-        async function streamMovie() {
-            await API.stream('720', movieDetails.imdb_id)
-                .then(res => {
-                    console.log(res.data)
-                })
-        }
-        if (movieDetails && movieDetails.id)
-            streamMovie();
-
-
-    }, [movieDetails]);
 
 
     // Movies genres generator
@@ -158,77 +146,80 @@ export default function MovieCard(props){
         const poster = movieDetails.poster_path ? `https://image.tmdb.org/t/p/w185${movieDetails.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png';
         return (
             <Grow in={true}>
-                <Container
-                    maxWidth={'md'}
-                    className={classes.containerMovieDetails}
-                >
+                <Container>
+                    <Container
+                        maxWidth={'md'}
+                        className={classes.containerMovieDetails}
+                    >
 
-                    <Grid  style={{ marginBottom: '1.5em'}} container justify={'space-between'} alignItems={'flex-start'} alignContent={'center'}>
-                        <Grid item xs={'auto'} className={classes.movieReturnBack}>
-                            <a href={'#  '}>
-                                <ArrowBackIosIcon
-                                    fontSize="large"
-                                    style={{color: 'white'}}
-                                    id="arrowBackIosIcon"
-                                    onClick={() =>  props.history.push('/')}
+                        <Grid  style={{ marginBottom: '1.5em'}} container justify={'space-between'} alignItems={'flex-start'} alignContent={'center'}>
+                            <Grid item xs={'auto'} className={classes.movieReturnBack}>
+                                <a href={'#  '}>
+                                    <ArrowBackIosIcon
+                                        fontSize="large"
+                                        style={{color: 'white'}}
+                                        id="arrowBackIosIcon"
+                                        onClick={() =>  props.history.push('/')}
+                                    />
+                                </a>
+                            </Grid>
+                            <Grid item xs={'auto'} className={classes.movieAddList}>
+                                <AddCircle fontSize="large" id="addCircle"/>
+                            </Grid>
+                        </Grid>
+                        <div
+                            style={{
+                                background: `url(${poster})`,
+                                backgroundSize: 'contain',
+                                filter: 'blur(90px) brightness(1.8)',
+                                boxShadow: 'inset 1px 1px 20px rgba(0,0,0,1)',
+                                width: '100%',
+                                height: '100%',
+                                position: 'absolute',
+                                zIndex: '-1',
+                                opacity: '0.3'
+                            }}
+                        />
+                        <Grid style={{ marginTop: '1.5em'}}container alignContent={"center"} direction="row" justify="center" alignItems="center">
+                            <Grid className={classes.containerImg} item xs={'auto'} sm={4}>
+                                <img
+                                    className={classes.movieCoverContainer}
+                                    src={poster}
+                                    alt={movieDetails.title}
                                 />
-                            </a>
-                        </Grid>
-                        <Grid item xs={'auto'} className={classes.movieAddList}>
-                            <AddCircle fontSize="large" id="addCircle"/>
-                        </Grid>
-                    </Grid>
-                    <div
-                        style={{
-                            background: `url(${poster})`,
-                            backgroundSize: 'contain',
-                            filter: 'blur(90px) brightness(1.8)',
-                            boxShadow: 'inset 1px 1px 20px rgba(0,0,0,1)',
-                            width: '100%',
-                            height: '100%',
-                            position: 'absolute',
-                            zIndex: '-1',
-                            opacity: '0.3'
-                        }}
-                    />
-                    <Grid style={{ marginTop: '1.5em'}}container alignContent={"center"} direction="row" justify="center" alignItems="center">
-                        <Grid className={classes.containerImg} item xs={'auto'} sm={4}>
-                            <img
-                                className={classes.movieCoverContainer}
-                                src={poster}
-                                alt={movieDetails.title}
-                            />
-                        </Grid>
-                        <Grid style={{ paddingLeft: '1em', paddingRight: '1em'}} item xs={'auto'} sm={8}>
-                            <Grid item xs={12} sm={12}>
-                                <Grid className={classes.containerDate_Vote} item xs={8}>
-                                    <span className={classes.releaseDate}>{movieDetails.release_date.slice(0,4)}</span>
-                                    <StarRatings rating={movieDetails.vote_average / 2} starRatedColor="#f7c12d" starDimension="17px" starSpacing="1.5px" />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <Grid container style={{  marginTop: '1em', marginBottom: '0.5em'}} direction="row" justify="flex-start" alignItems="flex-start">
-                                        {genMovieGenres(movieDetails)}
+                            </Grid>
+                            <Grid style={{ paddingLeft: '1em', paddingRight: '1em'}} item xs={'auto'} sm={8}>
+                                <Grid item xs={12} sm={12}>
+                                    <Grid className={classes.containerDate_Vote} item xs={8}>
+                                        <span className={classes.releaseDate}>{movieDetails.release_date.slice(0,4)}</span>
+                                        <StarRatings rating={movieDetails.vote_average / 2} starRatedColor="#f7c12d" starDimension="17px" starSpacing="1.5px" />
                                     </Grid>
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <h1 className={classes.movieTitle}>{movieDetails.title}</h1>
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <p className={classes.movieOverview}>
-                                        {movieDetails.overview}
-                                    </p>
+                                    <Grid item xs={12}>
+                                        <Grid container style={{  marginTop: '1em', marginBottom: '0.5em'}} direction="row" justify="flex-start" alignItems="flex-start">
+                                            {genMovieGenres(movieDetails)}
+                                        </Grid>
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <h1 className={classes.movieTitle}>{movieDetails.title}</h1>
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <p className={classes.movieOverview}>
+                                            {movieDetails.overview}
+                                        </p>
+                                    </Grid>
                                 </Grid>
                             </Grid>
                         </Grid>
-                    </Grid>
+                    </Container>
                     <Container style={{padding: '0', marginTop: '2.5em'}}>
                         <Grid container>
                             <Grid item xs={12}>
                                 <div className={classes.player}>
                                     <ReactPlayer  width='100%'
                                                   height='100%'
-                                                  // url='https://www.youtube.com/watch?v=ysz5S6PUM-U'
+                                                  url={`http://localhost:5000/api/movies/yts/1080/${movieDetails.imdb_id}`}
                                                   playing
+                                                  controls={true}
                                     />
                                 </div>
                             </Grid>
