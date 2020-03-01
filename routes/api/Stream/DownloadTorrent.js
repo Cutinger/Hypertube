@@ -1,5 +1,9 @@
 const axios         = require('axios');
 const stream        = require('./Stream.js')
+const scrapTorrent  = require('../MovieInfos/MoviesInfos.js')
+
+const apiKey    = 'f29f2233f1aa782b0f0dc8d6d9493c64'
+
 /* const db            = require('../schemas/db.js')  /* A exporter dans la page du film */
 /* const schema        = require('../schemas/MovieSchema.js') /* A exporter dans la page du film */
 
@@ -14,7 +18,7 @@ const udpYTS = [
     'udp://tracker.leechers-paradise.org:6969'
 ]
 
-const getDataMovieYTS = async (baseURL) => {
+const axiosQuery = async (baseURL, type) => {
     try {
         const instance = axios.create({
             baseURL: baseURL,
@@ -24,11 +28,24 @@ const getDataMovieYTS = async (baseURL) => {
             });
         return instance.get()
         .then((res => {
-            if (res.data.data.movies == undefined)
-                return null
-            return res.data.data.movies[0]
+            switch (type) {
+                case 'imdb_id':
+                    if (res.data.movie_results[0].id == undefined)
+                        return null
+                    return res.data.movie_results[0].id
+                case 'leet':     
+                    if (res.data.inLeet == 'yes')
+                        return res.data.leetInfo
+                    return null
+                case 'yts':
+                    if (res.data.data.movies == undefined)
+                        return null
+                    return res.data.data.movies[0]
+                default:
+                    console.log('wrong parameter (' + type + ') for axiosQuery')
+            }
         }))
-    } catch (error) { console.error(error) }
+    } catch (error) { console.error(error) }     
 }
 
 const URLmagnetYTS = (hash, title) => {
@@ -97,9 +114,29 @@ const addMovietoDatabase = async (movie) => {
     } catch (err) { console.log(err) }
 } */
 
+const printLeet = async (req, res, quality) => {
+    try {
+        var urlID = `https://api.themoviedb.org/3/find/tt2140203?api_key=${apiKey}&external_source=imdb_id`
+        var imdbID = await axiosQuery(urlID, 'imdb_id')
+        if ( !imdbID )
+            res.sendStatus(404)
+
+        var leetInfos = await axiosQuery('http://localhost:5000/api/movies/' + imdbID, 'leet');
+        if ( !leetInfos || (quality == '720p' && !leetInfos.magnetHD) || (quality == '1080p' && !leetInfos.magnetFHD) )
+            res.sendStatus(404)
+
+        if (quality == '720p')
+            var magnetLink = leetInfos.magnetHD
+        else if (quality == '1080p')
+            var magnetLink = leetInfos.magnetFHD
+        
+        stream.initStreaming(req, res, magnetLink)
+    } catch (err) { return res.sendStatus(203) }
+}
+
 const printYTS = async (baseURL, req, res, quality) => {
     try {
-        var movie = await getDataMovieYTS(baseURL);
+        var movie = await axiosQuery(baseURL, 'yts');
         console.log(movie);
         if (movie != null) {
             var correctQuality = false
@@ -111,7 +148,6 @@ const printYTS = async (baseURL, req, res, quality) => {
             }
             if (correctQuality == false)
                res.sendStatus(404);
-
             /* await addMovietoDatabase(movie) <----- Voir le commentaire plus haut */
             var magnet = URLmagnetYTS(movie.torrents[index].hash, movie.title_long)
             stream.initStreaming(req, res, magnet)
@@ -126,6 +162,8 @@ const getDataMovie = (req, res) => {
     const quality     = req.params.quality + 'p'
     if (paramStream == 'yts') {
         printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbid}`, req, res, quality)
+    } else if (paramStream == '1377') {
+        printLeet(req, res, quality)
     } else {
         return res.sendStatus(404)
     }
