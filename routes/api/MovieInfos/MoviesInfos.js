@@ -109,13 +109,13 @@ const leetSearch = async (movieTitle) => {
                 if (catchQuality('720', element.title) && element.seed > 0 && !hd) {
                     magnet = await getLeetMagnet(element.href)
                     var type = catchQualityType(element.href)
-                    var hdElements = {url: 'http://1377x.to' + element.href, quality: '720p', type: type, seeds: element.seed, leech: element.leech, size: element.size, magnet: magnet.download.magnet}
+                    var hdElements = {url: 'http://1377x.to' + element.href, quality: '720p', type: type, seeds: parseInt(element.seed), leech: parseInt(element.leech), size: element.size, magnet: magnet.download.magnet}
                     arr.push(hdElements)
                     hd = true
                 } else if (catchQuality('1080', element.title) && element.seed > 0 && !fhd) {
                     magnet = await getLeetMagnet(element.href)
                     var type = catchQualityType(element.href)
-                    var fhdElements = {url: 'http://1377x.to' + element.href, quality: '1080p', type: type, seeds: element.seed, leech: element.leech, size: element.size, magnet: magnet.download.magnet}
+                    var fhdElements = {url: 'http://1377x.to' + element.href, quality: '1080p', type: type, seeds: parseInt(element.seed), leech: parseInt(element.leech), size: element.size, magnet: magnet.download.magnet}
                     arr.push(fhdElements)
                     fhd = true
                 }
