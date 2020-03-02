@@ -201,22 +201,26 @@ export default withRouter(function Home(props) {
     const [activeTextAutoScroll, setActiveTextAutoScroll] = useState(false);
 
     useEffect(() => {
+        let _mounted = true;
         async function getTopMoviesList() {
             axios.get('https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=1')
             .then(res => {
                 if (res.data && res.data.results && res.data.results.length)
-                    setTopMoviesList(res.data.results)
+                    _mounted && setTopMoviesList(res.data.results)
             })
         }
         async function getMoviesGenres() {
             axios.get('https://api.themoviedb.org/3/genre/movie/list?api_key=f29f2233f1aa782b0f0dc8d6d9493c64')
             .then(res => {
                 if (res.data && res.data.genres && res.data.genres.length)
-                    setMoviesGenres(res.data.genres)
+                    _mounted && setMoviesGenres(res.data.genres)
             })
         }
         getMoviesGenres();
         getTopMoviesList();
+        return () => {
+            _mounted = false;
+        }
     }, []);
 
     // Ref callback, when text overview is loaded, then check if he his too height (then set animation)

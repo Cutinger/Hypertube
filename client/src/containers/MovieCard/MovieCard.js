@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {Container, Grid, Grow } from '@material-ui/core';
+import {Container, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText } from '@material-ui/core';
 import StarRatings from 'react-star-ratings';
 import axios from 'axios';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import AddCircle from '@material-ui/icons/AddCircle';
+import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import ReactPlayer from "react-player";
 import API from './../../utils/API';
+
+const burl = 'http://localhost:5000/api'
 
 const useStyles = makeStyles(theme => ({
     containerMovieDetails: {
@@ -107,28 +111,145 @@ const useStyles = makeStyles(theme => ({
     player: {
         width: '100% !important',
         height: '360px !important'
+    },
+    buttonChooseSource: {
+        color: 'white',
+        borderColor: 'white'
+    },
+    loadingSources: {
+        marginRight: '1em',
+        color: 'white',
     }
 }));
+
+
+function SimpleDialog(props) {
+    const classes = useStyles();
+    const { onClose, selectedValue, open, movieSources } = props;
+
+    const handleClose = () => {
+        onClose(selectedValue)
+    };
+
+    const handleListItemClick = value => {
+        onClose(value)
+    };
+
+    return (
+        <Dialog onClose={handleClose} aria-labelledby="simple-dialog-title" open={open}>
+            <DialogTitle id="simple-dialog-title">Choose a source</DialogTitle>
+            <List>
+                {movieSources && movieSources.ytsInfo && Array.isArray(movieSources.ytsInfo) && movieSources.ytsInfo.map((obj, key) => (
+                    <ListItem button onClick={() => handleListItemClick('yts-' + obj.quality.substring(0, obj.quality.length - 1))} key={key}>
+                        <ListItemAvatar>
+                            <Avatar className={classes.avatar}>
+                                <FiberManualRecordIcon style={{ color: '#4bbe4b'}}/>
+                            </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                            primary={`${obj.quality} - ${obj.seeds} seeds / ${obj.size}`}
+                        />
+                    </ListItem>
+                ))}
+                {movieSources && movieSources.leetInfo && Array.isArray(movieSources.leetInfo) && movieSources.leetInfo.map((obj, key) => (
+                    <ListItem button onClick={() => handleListItemClick('1377-' + obj.quality.substring(0, obj.quality.length - 1))} key={key}>
+                        <ListItemAvatar>
+                            <Avatar className={classes.avatar}>
+                                <FiberManualRecordIcon style={{ color: '#4bbe4b'}} />
+                            </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                            primary={`${obj.quality} - ${obj.seeds} seeds / ${obj.size}`}
+                        />
+                    </ListItem>
+                ))}
+            </List>
+        </Dialog>
+    );
+}
 
 export default function MovieCard(props){
     let classes = useStyles();
     const [movieDetails, setMovieDetails] = useState(null);
+    const [movieSources, setMovieSources] = useState(null);
+    // Loading sources
+    const [loadingSources, setLoadingSources] = useState(false);
+    // Dialog
+    const [open, setOpen] = React.useState(false);
+    const [selectedValue, setSelectedValue] = useState(null);
+    // Set movieSrc
     const [movieSrc, setMovieSrc] = useState(null);
 
+
+
+    // On mount (when props are received or when the page with /movie/:id is loaded
     useEffect(()=> {
-        function setMovieDetail() {
+        let _mounted = true;
+        _mounted && setLoadingSources(true);
+        // Get movie infos (vote, title, overview, poster...)
+        async function setMovieDetail() {
             let data = null;
             axios.get(`https://api.themoviedb.org/3/movie/${props.movieDetails ? props.movieDetails.id : props.match.params.movieId}?api_key=c91b62254304ec5dbb322351b0dc1094`)
                 .then(res => {
                     if (res.data)
                         data = res.data;
-                    setMovieDetails(data)
+                    _mounted && setMovieDetails(data)
                 });
         }
+        // Get infos about movie (if available on yts, 1337...)
+        async function getMovieSources() {
+            API.getMovieSources(props.movieDetails ? props.movieDetails.id : props.match.params.movieId)
+                .then(res => {
+                    if (res.status === 200) {
+                        console.log(res.data)
+                        if (res.data && (res.data.inYTS === "yes" || res.data.inLeet === "yes")) {
+                            _mounted && setMovieSources(res.data)
+                            _mounted && setLoadingSources(false);
+                        }
+                        else
+                            _mounted && setMovieSources(null);
+                    }
+                    else
+                        _mounted && setMovieSources(null);
+                })
+
+        }
         setMovieDetail();
+        getMovieSources();
+        return () => {
+            _mounted = false;
+        };
     }, [props.movieDetails, props.match.params.movieId]);
 
 
+    const sourceMessage = () => {
+        if (movieSources)
+            return selectedValue ? selectedValue : `Choose a source (${movieSources.ytsInfo.length + movieSources.leetInfo.length})`;
+        else
+            return 'No source available'
+    };
+
+    // Movie source selection
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = value => {
+        setOpen(false);
+        setSelectedValue(value);
+    };
+
+    useEffect(() => {
+        function streamMovie() {
+            let src = null;
+                let splittedValues = selectedValue.split('-');
+                if (splittedValues.length > 1)
+                    src = `${burl}/movies/${splittedValues[0]}/${splittedValues[1]}/${movieDetails.imdb_id}`
+            setMovieSrc(src);
+        }
+        if (selectedValue)
+            streamMovie();
+    }, [selectedValue, movieDetails])
 
     // Movies genres generator
     const genMovieGenres = (obj) => {
@@ -140,7 +261,7 @@ export default function MovieCard(props){
                     </Grid>);
             });
         return null;
-    }
+    };
 
     if (movieDetails) {
         const poster = movieDetails.poster_path ? `https://image.tmdb.org/t/p/w185${movieDetails.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png';
@@ -207,24 +328,46 @@ export default function MovieCard(props){
                                             {movieDetails.overview}
                                         </p>
                                     </Grid>
+                                    <Grid style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }} item xs={12}>
+                                        {loadingSources ?
+                                        <div className={classes.loadingSources}>
+                                            <Fade in={loadingSources} unmountOnExit>
+                                                <CircularProgress style={{color: 'white'}}/>
+                                            </Fade>
+                                        </div> : null }
+                                        <br />
+                                        <Button
+                                            variant="outlined"
+                                            className={classes.buttonChooseSource}
+                                            onClick={handleClickOpen}
+                                            disabled={!movieSources ? true : false}
+                                        >
+                                            {sourceMessage()}
+                                        </Button>
+                                        <SimpleDialog movieSources={movieSources} selectedValue={selectedValue} open={open} onClose={handleClose} />
+                                    </Grid>
+
                                 </Grid>
                             </Grid>
                         </Grid>
                     </Container>
-                    <Container style={{padding: '0', marginTop: '2.5em'}}>
-                        <Grid container>
-                            <Grid item xs={12}>
-                                <div className={classes.player}>
-                                    <ReactPlayer  width='100%'
-                                                  height='100%'
-                                                  url={`http://localhost:5000/api/movies/yts/1080/${movieDetails.imdb_id}`}
-                                                  playing
-                                                  controls={true}
-                                    />
-                                </div>
+                    {
+                        movieSrc ?
+                        <Container style={{padding: '0', marginTop: '2.5em'}}>
+                            <Grid container>
+                                <Grid item xs={12}>
+                                    <div className={classes.player}>
+                                        <ReactPlayer width='100%'
+                                                     height='100%'
+                                                     url={movieSrc}
+                                                     playing
+                                                     controls={true}
+                                        />
+                                    </div>
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    </Container>
+                        </Container> : null
+                    }
                 </Container>
             </Grow>
         );

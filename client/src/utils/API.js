@@ -39,12 +39,22 @@ export default {
             }
         )
     },
-    stream: (quality, imdb_id) => {
+    stream: (stream, quality, imdb_id) => {
         return axios.get(
-            `${burl}/movies/${quality}/${imdb_id}`,
+            `${burl}/movies/${stream}/${quality}/${imdb_id}`,
             {},
             {
                 // withCredentials: 'true',
+                headers: headers,
+            }
+        )
+    },
+    getMovieSources: (imdb_id) => {
+        return axios.get(
+            `${burl}/movies/${imdb_id}`,
+            {},
+            {
+                withCredentials: 'true',
                 headers: headers,
             }
         )
