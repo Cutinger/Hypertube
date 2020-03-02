@@ -70,6 +70,16 @@ const catchQuality = (quality, string) => {
     return string.includes(quality)
 }
 
+const catchQualityType = (url) => {
+    var type = ['hdtv', 'bluray', 'bdrip', 'tvrip', 'dvdrip', 'hdlight', 'dvd-r']
+    var lowerurl = url.toLowerCase()
+    for (let index = 0; index < type.length; index++) {
+        if (lowerurl.includes(type[index]))
+            return type[index]
+    }
+    return null
+}
+
 const getLeetMagnet = async(link) => {
     return xtorrent
         .info('http://1377x.to' + link)
@@ -84,7 +94,7 @@ const getLeetMagnet = async(link) => {
 const leetSearch = async (movieTitle) => {
     var fhd = false
     var hd = false
-    var arr = {}
+    var arr = [];
     var magnet = undefined
     return xtorrent
         .search({
@@ -98,11 +108,15 @@ const leetSearch = async (movieTitle) => {
             for (element of data.torrents) {
                 if (catchQuality('720', element.title) && element.seed > 0 && !hd) {
                     magnet = await getLeetMagnet(element.href)
-                    arr['magnetHD'] = magnet.download.magnet
+                    var type = catchQualityType(element.href)
+                    var hdElements = {url: 'http://1377x.to' + element.href, quality: '720p', type: type, seeds: element.seed, leech: element.leech, size: element.size, magnet: magnet.download.magnet}
+                    arr.push(hdElements)
                     hd = true
                 } else if (catchQuality('1080', element.title) && element.seed > 0 && !fhd) {
                     magnet = await getLeetMagnet(element.href)
-                    arr['magnetFHD'] = magnet.download.magnet
+                    var type = catchQualityType(element.href)
+                    var fhdElements = {url: 'http://1377x.to' + element.href, quality: '1080p', type: type, seeds: element.seed, leech: element.leech, size: element.size, magnet: magnet.download.magnet}
+                    arr.push(fhdElements)
                     fhd = true
                 }
             }
