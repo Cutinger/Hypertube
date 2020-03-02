@@ -127,7 +127,7 @@ const initStreaming = (req, res, magnet) => {
             if (!isStreaming && getExtensions(['mp4', 'avi', 'mkv', 'webm'], file.name)) {
                 isStreaming = true
                 if (getExtensions(['avi', 'mkv'], file.name))
-                    streamConvert(res, file)
+                    streamConvert(res, file, range)
                 else
                     streamMP4(res, engine, file, range)
             }

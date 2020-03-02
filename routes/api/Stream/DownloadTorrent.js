@@ -163,9 +163,9 @@ const printYTS = async (baseURL, req, res, quality) => {
 const getDataMovie = (req, res) => {
     const paramStream = req.params.stream
     const quality     = req.params.quality + 'p'
-    var imdbcode = req.params.imdbcode
+    var imdbcode      = req.params.imdbcode
     if (paramStream == 'yts') {
-        printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbid}`, req, res, quality)
+        printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbcode}`, req, res, quality)
     } else if (paramStream == '1377') {
         printLeet(req, res, quality, imdbcode)
     } else {
