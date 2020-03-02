@@ -86,7 +86,6 @@ const leetSearch = async (movieTitle) => {
     var hd = false
     var arr = {}
     var magnet = undefined
-    var i
     return xtorrent
         .search({
             query: movieTitle,

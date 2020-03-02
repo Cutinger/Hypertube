@@ -124,7 +124,7 @@ const initStreaming = (req, res, magnet) => {
 
         console.log('Engine is ready')
         engine.files.forEach((file) => {
-            if (!isStreaming && getExtensions(['mp4', 'avi', 'mkv'], file.name)) {
+            if (!isStreaming && getExtensions(['mp4', 'avi', 'mkv', 'webm'], file.name)) {
                 isStreaming = true
                 if (getExtensions(['avi', 'mkv'], file.name))
                     streamConvert(res, file)

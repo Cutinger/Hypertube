@@ -34,7 +34,7 @@ app.use(passport.initialize());;
 // UsersRoute
 app.use ("/api/users", users);
 // Stream routes
-app.get('/api/movies/:stream/:quality/:imdbid', (req, res) => { stream.getDataMovie(req, res) })
+app.get('/api/movies/:stream/:quality/:imdbcode', (req, res) => { stream.getDataMovie(req, res) })
 // Catch Movies route
 app.get('/api/movies/:id', (req, res) => { moviesData.parseData(req.params.id, res) })
 

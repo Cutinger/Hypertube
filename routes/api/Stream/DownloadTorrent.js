@@ -114,22 +114,19 @@ const addMovietoDatabase = async (movie) => {
     } catch (err) { console.log(err) }
 } */
 
-const printLeet = async (req, res, quality) => {
+const printLeet = async (req, res, quality, imdbcode) => {
     try {
-        var urlID = `https://api.themoviedb.org/3/find/tt2140203?api_key=${apiKey}&external_source=imdb_id`
+        var urlID = `https://api.themoviedb.org/3/find/${imdbcode}?api_key=${apiKey}&external_source=imdb_id`
         var imdbID = await axiosQuery(urlID, 'imdb_id')
         if ( !imdbID )
-            res.sendStatus(404)
-
+            return res.sendStatus(404)
         var leetInfos = await axiosQuery('http://localhost:5000/api/movies/' + imdbID, 'leet');
         if ( !leetInfos || (quality == '720p' && !leetInfos.magnetHD) || (quality == '1080p' && !leetInfos.magnetFHD) )
-            res.sendStatus(404)
-
+            return res.sendStatus(404)
         if (quality == '720p')
             var magnetLink = leetInfos.magnetHD
         else if (quality == '1080p')
             var magnetLink = leetInfos.magnetFHD
-        
         stream.initStreaming(req, res, magnetLink)
     } catch (err) { return res.sendStatus(203) }
 }
@@ -160,10 +157,11 @@ const printYTS = async (baseURL, req, res, quality) => {
 const getDataMovie = (req, res) => {
     const paramStream = req.params.stream
     const quality     = req.params.quality + 'p'
+    var imdbcode = req.params.imdbcode
     if (paramStream == 'yts') {
         printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbid}`, req, res, quality)
     } else if (paramStream == '1377') {
-        printLeet(req, res, quality)
+        printLeet(req, res, quality, imdbcode)
     } else {
         return res.sendStatus(404)
     }
