@@ -114,6 +114,14 @@ const addMovietoDatabase = async (movie) => {
     } catch (err) { console.log(err) }
 } */
 
+const checkQuality1377 = (leetinfos, quality) => {
+    for (let index = 0; index < leetinfos.length; index++) {
+        if (quality == leetinfos[index].quality)
+            return index
+    }
+    return false
+}
+
 const printLeet = async (req, res, quality, imdbcode) => {
     try {
         var urlID = `https://api.themoviedb.org/3/find/${imdbcode}?api_key=${apiKey}&external_source=imdb_id`
@@ -121,12 +129,10 @@ const printLeet = async (req, res, quality, imdbcode) => {
         if ( !imdbID )
             return res.sendStatus(404)
         var leetInfos = await axiosQuery('http://localhost:5000/api/movies/' + imdbID, 'leet');
-        if ( !leetInfos || (quality == '720p' && !leetInfos.magnetHD) || (quality == '1080p' && !leetInfos.magnetFHD) )
+        var quality = checkQuality1377(leetInfos, quality)
+        if ( !leetInfos || quality === false)
             return res.sendStatus(404)
-        if (quality == '720p')
-            var magnetLink = leetInfos.magnetHD
-        else if (quality == '1080p')
-            var magnetLink = leetInfos.magnetFHD
+        var magnetLink = leetInfos[quality].magnet
         stream.initStreaming(req, res, magnetLink)
     } catch (err) { return res.sendStatus(203) }
 }
