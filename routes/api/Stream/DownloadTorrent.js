@@ -4,9 +4,6 @@ const scrapTorrent  = require('../MovieInfos/MoviesInfos.js')
 
 const apiKey    = 'f29f2233f1aa782b0f0dc8d6d9493c64'
 
-/* const db            = require('../schemas/db.js')  /* A exporter dans la page du film */
-/* const schema        = require('../schemas/MovieSchema.js') /* A exporter dans la page du film */
-
 const udpYTS = [
     'udp://open.demonii.com:1337/announce',
     'udp://tracker.openbittorrent.com:80',
@@ -18,7 +15,7 @@ const udpYTS = [
     'udp://tracker.leechers-paradise.org:6969'
 ]
 
-const axiosQuery = async (baseURL, type) => {
+async function axiosQuery(baseURL, type) {
     try {
         const instance = axios.create({
             baseURL: baseURL,
@@ -35,7 +32,7 @@ const axiosQuery = async (baseURL, type) => {
                     return res.data.movie_results[0].id
                 case 'leet':     
                     if (res.data.inLeet == 'yes')
-                        return res.data.leetInfo
+                        return res.data
                     return null
                 case 'yts':
                     if (res.data.data.movies == undefined)
@@ -49,70 +46,8 @@ const axiosQuery = async (baseURL, type) => {
 }
 
 const URLmagnetYTS = (hash, title) => {
-    console.log(udpYTS.join('&tr='));
     return `magnet:?xt=urn:btih:${hash}&dn=${encodeURIComponent(title)}&tr=${udpYTS.join('&tr=')}`
 }
-
-
-/////////////////////////////////////////
-/////////////////////////////////////////
-/*                                     */
-/* /!\ A mettre dans la page du film,  */
-/*  si je les laisse ici, tu auras     */
-/*  une vue à chaque fois que le       */
-/*  header de la page se rafraichit /!\*/
-/*                                     */
-/////////////////////////////////////////
-/////////////////////////////////////////
-
-/* const getFrenchInfos = async (baseURL) => {
-    try {
-        const instance = axios.create({
-            baseURL: baseURL,
-            headers: {  'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
-                        'X-Requested-With': 'XMLHttpRequest' }
-            });
-        return instance.get()
-        .then((res => {
-            if (res.data == undefined)
-                return null
-            return res.data
-        }))
-    } catch (error) { console.error(error) }
-}
-
-const addMovietoDatabase = async (movie) => {
-    try {
-        var apikey = 'f29f2233f1aa782b0f0dc8d6d9493c64'
-        var frenchMovie = await getFrenchInfos('https://api.themoviedb.org/3/movie/' + movie.imdb_code + '?api_key=' + apikey + '&language=fr')
-
-        var addMovie = new Movie({
-            imdbid:   movie.imdb_code,
-            title:    [ movie.title_long, frenchMovie.title ],
-            overview: [ movie.summary, frenchMovie.overview ],
-            rating:   frenchMovie.vote_average,
-            poster:   [ movie.large_cover_image, frenchMovie.poster_path ],
-            productionYear: movie.year,
-            genres: movie.genres
-        })
-        Movie.findOne({ imdbid: movie.imdb_code }, (err, data) => {
-            if (data) {
-                data.views += 1
-                data.save( (err) => {
-                    if (err)
-                        console.log('cannot update the view, error: ' + err)
-                    else
-                        console.log('views updated: ' + parseInt(data.views + 1) + ' total views for ' + movie.imdb_code)
-                })
-            } else {
-                addMovie.save( (err) => {
-                    console.log(err)
-                })
-            }
-        })
-    } catch (err) { console.log(err) }
-} */
 
 const checkQuality1377 = (leetinfos, quality) => {
     for (let index = 0; index < leetinfos.length; index++) {
@@ -128,19 +63,18 @@ const printLeet = async (req, res, quality, imdbcode) => {
         var imdbID = await axiosQuery(urlID, 'imdb_id')
         if ( !imdbID )
             return res.sendStatus(404)
-        var leetInfos = await axiosQuery('http://localhost:5000/api/movies/' + imdbID, 'leet');
-        var quality = checkQuality1377(leetInfos, quality)
-        if ( !leetInfos || quality === false)
+        var restReq = await axiosQuery('http://localhost:5000/api/movies/' + imdbID, 'leet');
+        var quality = checkQuality1377(restReq.leetInfo, quality)
+        if ( !restReq || quality === false)
             return res.sendStatus(404)
-        var magnetLink = leetInfos[quality].magnet
-        stream.initStreaming(req, res, magnetLink)
+        var magnetLink = restReq.leetInfo[quality].magnet
+        stream.initStreaming(req, res, magnetLink, restReq)
     } catch (err) { return res.sendStatus(203) }
 }
 
 const printYTS = async (baseURL, req, res, quality) => {
     try {
         var movie = await axiosQuery(baseURL, 'yts');
-        console.log(movie);
         if (movie != null) {
             var correctQuality = false
             for (var index = 0; index < movie.torrents.length; index++) {
@@ -153,7 +87,7 @@ const printYTS = async (baseURL, req, res, quality) => {
                res.sendStatus(404);
             /* await addMovietoDatabase(movie) <----- Voir le commentaire plus haut */
             var magnet = URLmagnetYTS(movie.torrents[index].hash, movie.title_long)
-            stream.initStreaming(req, res, magnet)
+            stream.initStreaming(req, res, magnet, movie)
         }
         else
             return res.sendStatus(404)
@@ -173,4 +107,4 @@ const getDataMovie = (req, res) => {
     }
 }
 
-module.exports = { getDataMovie }
+module.exports = { getDataMovie, axiosQuery }
