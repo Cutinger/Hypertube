@@ -13,7 +13,7 @@ function App() {
 
   return (
     <div>
-      <Route component={Menu} />
+      <Route component={Menu}/>
       <Switch>
         <Route exact path="/movie/:movieId" component={(props) => {return <MovieCard {...props} movieDetails={movieDetails}/>}}/>
         <Route exact path="/" component={() => <Home setMovieDetails={setMovieDetails}/>} />

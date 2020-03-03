@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import { Grow, Container, Paper, Grid, CircularProgress, Backdrop, Fab, useScrollTrigger, Zoom } from '@material-ui/core';
+import { makeStyles, useTheme, withStyles } from '@material-ui/core/styles';
+import {
+    Grow,
+    Container,
+    Paper,
+    Grid,
+    CircularProgress,
+    Backdrop,
+    Fab,
+    useScrollTrigger,
+    Zoom,
+    Typography
+} from '@material-ui/core';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
 import AddCircle from '@material-ui/icons/AddCircle';
@@ -8,6 +19,12 @@ import StarRatings from 'react-star-ratings';
 import { withRouter } from 'react-router-dom';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroller';
+import Drawer from '@material-ui/core/Drawer';
+import Divider from '@material-ui/core/Divider';
+import IconButton from '@material-ui/core/IconButton';
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import Slider from '@material-ui/core/Slider';
 
 
 const useStyles = makeStyles(theme => ({
@@ -193,8 +210,46 @@ const useStyles = makeStyles(theme => ({
             opacity: '1',
             transform: 'scale(1.05)'
         }
+    },
+    drawerPaper:{
+        background: 'linear-gradient(-333deg, rgba(32, 122, 244, 0.8) -39%, #0b1123, #0b1123 70%, rgba(240, 38, 120, 0.8) 223% ) !important'
+    },
+    sidebarHomeContainer: {
+        width: '15em',
+        padding: '1.5em'
     }
 }));
+
+
+const PrettoSlider = withStyles({
+    root: {
+        color: '#52af77',
+        height: 8,
+    },
+    thumb: {
+        height: 24,
+        width: 24,
+        backgroundColor: '#fff',
+        border: '2px solid currentColor',
+        marginTop: -8,
+        marginLeft: -12,
+        '&:focus,&:hover,&$active': {
+            boxShadow: 'inherit',
+        },
+    },
+    active: {},
+    valueLabel: {
+        left: 'calc(-50% + 4px)',
+    },
+    track: {
+        height: 8,
+        borderRadius: 4,
+    },
+    rail: {
+        height: 8,
+        borderRadius: 4,
+    },
+})(Slider);
 
 
 export default withRouter(function Home(props) {
@@ -207,7 +262,15 @@ export default withRouter(function Home(props) {
     // Infinite Scroll
     const [loadMovies, setLoadMovies] = useState(false);
     const [hasMoreContent, setHasMoreContent] = useState(true);
+    const [open, setOpen] = React.useState(true);
+    const theme = useTheme();
+    const handleDrawerOpen = () => {
+        setOpen(true);
+    };
 
+    const handleDrawerClose = () => {
+        setOpen(false);
+    };
     // Scroll options
     const trigger = useScrollTrigger({
         disableHysteresis: true,
@@ -298,7 +361,7 @@ export default withRouter(function Home(props) {
         return (() => {
             _mounted = false;
         })
-    }, [loadMovies, hasMoreContent]);
+    }, [loadMovies, hasMoreContent, topMoviesList]);
 
     // Handle function when scroll is on bottom
     const handleSetLoadMovies = () => {
@@ -307,8 +370,33 @@ export default withRouter(function Home(props) {
        }
     };
 
+    const Sidebar = () => {
+        return (
+        <Drawer
+            variant="persistent"
+            anchor="left"
+            open={open}
+            classes={{
+                paper: classes.drawerPaper,
+            }}
+            onClose={handleDrawerClose}
+        >
+            <div className={classes.drawerHeader}>
+                <IconButton onClick={handleDrawerClose}>
+                    {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+                </IconButton>
+            </div>
+            <Divider />
+            <div className={classes.sidebarHomeContainer}>
+                <Typography gutterBottom>Year</Typography>
+                <PrettoSlider valueLabelDisplay="auto" aria-label="pretto slider" defaultValue={20} />
+            </div>
+        </Drawer>)
+    }
+
     return (
         <Container className={classes.home} component="main">
+
             {/* Loader */}
             <Backdrop className={classes.backdrop} open={!topMoviesList ? true : false} >
                 <CircularProgress color="inherit" />
@@ -321,7 +409,7 @@ export default withRouter(function Home(props) {
                     </Fab>
                 </div>
             </Zoom>
-            {/* Main div */}
+            {Sidebar()}
             <div className={classes.containerGridTopMovie}>
                 <Grid direction="row" alignItems="flex-start" justify="center" container className={classes.root} spacing={2}>
                     {topMoviesList && topMoviesList.map((obj, key) => {

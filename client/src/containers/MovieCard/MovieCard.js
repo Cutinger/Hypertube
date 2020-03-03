@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {Container, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText } from '@material-ui/core';
+import {Container, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText} from '@material-ui/core';
 import StarRatings from 'react-star-ratings';
 import axios from 'axios';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
@@ -181,7 +181,6 @@ export default function MovieCard(props){
     const [movieSrc, setMovieSrc] = useState(null);
 
 
-
     // On mount (when props are received or when the page with /movie/:id is loaded
     useEffect(()=> {
         let _mounted = true;
@@ -262,6 +261,7 @@ export default function MovieCard(props){
             });
         return null;
     };
+
 
     if (movieDetails) {
         const poster = movieDetails.poster_path ? `https://image.tmdb.org/t/p/w185${movieDetails.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png';
