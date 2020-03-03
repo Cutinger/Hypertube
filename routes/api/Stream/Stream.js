@@ -180,7 +180,7 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB) => {
         engine.files.forEach((file) => {
             if (!isStreaming && getExtensions(['mp4', 'avi', 'mkv', 'webm'], file.name)) {
                 isStreaming = true
-                moviePath = engine.path + file.path
+                moviePath = path + '/' + file.path
                 if (movieDB) {
                     for (let index = 0; index < movieDB.path.length; index++) {
                         if (movieDB.path[index].path == moviePath) {
@@ -189,7 +189,7 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB) => {
                             if (getExtensions(['avi', 'mkv'], file.name))
                                 streamConvert(res, moviePath, range)
                             else
-                                streamMP4(res, moviePath, range)
+                                streamMP4(res, moviePath, range, true)
                             engine.remove(true, () => { console.log('Engine removed') } )
                             engine.destroy()
                             filexists = true
