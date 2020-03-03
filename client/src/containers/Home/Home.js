@@ -7,6 +7,8 @@ import AddCircle from '@material-ui/icons/AddCircle';
 import StarRatings from 'react-star-ratings';
 import { withRouter } from 'react-router-dom';
 import axios from 'axios';
+import InfiniteScroll from 'react-infinite-scroller';
+
 
 const useStyles = makeStyles(theme => ({
     movieCover: {
@@ -34,8 +36,8 @@ const useStyles = makeStyles(theme => ({
         background: 'transparent'
     },
     movieCoverContainer: {
-        width: '190px',
-        height: '280px',
+        width: '100%',
+        height: '100%',
         position: 'relative',
         display: 'inline-block',
         overflow: 'hidden',
@@ -57,6 +59,8 @@ const useStyles = makeStyles(theme => ({
         background: 'transparent !important'
     },
     paper: {
+        width: '190px !important',
+        height: '280px !important',
         margin: theme.spacing(1),
     },
     backdrop: {
@@ -200,13 +204,63 @@ export default withRouter(function Home(props) {
     const [moviesGenres, setMoviesGenres] = useState(false);
     const [activeTextAutoScroll, setActiveTextAutoScroll] = useState(false);
 
+    // Infinite Scroll
+    const [loadMovies, setLoadMovies] = useState(false);
+    const [hasMoreContent, setHasMoreContent] = useState(true);
+
+    // Scroll options
+    const trigger = useScrollTrigger({
+        disableHysteresis: true,
+        threshold: 200,
+    });
+    // Scroll handleClick
+    const handleClick = event => {
+        const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
+        anchor && anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+
+    // Movie focus
+    const handleMouseEnterMovie = (key) => { setMovieFocus(key) };
+    const handleMouseLeaveMovie = () => { setMovieFocus(false) };
+    // Ref callback, when text overview is loaded, then check if he his too height (then set animation)
+    const refText = useCallback(node => {
+        if (node !== null) {
+            if(node.clientHeight < node.scrollHeight)
+                setActiveTextAutoScroll(false);
+            else
+                setActiveTextAutoScroll(true);
+        }
+    }, []);
+    // Movies genres generator
+    const genMovieGenres = (obj) => {
+        if(moviesGenres && moviesGenres.length)
+            return moviesGenres.map((genre) => {
+                if (obj.genre_ids && Object.keys(obj.genre_ids.length))
+                    return Object.keys(obj.genre_ids).map((genreO, key) => {
+                        if (obj.genre_ids[key] === genre.id)
+                            return key < 4 ?
+                                <Grid key={key} className={classes.moviesGenres} item>
+                                    <span >{genre.name}</span>
+                                </Grid> : null;
+                        return null
+                    });
+                return null
+            });
+        return null;
+    };
+
+    // First load (top movies)
+    // Load first page of top 20 movies - Load genres IDs with Name
     useEffect(() => {
         let _mounted = true;
         async function getTopMoviesList() {
             axios.get('https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=1')
             .then(res => {
-                if (res.data && res.data.results && res.data.results.length)
+                if (res.data && res.data.results && res.data.results.length) {
                     _mounted && setTopMoviesList(res.data.results)
+                    setHasMoreContent(1);
+                }
             })
         }
         async function getMoviesGenres() {
@@ -223,55 +277,43 @@ export default withRouter(function Home(props) {
         }
     }, []);
 
-    // Ref callback, when text overview is loaded, then check if he his too height (then set animation)
-    const refText = useCallback(node => {
-        if (node !== null) {
-            if(node.clientHeight < node.scrollHeight)
-                setActiveTextAutoScroll(false);
-            else
-                setActiveTextAutoScroll(true);
+    // Infinite scroll for top movies
+    useEffect(() => {
+        let _mounted = true;
+        function loadMore() {
+            let page = hasMoreContent + 1;
+            axios.get(`https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=${page}`)
+                .then(res => {
+                    if (res.data && res.data.results && res.data.results.length) {
+                        let currentTab = topMoviesList;
+                        let newTab = res.data.results;
+                        _mounted && setTopMoviesList([].concat(currentTab, newTab));
+                        setLoadMovies(false);
+                        setHasMoreContent(page);
+                    }
+                })
         }
-      }, []);
+        if (_mounted && loadMovies)
+            loadMore();
+        return (() => {
+            _mounted = false;
+        })
+    }, [loadMovies, hasMoreContent]);
 
-    // Movie focus
-    const handleMouseEnterMovie = (key) => { setMovieFocus(key) };
-    const handleMouseLeaveMovie = () => { setMovieFocus(false) };
-
-    // Scroll options
-    const trigger = useScrollTrigger({
-        disableHysteresis: true,
-        threshold: 200,
-    });
-
-    const handleClick = event => {
-        const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
-        anchor && anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
+    // Handle function when scroll is on bottom
+    const handleSetLoadMovies = () => {
+       if (topMoviesList && topMoviesList.length) {
+           setLoadMovies(true);
+       }
     };
-
-    // Movies genres generator
-    const genMovieGenres = (obj) => {
-        if(moviesGenres && moviesGenres.length)
-            return moviesGenres.map((genre) => {
-                if (obj.genre_ids && Object.keys(obj.genre_ids.length))
-                    return Object.keys(obj.genre_ids).map((genreO, key) => {
-                            if (obj.genre_ids[key] === genre.id)
-                                return key < 4 ?
-                                    <Grid key={key} className={classes.moviesGenres} item>
-                                        <span >{genre.name}</span>
-                                    </Grid> : null
-                            return null
-                        })
-                return null
-            })
-        return null;
-    }
 
     return (
         <Container className={classes.home} component="main">
+            {/* Loader */}
             <Backdrop className={classes.backdrop} open={!topMoviesList ? true : false} >
                 <CircularProgress color="inherit" />
             </Backdrop>
+            {/* Scroll to top*/}
             <Zoom in={trigger}>
                 <div onClick={handleClick} role="presentation" className={classes.rootScroll}>
                     <Fab color="secondary" size="small" aria-label="scroll back to top">
@@ -279,22 +321,16 @@ export default withRouter(function Home(props) {
                     </Fab>
                 </div>
             </Zoom>
+            {/* Main div */}
             <div className={classes.containerGridTopMovie}>
                 <Grid direction="row" alignItems="flex-start" justify="center" container className={classes.root} spacing={2}>
                     {topMoviesList && topMoviesList.map((obj, key) => {
-                        const timeout = "00";
-                        const valueTimeout = key.toString();
                         return (
                             <Grid key={key} id={key === 1 ? "back-to-top-anchor" : null} item>
-                                <Grow 
-                                    in={true}
-                                    style={key > 1 ? { transformOrigin: '0 0 0' } : {}} 
-                                    {...({ timeout: parseInt(valueTimeout.concat(timeout)) })}
-                                    className={classes.growContainer} 
-                                >
+                                <Grow in={true} className={classes.growContainer}>
+                                    {/* Movie Card Item*/}
                                     <Paper elevation={5} className={classes.paper}>
                                         {movieFocus !== key ?
-                                            // MOVIE CARD
                                             <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} onMouseEnter={() => handleMouseEnterMovie(key) }>
                                                 <img
                                                     src={obj.poster_path ? `https://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
@@ -302,8 +338,8 @@ export default withRouter(function Home(props) {
                                                     className={classes.movieCover}
                                                 />
                                             </div> :
-                                            // FOCUS MOVIE CARD
                                             <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} >
+                                                {/* Movie Card Focus */}
                                                 <img
                                                     src={obj.poster_path ? `https://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
                                                     alt={obj.title}
@@ -363,6 +399,12 @@ export default withRouter(function Home(props) {
                             </Grid>
                         )
                     })}
+                    {/* Infinite Scroll*/}
+                    <InfiniteScroll
+                        pageStart={0}
+                        loadMore={handleSetLoadMovies}
+                        hasMore={Boolean(hasMoreContent)}
+                    > </InfiniteScroll>
                 </Grid>
             </div>
         </Container>

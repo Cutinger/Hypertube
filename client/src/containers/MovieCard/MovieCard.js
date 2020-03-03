@@ -187,7 +187,7 @@ export default function MovieCard(props){
         let _mounted = true;
         _mounted && setLoadingSources(true);
         // Get movie infos (vote, title, overview, poster...)
-        async function setMovieDetail() {
+        function setMovieDetail() {
             let data = null;
             axios.get(`https://api.themoviedb.org/3/movie/${props.movieDetails ? props.movieDetails.id : props.match.params.movieId}?api_key=c91b62254304ec5dbb322351b0dc1094`)
                 .then(res => {
@@ -197,7 +197,7 @@ export default function MovieCard(props){
                 });
         }
         // Get infos about movie (if available on yts, 1337...)
-        async function getMovieSources() {
+        function getMovieSources() {
             API.getMovieSources(props.movieDetails ? props.movieDetails.id : props.match.params.movieId)
                 .then(res => {
                     if (res.status === 200) {
@@ -353,7 +353,7 @@ export default function MovieCard(props){
                     </Container>
                     {
                         movieSrc ?
-                        <Container style={{padding: '0', marginTop: '2.5em'}}>
+                        <Container style={{padding: '0', marginTop: '2.5em', userSelect: 'false'}}>
                             <Grid container>
                                 <Grid item xs={12}>
                                     <div className={classes.player}>
