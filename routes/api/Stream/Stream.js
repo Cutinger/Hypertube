@@ -103,15 +103,26 @@ function checkTorrentStatus(engine, magnet, moviePath, movieInfos, req) {
     })
 }
 
-const streamConvert = (res, file, range) => {
+const streamConvert = (res, file, range, filexists = false) => {
+
+    if (filexists) {
+        var length = fs.statSync(file).size;
+        var fileSize = length
+        var fileLength = fileSize - 1
+    } else {
+        var fileLength = file.length - 1
+    }
 
     var parts = range ? range.replace(/bytes=/, '').split('-') : null
     var start = parts ? parseInt(parts[0], 10) : 0
-    var end = parts && parts[1] ? parseInt(parts[1], 10) : file.length - 1
+    var end = parts && parts[1] ? parseInt(parts[1], 10) : fileLength
 
-    const stream = file.createReadStream()
+    const stream = filexists ? fs.createReadStream(file, {start, end}) : file.createReadStream({ start, end })
 
-    var lengthFile = parseInt(end - start) + 1
+    if (!filexists) {
+        var length = parseInt(end - start) + 1
+        var fileSize = file.length
+    }
 
     const conversionStream = ffmpeg(stream)
         .on('error', function(err) {
@@ -123,8 +134,8 @@ const streamConvert = (res, file, range) => {
     res.writeHead(206, {
         'Accept-Ranges': 'bytes',
         'Cache-Control': 'no-cache, no-store',
-        'Content-Range': `bytes ${start}-${end}/${file.length}`,
-        'Content-Length': lengthFile,
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Content-Length': length,
         'Content-Type': 'video/webm'
     })
 
@@ -228,12 +239,16 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
 
     Movie.findOne({ imdb_code: imdb }, (err, data) => {
         if (data) {
+            data.views += 1
             for (let index = 0; index < data.downloaded.length; index++) {
                 var dbIndex = JSON.stringify(data.downloaded[index])
                 if (dbIndex === actualRequest) {
                     console.log('- MOVIE IN DB AND DOWNLOADED! Streaming can start :) -')
                     const { range } = req.headers
-                    streamMP4(res, getPathByMagnet(data.downloaded[index].magnet, data), range, true)
+                    if (getExtensions(['avi', 'mkv'], getPathByMagnet(data.downloaded[index].magnet, data)))
+                        streamConvert(res, getPathByMagnet(data.downloaded[index].magnet, data), range, true)
+                    else
+                        streamMP4(res, getPathByMagnet(data.downloaded[index].magnet, data), range, true)
                     streaming = true
                     break ;
                 } else if (dbIndex === notDownloaded && !streaming) {
@@ -245,7 +260,7 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
             }
             if (data.downloaded.length > 0 && !streaming) {
                 console.log('- Movie is in the DB, but have no entries for this quality / stream provenance -')
-                data.downloaded.push(notDownloaded)
+                data.downloaded.push(JSON.parse(notDownloaded))
                 data.save( (err) => { console.log(err) })
                 downloadTorrent(req, res, magnet, movieInfos, data, true, true)
                 return ;
@@ -253,7 +268,7 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
         } else {
             console.log('Movie not found in the DB. Download is starting')
             downloadTorrent(req, res, magnet, movieInfos, data, false)
-        }
+        } if (err) { console.log(err) }
     })
 }
 
