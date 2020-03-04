@@ -1,4 +1,4 @@
-export const genToken = payload => {
+const genToken = payload => {
     jwt.sign(payload, keys.secretOrKey, { 
         expiresIn: 3600 
     }, (err, token) => {
@@ -8,3 +8,5 @@ export const genToken = payload => {
         }
     );
 }
+
+module.exports = genToken;

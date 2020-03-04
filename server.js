@@ -9,6 +9,7 @@ const moviesData = require('./routes/api/MovieInfos/MoviesInfos.js');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const db = require("./config/keys").mongoURI;
+const auth = require("./routes/api/auth");
 require("./config/passport")(passport);
 
 app.use(helmet());
@@ -33,6 +34,8 @@ app.use(passport.initialize());;
 
 // UsersRoute
 app.use ("/api/users", users);
+// OauthRoute
+app.use ("/api/auth", auth);
 // Stream routes
 app.get('/api/movies/:stream/:quality/:imdbcode', (req, res) => { stream.getDataMovie(req, res) })
 // Catch Movies route
