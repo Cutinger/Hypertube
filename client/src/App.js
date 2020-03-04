@@ -28,7 +28,7 @@ export default function App(props) {
         <Route exact path="/movie/:movieId" component={(matchProps) => <MovieCard {...props} {...matchProps} movieDetails={movieDetails}/>} />
         <Route exact path="/" render={() => <Home  history={history} {...props} ref={homeRef} setSidebar={handleActiveSidebar} setMovieDetails={setMovieDetails}/> } />
         <Route exact path="/login" component={Login}/>
-        <Route exact path="/signup" component={Signup}/>
+        <Route exact path="/signup" render={() => <Signup {...props} history={history} />}/>
         <Route exact path="/forgot" component={Forgot}/>
         <Redirect from="*" to=""/>
       </Switch>

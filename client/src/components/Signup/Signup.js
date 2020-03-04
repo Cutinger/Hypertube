@@ -214,6 +214,20 @@ const useStyles = makeStyles(theme => ({
         }
     }
     
+    // HandleFacebookConnection
+    const handleFacebookConnection = () => {
+        API.facebookAuth()
+            .then(res => {
+                if (res.status === 200)
+                    props.history.push('/home')
+                else
+                    console.log(['Res error', res]);
+            })
+            .catch(err => {
+                console.log(['Catch error', err]);
+            })
+    }
+
     return (
         <div className={classes.loginContainer}>
             <Grow in={mounted}>
@@ -376,11 +390,13 @@ const useStyles = makeStyles(theme => ({
                                     className={classes.button42}>
                                     Auth
                                 </Button>
-                                <Button 
+                                <Button
+                                    onClick={handleFacebookConnection}
                                     startIcon={<FacebookIcon />} 
                                     className={classes.buttonFacebook}>
                                     Facebook
                                 </Button>
+                                <a href="http://localhost:5000/api/auth/facebook" target="_blank">test</a> 
                             </ButtonGroup>
                             <Grid container justify="flex-end">
                                 <Grid item>
