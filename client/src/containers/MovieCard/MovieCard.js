@@ -188,7 +188,7 @@ export default function MovieCard(props){
         // Get movie infos (vote, title, overview, poster...)
         function setMovieDetail() {
             let data = null;
-            axios.get(`https://api.themoviedb.org/3/movie/${props.movieDetails ? props.movieDetails.id : props.match.params.movieId}?api_key=c91b62254304ec5dbb322351b0dc1094`)
+            axios.get(`https://api.themoviedb.org/3/movie/${props.match.params.movieId}?api_key=c91b62254304ec5dbb322351b0dc1094`)
                 .then(res => {
                     if (res.data)
                         data = res.data;
@@ -197,10 +197,9 @@ export default function MovieCard(props){
         }
         // Get infos about movie (if available on yts, 1337...)
         function getMovieSources() {
-            API.getMovieSources(props.movieDetails ? props.movieDetails.id : props.match.params.movieId)
+            API.getMovieSources(props.match.params.movieId)
                 .then(res => {
                     if (res.status === 200) {
-                        console.log(res.data)
                         if (res.data && (res.data.inYTS === "yes" || res.data.inLeet === "yes")) {
                             _mounted && setMovieSources(res.data)
                             _mounted && setLoadingSources(false);
@@ -218,7 +217,7 @@ export default function MovieCard(props){
         return () => {
             _mounted = false;
         };
-    }, [props.movieDetails, props.match.params.movieId]);
+    }, [props.match.params.movieId]);
 
 
     const sourceMessage = () => {

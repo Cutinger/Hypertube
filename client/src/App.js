@@ -1,22 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 import Login from './components/Login/Login';
 import Signup from './components/Signup/Signup';
 import Forgot from './components/ForgotPassword/ForgotPassword';
 import Menu from './components/Menu/Menu';
 import Home from './containers/Home/Home';
 import MovieCard from './containers/MovieCard/MovieCard';
-import { Route, Switch, Redirect } from 'react-router-dom';
+import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
 
-function App() {
+export default function App(props) {
 
   const [movieDetails, setMovieDetails] = useState(null);
+  const homeRef = React.useRef();
+  const history = useHistory();
+
+
+  const handleActiveSidebar = (bool) => {
+    if (history && history.location.pathname === '/'){
+      homeRef.current && homeRef.current.setSidebar(bool);  
+    }
+  }
 
   return (
     <div>
-      <Route component={Menu}/>
+      <Route component={(matchProps) => <Menu {...matchProps} {...props} setSidebar={handleActiveSidebar}/>}/>
+  
       <Switch>
-        <Route exact path="/movie/:movieId" component={(props) => {return <MovieCard {...props} movieDetails={movieDetails}/>}}/>
-        <Route exact path="/" component={() => <Home setMovieDetails={setMovieDetails}/>} />
+        <Route exact path="/movie/:movieId" component={(matchProps) => <MovieCard {...props} {...matchProps} movieDetails={movieDetails}/>} />
+        <Route exact path="/" render={() => <Home  history={history} {...props} ref={homeRef} setSidebar={handleActiveSidebar} setMovieDetails={setMovieDetails}/> } />
         <Route exact path="/login" component={Login}/>
         <Route exact path="/signup" component={Signup}/>
         <Route exact path="/forgot" component={Forgot}/>
@@ -24,6 +34,4 @@ function App() {
       </Switch>
     </div>
   );
-}
-
-export default App;
+};

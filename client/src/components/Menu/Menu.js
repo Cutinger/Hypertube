@@ -192,6 +192,7 @@ export default function PrimarySearchAppBar(props) {
                     className={classes.menuButton}
                     color="inherit"
                     aria-label="open drawer"
+                    onClick={() => props.setSidebar(true)}
                 >
                     <MenuIcon />
                 </IconButton>
