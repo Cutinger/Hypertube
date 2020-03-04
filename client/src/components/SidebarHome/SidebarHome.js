@@ -130,12 +130,12 @@ function SidebarHome(props) {
     // Handle search submit
         const handleSubmitSearch = () => {
             // Construct request
-            let baseURL= 'https://api.themoviedb.org/3/discover/movie?';
-            let apiKey = 'api_key=f29f2233f1aa782b0f0dc8d6d9493c64';
-            let language = 'language=en-US';
-            let voteFilter = 'vote_average.gte=';
-            let voteAverage = voteValue;
-            let includeAdult = 'include_adult=false'
+            // let baseURL= 'https://api.themoviedb.org/3/discover/movie?';
+            // let apiKey = 'api_key=f29f2233f1aa782b0f0dc8d6d9493c64';
+            // let language = 'language=en-US';
+            // let voteFilter = 'vote_average.gte=';
+            // let voteAverage = voteValue;
+            // let includeAdult = 'include_adult=false'
             let genresTab = null;
             if (genreValues && genreValues.length)
                 genresTab = genreValues.map((obj, i) => {

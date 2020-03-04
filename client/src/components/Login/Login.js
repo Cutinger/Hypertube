@@ -110,7 +110,20 @@ const useStyles = makeStyles(theme => ({
         props.history.push('/forgot'); 
     };
 
-    
+    // HandleFacebookConnection
+    const handleFacebookConnection = () => {
+        API.facebookAuth()
+            .then(res => {
+                if (res.status === 200)
+                    props.history.push('/home')
+                else
+                    console.log(['Res error', res]);
+            })
+            .catch(err => {
+                console.log(['Catch error', err]);
+            })
+    }
+
     // Warnings after validation
     const [validationErrors, setValidationErrors] = React.useState({ err_username: false, err_password: false });
     // State input TextFields
@@ -217,6 +230,7 @@ const useStyles = makeStyles(theme => ({
                                 <Button 
                                     startIcon={<FacebookIcon />} 
                                     className={classes.buttonFacebook}>
+                                    onClick={handleFacebookConnection}
                                     Facebook
                                 </Button>
                             </ButtonGroup>

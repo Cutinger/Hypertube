@@ -58,5 +58,15 @@ export default {
                 headers: headers,
             }
         )
+    },
+    facebookAuth: () => {
+        return axios.get(
+            `${burl}/auth/facebook`,
+            {},
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
     }
 }

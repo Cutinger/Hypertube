@@ -11,30 +11,8 @@ import {
     Backdrop,
     Fab,
     useScrollTrigger,
-<<<<<<< HEAD
     Zoom
 } from '@material-ui/core'
-=======
-    Zoom,
-    Typography,
-    TextField,
-    Button
-} from '@material-ui/core';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
-import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
-import AddCircle from '@material-ui/icons/AddCircle';
-import StarRatings from 'react-star-ratings';
-import { withRouter } from 'react-router-dom';
-import axios from 'axios';
-import InfiniteScroll from 'react-infinite-scroller';
-import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import Slider from '@material-ui/core/Slider';
-import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
->>>>>>> c5f7585a6334dd8d8b38e5ba015ca2a25803e129
 
 
 const useStyles = makeStyles(theme => ({
