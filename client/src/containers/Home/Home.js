@@ -11,7 +11,8 @@ import {
     useScrollTrigger,
     Zoom,
     Typography,
-    TextField
+    TextField,
+    Button
 } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
@@ -27,6 +28,7 @@ import IconButton from '@material-ui/core/IconButton';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Slider from '@material-ui/core/Slider';
+import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
 
 
 const useStyles = makeStyles(theme => ({
@@ -214,7 +216,14 @@ const useStyles = makeStyles(theme => ({
         }
     },
     drawerPaper:{
-        background: 'linear-gradient(-333deg, rgba(32, 122, 244, 0.8) -39%, #0b1123, #0b1123 70%, rgba(240, 38, 120, 0.8) 223% ) !important'
+        background: 'linear-gradient(-333deg, rgba(32, 122, 244, 0.8) -39%, #0b1123, #0b1123 70%, rgba(240, 38, 120, 0.8) 223% ) !important',
+        opacity: '0.9',
+        boxShadow: '1px -7px 22px 11px rgba(0,0,0,0.5)'
+    },
+    drawerHeader:{
+        display: 'flex',
+        alignContent: 'end',
+        justifyContent: 'flex-end'
     },
     sidebarHomeContainer: {
         width: '15em',
@@ -234,6 +243,13 @@ const useStyles = makeStyles(theme => ({
         },
         '& .MuiSvgIcon-root': {
             color: 'white'
+        }
+    },
+    buttonSearch: {
+        color: 'white',
+        background: '#3f51b5',
+        '&:hover': {
+            background: '#344594',
         }
     }
 }));
@@ -395,7 +411,7 @@ export default withRouter(function Home(props) {
         const classes = useStyles();
 
         return (
-        <Drawer
+        <SwipeableDrawer
             variant="persistent"
             anchor="left"
             open={open}
@@ -409,7 +425,7 @@ export default withRouter(function Home(props) {
                     {theme.direction === 'ltr' ? <ChevronLeftIcon style={{color: 'white'}} fontSize="large"/> : <ChevronRightIcon />}
                 </IconButton>
             </div>
-            <Divider style={{backgroundColor: 'rgba(63, 80, 181, 0.22)'}}/>
+            <Divider style={{backgroundColor: 'transparent'}}/>
             <div className={classes.sidebarHomeContainer}>
                 <Typography gutterBottom style={{color: 'white'}}>Year</Typography>
                 <PrettoSlider valueLabelDisplay="auto" min={1910} max={2020} defaultValue={2019}/>
@@ -432,8 +448,19 @@ export default withRouter(function Home(props) {
                     />
                     )}
                 />
+                <Grid container alignContent={"center"}>
+                    <Grid item xs={12}>
+                        <Button
+                            variant="contained"
+                            className={classes.buttonSearch}
+                        >
+                            Search
+                        </Button>
+
+                    </Grid>
+                </Grid>
             </div>
-        </Drawer>)
+        </SwipeableDrawer>)
     }
 
     return (
