@@ -6,7 +6,9 @@ const passport = require('passport');
 const FortyTwoStrategy = require('passport-42').Strategy;
 const gitconfig = require("../../config/Oauthgithub");
 const GitHubStrategy = require('passport-github').Strategy;
+const express = require("express");
 const fortytwoconfig = require('../../config/Oauth42');
+const router = express.Router();
 
 // Facebook
 // Connect to facebook app id
@@ -24,7 +26,6 @@ function(profile, done) {
         else {
             // Create user if email is free
             user = new User({
-                username: profile._json.name ? profile._json.name : '',
                 email: profile._json.email,
                 firstname: profile._json.first_name ? profile._json.first_name : '',
                 lastname: profile._json.last_name ? profile._json.last_name : '',
@@ -64,7 +65,6 @@ function(profile, done){
         else {
             // Create user if email is free
             user = new User({
-                username: profile._json.name ? profile._json.name : '',
                 email: profile._json.email ? profile._json.email : '',
                 firstname: '',
                 lastname: '',
@@ -105,7 +105,6 @@ function(profile, done) {
         else {
             // Create user if email is free
             user = new User({
-                username: profile.login ? profile.login : '',
                 email: profile.email ? profile.email : '',
                 firstname: profile.first_name ? profile.first_name : '',
                 lastname: profile.last_name ? profile.last_name : '',
@@ -128,3 +127,5 @@ router.get('/42', passport.authenticate('42'));
 router.get('/42/callback', passport.authenticate('42', (res) => {
     return res.status(404).json({})
 }))
+
+module.exports = router;

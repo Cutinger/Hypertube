@@ -17,7 +17,7 @@ router.post('/logout', withAuth, (req, res) => {
   res.clearCookie('token');
   res.sendStatus(200);
 });
-
+// REGISTER
 router.post("/register", (req, res) => {
   const { errors, isValid } = validateRegisterInput(req.body);
 
@@ -64,7 +64,7 @@ router.post("/register", (req, res) => {
       }
   });
 });
-
+// LOGIN
 // @route POST api/users/login
 // @desc Login user and return JWT token
 router.post("/login", (req, res) => {
