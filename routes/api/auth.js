@@ -36,7 +36,10 @@ function(profile, done) {
             // Sign token and connect user
             user
                 .save()
-                .then(user => res.cookies('token', genToken(user.email), { maxAge: 24 * 60 * 60 * 1000, domain:'localhost', secure: false, sameSite: true, httpOnly: false }))
+                .then(user => {
+                    res.cookies('token', genToken(user.email), { maxAge: 24 * 60 * 60 * 1000, domain:'localhost', secure: false, sameSite: true, httpOnly: false })
+                    return res.status(200).json({})
+                })
                 .catch(err => console.log(err))
                 return done(null, user);
         }
