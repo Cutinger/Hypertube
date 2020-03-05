@@ -52,9 +52,9 @@ const createInstance = async (baseUrl, type) => {
                         imdb_code: res.data.imdb_id,
                         title: res.data.title,
                         original_language: res.data.original_language,
-                        inYTS: 'no',
+                        inYTS: false,
                         ytsInfo: [],
-                        inLeet: 'no',
+                        inLeet: false,
                         leetInfo: []
                     };
                     return data
@@ -64,7 +64,7 @@ const createInstance = async (baseUrl, type) => {
                 }
             }
         }))
-    } catch (err) { console.log(err) }
+    } catch (err) { return null }
 }
 
 const catchQuality = (quality, string) => {
@@ -137,12 +137,12 @@ const parseData = async (idMovie, res) => {
         var baseURL_yts = `https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${dataMovie.imdb_code}`
         var inYTS = await createInstance(baseURL_yts, 'yts')
         if (inYTS != null) {
-            dataMovie.inYTS = 'yes'
+            dataMovie.inYTS = true
             dataMovie.ytsInfo = inYTS.torrents
         }
         var isInLEET = await leetSearch(dataMovie.title)
         if (isInLEET) {
-            dataMovie.inLeet = 'yes'
+            dataMovie.inLeet = true
             dataMovie.leetInfo = isInLEET
         }
         subtitles.getSubtitles(dataMovie.imdb_code)
