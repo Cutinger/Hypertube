@@ -1,5 +1,6 @@
 const axios     = require('axios');
 const xtorrent  = require('xtorrent');
+const subtitles = require('../Stream/Subtitles.js')
 const apiKey    = 'f29f2233f1aa782b0f0dc8d6d9493c64'
 
 /************************************************/
@@ -144,6 +145,7 @@ const parseData = async (idMovie, res) => {
             dataMovie.inLeet = 'yes'
             dataMovie.leetInfo = isInLEET
         }
+        subtitles.getSubtitles(dataMovie.imdb_code)
         res.json(dataMovie);
     } catch (err) { console.log(err) }
 }

@@ -1,6 +1,5 @@
 const axios         = require('axios');
 const stream        = require('./Stream.js')
-const subtitles     = require('./Subtitles.js')
 
 const apiKey    = 'f29f2233f1aa782b0f0dc8d6d9493c64'
 
@@ -30,7 +29,7 @@ async function axiosQuery(baseURL, type) {
                     if (res.data.movie_results[0].id == undefined)
                         return null
                     return res.data.movie_results[0].id
-                case 'leet':     
+                case 'leet':
                     if (res.data.inLeet == 'yes')
                         return res.data
                     return null
@@ -68,7 +67,6 @@ const printLeet = async (req, res, quality, imdbcode) => {
         if ( !restReq || quality === false)
             return res.sendStatus(404)
         var magnetLink = restReq.leetInfo[quality].magnet
-        subtitles.getSubtitles(imdbcode)
         stream.initStreaming(req, res, magnetLink, restReq)
     } catch (err) { return res.sendStatus(203) }
 }
@@ -86,7 +84,6 @@ const printYTS = async (baseURL, req, res, quality, imdbcode) => {
             }
             if (correctQuality == false)
                res.sendStatus(404);
-            subtitles.getSubtitles(imdbcode)
             var magnet = URLmagnetYTS(movie.torrents[index].hash, movie.title_long)
             stream.initStreaming(req, res, magnet, movie)
         }

@@ -231,8 +231,6 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
     console.log('== init streaming ==')
     console.log('== ========================  ==')
 
-    
-
     var actualRequest = JSON.stringify({ type: req.params.stream,
                           magnet: magnet,
                           quality: req.params.quality,
