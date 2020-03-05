@@ -4,8 +4,11 @@ const bodyParser = require('body-parser');
 const passport = require("passport");
 const users = require("./routes/api/users");
 const app = express();
+
 const stream = require('./routes/api/Stream/DownloadTorrent.js');
 const moviesData = require('./routes/api/MovieInfos/MoviesInfos.js');
+const subtitles = require('./routes/api/Stream/Subtitles.js');
+
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const db = require("./config/keys").mongoURI;
@@ -40,6 +43,8 @@ app.use ("/api/auth", auth);
 app.get('/api/movies/:stream/:quality/:imdbcode', (req, res) => { stream.getDataMovie(req, res) })
 // Catch Movies route
 app.get('/api/movies/:id', (req, res) => { moviesData.parseData(req.params.id, res) })
+// Catch Subtitles
+app.get('/api/subtitles/:imdbcode/:lang', (req, res) => { subtitles.readSub(req.params.imdbcode, req.params.lang, res) })
 
 // Connect to server
 const port = process.env.PORT || 5000;

@@ -9,7 +9,18 @@ const OpenSubtitles = new OS({
     password: 'RHPXwqWzYwrEQ2eV'
 });
 
-const dir = 'client/src/assets/subtitles'
+const dir = './files/subtitles'
+
+
+const readSub = (imdcode, lang, res) => {
+    if (!fs.existsSync(`${dir}/${imdcode}/movie_${lang}.vtt`)) { return res.sendStatus(404) }
+    fs.readFile(`${dir}/${imdcode}/movie_${lang}.vtt`, 'utf-8', (err, contents) => {
+        res.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
+        res.write(contents)
+        res.end()
+        if (err) { console.log(err) }
+    })
+}
 
 const convertVTT = (url, dirName, filename, lang) => {
     return new Promise( async (res) => {
@@ -76,4 +87,4 @@ const getSubtitles = (imdb_code) => {
     }
 }
 
-module.exports = { getSubtitles }
+module.exports = { getSubtitles, readSub }
