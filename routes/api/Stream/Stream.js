@@ -22,7 +22,7 @@ function formatBytes(bytes, decimals = 2) {
 
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
 
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -105,6 +105,8 @@ function checkTorrentStatus(engine, magnet, moviePath, movieInfos, req) {
 
 const streamConvert = (res, file, range, filexists = false) => {
 
+    console.log('Start conversion into WEBM')
+
     if (filexists) {
         var length = fs.statSync(file).size;
         var fileSize = length
@@ -143,7 +145,7 @@ const streamConvert = (res, file, range, filexists = false) => {
 
 }
 
-const streamMP4 = (res, file, range, filexists = false) => {
+const streamMP4 = (res, req, engine, file, range, filexists = false) => {
 
     console.log('Start streaming in MP4')
 
@@ -190,6 +192,7 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB) => {
 
         engine.files.forEach((file) => {
             if (!isStreaming && getExtensions(['mp4', 'avi', 'mkv', 'webm'], file.name)) {
+                file.select()
                 isStreaming = true
                 moviePath = path + '/' + file.path
                 if (movieDB) {
@@ -200,7 +203,7 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB) => {
                             if (getExtensions(['avi', 'mkv'], file.name))
                                 streamConvert(res, moviePath, range)
                             else
-                                streamMP4(res, moviePath, range, true)
+                                streamMP4(res, req, engine, moviePath, range, true)
                             engine.remove(true, () => { console.log('Engine removed') } )
                             engine.destroy()
                             filexists = true
@@ -211,7 +214,7 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB) => {
                 if (getExtensions(['avi', 'mkv'], file.name) && !filexists)
                     streamConvert(res, file, range)
                 else if (!filexists)
-                    streamMP4(res, file, range)
+                    streamMP4(res, req, engine, file, range)
             }
         })
     })
@@ -226,6 +229,9 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
     var imdb = req.params.imdbcode
     var streaming = false
     console.log('== init streaming ==')
+    console.log('== ========================  ==')
+
+    
 
     var actualRequest = JSON.stringify({ type: req.params.stream,
                           magnet: magnet,
@@ -239,7 +245,6 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
 
     Movie.findOne({ imdb_code: imdb }, (err, data) => {
         if (data) {
-            data.views += 1
             for (let index = 0; index < data.downloaded.length; index++) {
                 var dbIndex = JSON.stringify(data.downloaded[index])
                 if (dbIndex === actualRequest) {
@@ -248,7 +253,7 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
                     if (getExtensions(['avi', 'mkv'], getPathByMagnet(data.downloaded[index].magnet, data)))
                         streamConvert(res, getPathByMagnet(data.downloaded[index].magnet, data), range, true)
                     else
-                        streamMP4(res, getPathByMagnet(data.downloaded[index].magnet, data), range, true)
+                        streamMP4(res, req, null, getPathByMagnet(data.downloaded[index].magnet, data), range, true)
                     streaming = true
                     break ;
                 } else if (dbIndex === notDownloaded && !streaming) {
