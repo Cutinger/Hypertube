@@ -11,7 +11,6 @@ const OpenSubtitles = new OS({
 
 const dir = './files/subtitles'
 
-
 const readSub = (imdcode, lang, res) => {
     if (!fs.existsSync(`${dir}/${imdcode}/movie_${lang}.vtt`)) { return res.sendStatus(404) }
     fs.readFile(`${dir}/${imdcode}/movie_${lang}.vtt`, 'utf-8', (err, contents) => {
@@ -25,8 +24,7 @@ const readSub = (imdcode, lang, res) => {
 const convertVTT = (url, dirName, filename, lang) => {
     return new Promise( async (res) => {
         try {
-            const data = await download(url, dir)
-
+            const data = await download(url, dir, {filename: filename + '_' + lang})
             if (!fs.existsSync(`${dir}/${dirName}`)) {
                 fs.mkdirSync(`${dir}/${dirName}`)
             }
@@ -36,7 +34,11 @@ const convertVTT = (url, dirName, filename, lang) => {
                 .pipe(strvtt())
                 .pipe(fs.createWriteStream(`${dir}/${dirName}/${filename}_${lang}.vtt`))
 
-            fs.unlink(`${dir}/${dirName}/${filename}`, () => {
+            fs.unlink(`${dir}/${dirName}/${filename}`, (err) => {
+                if (err) throw err
+            })
+
+            fs.unlink(`${dir}/${filename}_${lang}`, () => {
                 const path = `${dir}/${dirName}/${filename}_${lang}.vtt`
                 return res(path)
             })
@@ -59,7 +61,7 @@ const getSubtitles = (imdb_code) => {
     if (!engSub || !frenchSub) {
         return new Promise( async (res) => {
             try {
-                console.log('Looking for subtitles for ' + ' (' + imdb_code + ')')
+                console.log('Looking for subtitles for' + ' (' + imdb_code + ')')
                 const datasub = await OpenSubtitles.search({ imdbid: imdb_code })
                 const subtitles = { en: null, fr: null }
                 if (datasub.fr && !frenchSub) {
