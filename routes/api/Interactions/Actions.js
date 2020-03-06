@@ -51,7 +51,6 @@ const watchList = (req, res) => {
 
 // Valeur à mettre: id
 const getWatchlist = (req, res) => {
-    var imdbcode = req.params.id
     if (!req.cookies.token) { return res.sendStatus(403) }
     var userID = jwt.verify(req.cookies.token, key.secretOrKey).id
     if (!userID) { return res.sendStatus(403) }
