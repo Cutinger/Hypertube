@@ -203,7 +203,6 @@ export default function HomeMoviesCards(props) {
     const [moviesGenres, setMoviesGenres] = useState(false);
     const [activeTextAutoScroll, setActiveTextAutoScroll] = useState(false);
 
-
     // Get props on load (moviesGenres && topMoviesList)
     useEffect(() => {
         function setProps() {
@@ -248,80 +247,83 @@ export default function HomeMoviesCards(props) {
         return null;
     };
 
+    function GridMovies(obj, key) {
+        return (
+            <Grid key={key} id={key === 1 ? "back-to-top-anchor" : null} item>
+                <Grow in={true} className={classes.growContainer}>
+                    {/* Movie Card Item*/}
+                    <Paper elevation={5} className={classes.paper}>
+                        {movieFocus !== key ?
+                            <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} onMouseEnter={() => handleMouseEnterMovie(key) }>
+                                <img
+                                    src={obj.poster_path ? `https://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
+                                    alt={obj.title}
+                                    className={classes.movieCover}
+                                />
+                            </div> :
+                            <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} >
+                                {/* Movie Card Focus */}
+                                <img
+                                    src={obj.poster_path ? `https://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
+                                    alt={obj.title}
+                                    className={classes.movieCoverFocus}
+                                />
+                                <div className={classes.movieFocusOverlay}>
+                                    <Grid alignItems="flex-start" direction="column" alignContent="flex-start" justify="center" container>
+                                        <Grid container direction="row" justify="center" alignContent="flex-start" alignItems="center">
+                                            <Grid className={classes.topDateStarsAddContainer} alignItems="center" direction="row" justify="center" container>
+                                                <Grid item xs={3}>
+                                                    <span className={classes.releaseDate}>{obj.release_date.slice(0,4)}</span>
+                                                </Grid>
+                                                <Grid item xs={6} className={classes.movieRating}>
+                                                    <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />
+                                                </Grid>
+                                                <Grid item xs={'auto'} className={classes.movieAddList}>
+                                                    <AddCircle id="addCircle"/>
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid item>
+                                            <div className={classes.movieTitleContainer}>
+                                                <h3 className={classes.movieTitle}>{obj.title}</h3>
+                                            </div>
+                                        </Grid>
+                                        <Grid item>
+                                            <div ref={refText} className={classes.movieOverviewContainer}>
+                                                <p className={!activeTextAutoScroll ? classes.movieOverview : classes.movieOverviewNoScroll}>
+                                                    {obj.overview}
+                                                </p>
+                                            </div>
+                                        </Grid>
+                                        <Grid item className={classes.moviesGenreContainer}>
+                                            <Grid container direction="row" justify="flex-start" alignItems="flex-start">
+                                                {genMovieGenres(obj)}
+                                            </Grid>
+                                        </Grid>
+                                        <Grid alignItems="flex-end" direction="column" justify="flex-end" container>
+                                            <Grid item xs >
+                                                <a href={'#  '}>
+                                                    <PlayCircleFilled
+                                                        className={classes.buttonWatch}
+                                                        onClick={(e) => { e.preventDefault(); props.pushHistory(`/movie/${obj.id}`) }}
+                                                    />
+                                                </a>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                </div>
+                            </div>
+                        }
+                    </Paper>
+                </Grow>
+            </Grid>
+        )
+    }
     return (
         <div className={classes.containerGridTopMovie}>
                 <Grid direction="row" alignItems="flex-start" justify="center" container className={classes.root} spacing={2}>
                     {topMoviesList && topMoviesList.map((obj, key) => {
-                        return (
-                            <Grid key={key} id={key === 1 ? "back-to-top-anchor" : null} item>
-                                <Grow in={true} className={classes.growContainer}>
-                                    {/* Movie Card Item*/}
-                                    <Paper elevation={5} className={classes.paper}>
-                                        {movieFocus !== key ?
-                                            <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} onMouseEnter={() => handleMouseEnterMovie(key) }>
-                                                <img
-                                                    src={obj.poster_path ? `https://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
-                                                    alt={obj.title}
-                                                    className={classes.movieCover}
-                                                />
-                                            </div> :
-                                            <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} >
-                                                {/* Movie Card Focus */}
-                                                <img
-                                                    src={obj.poster_path ? `https://image.tmdb.org/t/p/w185${obj.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'}
-                                                    alt={obj.title}
-                                                    className={classes.movieCoverFocus}
-                                                />
-                                                <div className={classes.movieFocusOverlay}>
-                                                    <Grid alignItems="flex-start" direction="column" alignContent="flex-start" justify="center" container>
-                                                        <Grid container direction="row" justify="center" alignContent="flex-start" alignItems="center">
-                                                            <Grid className={classes.topDateStarsAddContainer} alignItems="center" direction="row" justify="center" container>
-                                                                <Grid item xs={3}>
-                                                                    <span className={classes.releaseDate}>{obj.release_date.slice(0,4)}</span>
-                                                                </Grid>
-                                                                <Grid item xs={6} className={classes.movieRating}>
-                                                                    <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />
-                                                                </Grid>
-                                                                <Grid item xs={'auto'} className={classes.movieAddList}>
-                                                                    <AddCircle id="addCircle"/>
-                                                                </Grid>
-                                                            </Grid>
-                                                        </Grid>
-                                                        <Grid item>
-                                                            <div className={classes.movieTitleContainer}>
-                                                                <h3 className={classes.movieTitle}>{obj.title}</h3>
-                                                            </div>
-                                                        </Grid>
-                                                        <Grid item>
-                                                            <div ref={refText} className={classes.movieOverviewContainer}>
-                                                                <p className={!activeTextAutoScroll ? classes.movieOverview : classes.movieOverviewNoScroll}>
-                                                                    {obj.overview}
-                                                                </p>
-                                                            </div>
-                                                        </Grid>
-                                                        <Grid item className={classes.moviesGenreContainer}>
-                                                            <Grid container direction="row" justify="flex-start" alignItems="flex-start">
-                                                                    {genMovieGenres(obj)}
-                                                            </Grid>
-                                                        </Grid>
-                                                        <Grid alignItems="flex-end" direction="column" justify="flex-end" container>
-                                                            <Grid item xs >
-                                                                <a href={'#  '}>
-                                                                    <PlayCircleFilled
-                                                                        className={classes.buttonWatch}
-                                                                        onClick={() => { props.pushHistory(`/movie/${obj.id}`) }}
-                                                                    />
-                                                                </a>
-                                                            </Grid>
-                                                        </Grid>
-                                                    </Grid>
-                                                </div>
-                                            </div>
-                                        }
-                                    </Paper>
-                                </Grow>
-                            </Grid>
-                        )
+                        return ( GridMovies(obj, key) )
                     })}
                 </Grid>
             </div>

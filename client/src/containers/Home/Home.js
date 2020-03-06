@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
-import InfiniteScroll from 'react-infinite-scroller'
 import SidebarHome from '../../components/SidebarHome/SidebarHome'
 import HomeMovieCards from '../../components/HomeMoviesCards/HomeMoviesCards'
 import axios from 'axios'
@@ -39,89 +38,107 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+const query = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page='
 
 const App = (forwardRef((props, ref) => {
     const classes = useStyles();
+    const [hasMoreContent, setHasMoreContent] = useState(0);
     const [topMoviesList, setTopMoviesList] = useState(false);
     const [moviesGenres, setMoviesGenres] = useState(false);
+    // const [load, setLoad] = useState(false);
+    const [sidebarQuery, setSidebarQuery] = useState(false);
+    // const [defaultQuery] = useState(query)
 
     // First load (top movies)
-        useEffect(() => {
-            let isCancelled = false;
-            async function getTopMoviesList() {
-                axios.get('https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=1')
+    useEffect(() => {
+        let isCancelled = false;
+        async function getTopMoviesList() {
+            axios.get(`${query}${1}`)
                 .then(res => {
-                    if (res.data && res.data.results && res.data.results.length) {
-                        !isCancelled && setTopMoviesList(res.data.results)
-                        !isCancelled && setHasMoreContent(1);
-                    }
+                    if (res.data && res.data.results && res.data.results.length)
+                        !isCancelled && setTopMoviesList(res.data.results);
                 })
-            }
-            async function getMoviesGenres() {
-                axios.get('https://api.themoviedb.org/3/genre/movie/list?api_key=f29f2233f1aa782b0f0dc8d6d9493c64')
+        }
+        async function getMoviesGenres() {
+            axios.get('https://api.themoviedb.org/3/genre/movie/list?api_key=f29f2233f1aa782b0f0dc8d6d9493c64')
                 .then(res => {
                     if (res.data && res.data.genres && res.data.genres.length)
                         !isCancelled && setMoviesGenres(res.data.genres)
                 })
-            }
-            getMoviesGenres();
-            getTopMoviesList();
-            return () => {
-                isCancelled = true;
-            }
-        }, []);
+        }
+        getMoviesGenres();
+        getTopMoviesList();
+        console.log(1);
+        return () => { isCancelled = true }
+    }, []);
 
-    // Infinite Scroll
-        const [loadMovies, setLoadMovies] = useState(false);
-        const [hasMoreContent, setHasMoreContent] = useState(true);
-        // Handle function when scroll is on bottom
-            const handleSetLoadMovies = () => {
-                if (topMoviesList && topMoviesList.length)
-                    setLoadMovies(true);
-            };
-        // Infinite scroll for top movies
-            useEffect(() => {
-                let _mounted = true;
-                function loadMore() {
-                    let page = hasMoreContent + 1;
-                    axios.get(`https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page=${page}`)
-                        .then(res => {
-                            if (res.data && res.data.results && res.data.results.length) {
-                                let currentTab = topMoviesList;
-                                let newTab = res.data.results;
-                                _mounted && setTopMoviesList([].concat(currentTab, newTab));
-                                setLoadMovies(false);
-                                setHasMoreContent(page);
-                            }
-                        })
-                }
-                if (_mounted && loadMovies)
-                    loadMore();
-                return (() => {
-                    _mounted = false;
-                })
-            }, [loadMovies, hasMoreContent, topMoviesList]);
+
+    // // Infinite Scroll
+    // // Handle function when scroll is on bottom
+    // const handleSetLoadMovies = () => {
+    //     if (topMoviesList && topMoviesList.length) {
+    //         setLoad(true);
+    //         setHasMoreContent(hasMoreContent + 1)
+    //     }
+    // };
+    // useEffect(() => {
+    //     let _mounted = true;
+    //     function loadMore() {
+    //         console.log(1);
+    //         axios.get(`${defaultQuery}${hasMoreContent}`)
+    //             .then(res => {
+    //                 if (res.data && res.data.results && res.data.results.length)
+    //                     _mounted && setTopMoviesList([].concat(topMoviesList, res.data.results));
+    //             })
+    //     }
+    //     if (_mounted && load){
+    //         loadMore();
+    //     }
+    //     return (() => {
+    //         _mounted = false;
+    //     })
+    // }, [hasMoreContent, load, topMoviesList, defaultQuery]);
 
     // Sidebar
-        const [open, setOpen] = React.useState(false);
-        const handleDrawerClose = () => setOpen(false)
-        useImperativeHandle(ref, () => ({
-            setSidebar(bool){
-                setOpen(bool);
-            }
-        }));
+    const [open, setOpen] = React.useState(false);
+    const handleDrawerClose = () => setOpen(false)
+    // Ref accessible by App.js
+    useImperativeHandle(ref, () => ({
+        setSidebar(bool){
+            setOpen(bool);
+        }
+    }));
+    // Receive query from SidebarHome
+    const handlePushQuery = (query) => query && query.length && setSidebarQuery(query);
+
+    useEffect(() => {
+        let isCancelled = false;
+        function getMoviesList() {
+            axios.get(sidebarQuery)
+                .then(res => {
+                    if (res.data && res.data.results && res.data.results.length) {
+                        !isCancelled && setTopMoviesList(res.data.results)
+                        !isCancelled && setHasMoreContent(0);
+                    }
+                })
+        }
+        if (sidebarQuery)
+            getMoviesList();
+        return () => { isCancelled = true }
+    }, [sidebarQuery]);
+
 
     // ScrollToTop
-        const trigger = useScrollTrigger({
-            disableHysteresis: true,
-            threshold: 200,
-        });
-        const handleClick = event => {
-            const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
-            anchor && anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        };
+    const trigger = useScrollTrigger({
+        disableHysteresis: true,
+        threshold: 200,
+    });
+    const handleClick = event => {
+        const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
+        anchor && anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
 
-    
+
     return (
         <Container component="main">
             {/* Loader -> when page load */}
@@ -129,31 +146,27 @@ const App = (forwardRef((props, ref) => {
                 <CircularProgress color="inherit" />
             </Backdrop>
             {/* Sidebar -> App.js send props here, then home send props to sidebar */}
-            <SidebarHome 
-                sidebarClose={handleDrawerClose} 
+            <SidebarHome
+                sidebarClose={handleDrawerClose}
                 sidebarActive={open}
                 genres={moviesGenres}
+                pushQuery={handlePushQuery}
             />
             {/* Movies card map */}
-            <HomeMovieCards 
-                topMoviesList={topMoviesList} 
+            <HomeMovieCards
+                topMoviesList={topMoviesList}
                 moviesGenres={moviesGenres}
                 pushHistory={(link) => props.history.push(link)}
+                setLoad={() => console.log(1)}
             />
-             {/* Scroll to top*/}
-             <Zoom in={trigger}>
+             Scroll to top
+            <Zoom in={trigger}>
                 <div onClick={handleClick} role="presentation" className={classes.rootScroll}>
                     <Fab color="secondary" size="small" aria-label="scroll back to top">
                         <KeyboardArrowUpIcon />
                     </Fab>
                 </div>
             </Zoom>
-             {/* Infinite Scroll*/}
-            <InfiniteScroll
-                        pageStart={0}
-                        loadMore={handleSetLoadMovies}
-                        hasMore={Boolean(hasMoreContent)}
-            > </InfiniteScroll>
         </Container>
     )
 }));
