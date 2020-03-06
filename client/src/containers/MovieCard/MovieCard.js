@@ -179,7 +179,27 @@ export default function MovieCard(props){
     const [selectedValue, setSelectedValue] = useState(null);
     // Set movieSrc
     const [movieSrc, setMovieSrc] = useState(null);
+    // Set subtitles
+    const [subtitles, setSubtitles] = useState([]);
 
+    // {kind: 'subtitles', src: 'subs/subtitles.en.vtt', srcLang: 'en'},
+    const constructSubtitles = (subtitles) => {
+        if (subtitles){
+            let subTab = Object.entries(subtitles);
+            let subObject = [];
+            if (subTab && subTab.length)
+                for (let i = 0; i < subTab.length; i++){
+                    let src = subTab[i][1].split('/');
+                    src = src[src.length - 2].concat("/" + src[src.length -1]);
+                    subObject.push(Object.assign({
+                        kind: 'subtitles',
+                        src: `${burl}/subtitles/${src}`,
+                        srcLang: subTab[i][0],
+                    }))
+                }
+            return subObject;
+        }
+    }
 
     // On mount (when props are received or when the page with /movie/:id is loaded
     useEffect(() => {
@@ -198,8 +218,10 @@ export default function MovieCard(props){
             API.getMovieSources(props.match.params.movieId)
                 .then(res => {
                     if (res.status === 200) {
-                        if (res.data && (res.data.inYTS || res.data.inLeet ))
-                            _mounted && setMovieSources(res.data)
+                        if (res.data && (res.data.inYTS || res.data.inLeet )) {
+                            _mounted && setSubtitles(constructSubtitles(res.data.subtitles));
+                            _mounted && setMovieSources(res.data);
+                        }
                         else
                             _mounted && setMovieSources(null);
                     }
@@ -355,11 +377,20 @@ export default function MovieCard(props){
                             <Grid container>
                                 <Grid item xs={12}>
                                     <div className={classes.player}>
-                                        <ReactPlayer width='100%'
-                                                     height='100%'
-                                                     url={movieSrc}
-                                                     playing
-                                                     controls={true}
+                                        <ReactPlayer
+                                            width='100%'
+                                            height='100%'
+                                            url={movieSrc}
+                                            playing
+                                            controls={true}
+                                            config={{
+                                                    file: {
+                                                        attributes: {
+                                                            crossOrigin: 'true'
+                                                        },
+                                                        tracks: subtitles
+                                                    }
+                                            }}
                                         />
                                     </div>
                                 </Grid>
