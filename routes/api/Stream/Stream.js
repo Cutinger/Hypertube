@@ -106,51 +106,7 @@ function checkTorrentStatus(engine, magnet, moviePath, movieInfos, req) {
     })
 }
 
-const streamConvert = (res, file, range, filexists = false) => {
-
-    console.log('Start conversion into WEBM')
-
-    if (filexists) {
-        var length = fs.statSync(file).size;
-        var fileSize = length
-        var fileLength = fileSize - 1
-    } else {
-        var fileLength = file.length - 1
-    }
-
-    var parts = range ? range.replace(/bytes=/, '').split('-') : null
-    var start = parts ? parseInt(parts[0], 10) : 0
-    var end = parts && parts[1] ? parseInt(parts[1], 10) : fileLength
-
-    const stream = filexists ? fs.createReadStream(file, {start, end}) : file.createReadStream({ start, end })
-
-    if (!filexists) {
-        var length = parseInt(end - start) + 1
-        var fileSize = file.length
-    }
-
-    const conversionStream = ffmpeg(stream)
-        .on('error', function(err) {
-            console.log('error: ', err)
-        })
-        .format('webm')
-        .videoCodec('libvpx')
-
-    res.writeHead(206, {
-        'Accept-Ranges': 'bytes',
-        'Cache-Control': 'no-cache, no-store',
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Content-Length': length,
-        'Content-Type': 'video/webm'
-    })
-
-    conversionStream.pipe(res)
-
-}
-
-const streamMP4 = (res, req, engine, file, range, filexists = false) => {
-
-    console.log('Start streaming in MP4')
+const streamVIDEO = (res, file, range, filexists = false, contentType) => {
 
     if (filexists) {
         var length = fs.statSync(file).size;
@@ -172,15 +128,28 @@ const streamMP4 = (res, req, engine, file, range, filexists = false) => {
         var fileSize = file.length
     }
 
+    if (contentType == 'video/webm') {
+        console.log('Start conversion into WEBM')
+        var videoStream = ffmpeg(stream)
+        .on('error', function(err) {
+            console.log('error: ', err)
+        })
+        .format('webm')
+        .videoCodec('libvpx')
+    } else {
+        console.log('Start streaming in MP4')
+        var videoStream = stream
+    }
+
     res.writeHead(206, {
         'Accept-Ranges': 'bytes',
         'Cache-Control': 'no-cache, no-store',
         'Content-Range': `bytes ${start}-${end}/${fileSize}`,
         'Content-Length': length,
-        'Content-Type': 'video/mp4'
+        'Content-Type': contentType
     })
 
-    stream.pipe(res)
+    videoStream.pipe(res)
 }
 
 const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID) => {
@@ -204,9 +173,9 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID) =>
                             console.log('WAIT!... I think this have been already downloaded, the engine path is the same!')
                             console.log('Let\'s stream the file inside the registered path')
                             if (getExtensions(['avi', 'mkv'], file.name))
-                                streamConvert(res, moviePath, range)
+                                streamVIDEO(res, moviePath, range, false, 'video/webm')
                             else
-                                streamMP4(res, req, engine, moviePath, range, true)
+                                streamVIDEO(res, moviePath, range, true, 'video/mp4')
                             engine.remove(true, () => { console.log('Engine removed') } )
                             engine.destroy()
                             filexists = true
@@ -215,9 +184,9 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID) =>
                 }
                 if (!inDB && !filexists) { addMovietoDB(req, movieInfos, magnet, userID) }
                 if (getExtensions(['avi', 'mkv'], file.name) && !filexists)
-                    streamConvert(res, file, range)
+                    streamVIDEO(res, file, range, false, 'video/webm')
                 else if (!filexists)
-                    streamMP4(res, req, engine, file, range)
+                    streamVIDEO(res, file, range, false, 'video/mp4')
             }
         })
     })
@@ -272,9 +241,9 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
                     console.log('- MOVIE IN DB AND DOWNLOADED! Streaming can start :) -')
                     const { range } = req.headers
                     if (getExtensions(['avi', 'mkv'], getPathByMagnet(data.downloaded[index].magnet, data)))
-                        streamConvert(res, getPathByMagnet(data.downloaded[index].magnet, data), range, true)
+                        streamVIDEO(res, getPathByMagnet(data.downloaded[index].magnet, data), range, true, 'video/webm')
                     else
-                        streamMP4(res, req, null, getPathByMagnet(data.downloaded[index].magnet, data), range, true)
+                        streamVIDEO(res, getPathByMagnet(data.downloaded[index].magnet, data), range, true, 'video/mp4')
                     streaming = true
                     break ;
                 } else if (dbIndex === notDownloaded && !streaming) {
