@@ -35,6 +35,10 @@ mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true, useCreat
 // Passport middleware
 app.use(passport.initialize());;
 
+// Use static files for subtitles
+app.use('/api/subtitles', express.static('files/subtitles'));
+
+
 // UsersRoute
 app.use ("/api/users", users);
 // OauthRoute

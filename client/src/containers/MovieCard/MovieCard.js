@@ -173,7 +173,7 @@ export default function MovieCard(props){
     const [movieDetails, setMovieDetails] = useState(null);
     const [movieSources, setMovieSources] = useState(null);
     // Loading sources
-    const [loadingSources, setLoadingSources] = useState(false);
+    const [loadingSources, setLoadingSources] = useState(true);
     // Dialog
     const [open, setOpen] = React.useState(false);
     const [selectedValue, setSelectedValue] = useState(null);
@@ -182,17 +182,15 @@ export default function MovieCard(props){
 
 
     // On mount (when props are received or when the page with /movie/:id is loaded
-    useEffect(()=> {
-        let _mounted = true;
-        _mounted && setLoadingSources(true);
-        // Get movie infos (vote, title, overview, poster...)
+    useEffect(() => {
         function setMovieDetail() {
             let data = null;
             axios.get(`https://api.themoviedb.org/3/movie/${props.match.params.movieId}?api_key=c91b62254304ec5dbb322351b0dc1094`)
                 .then(res => {
-                    if (res.data)
+                    if (res.data) {
                         data = res.data;
-                    _mounted && setMovieDetails(data)
+                        _mounted && setMovieDetails(data)
+                    }
                 });
         }
         // Get infos about movie (if available on yts, 1337...)
@@ -200,24 +198,25 @@ export default function MovieCard(props){
             API.getMovieSources(props.match.params.movieId)
                 .then(res => {
                     if (res.status === 200) {
-                        if (res.data && (res.data.inYTS === "yes" || res.data.inLeet === "yes")) {
+                        if (res.data && (res.data.inYTS || res.data.inLeet ))
                             _mounted && setMovieSources(res.data)
-                            _mounted && setLoadingSources(false);
-                        }
                         else
                             _mounted && setMovieSources(null);
                     }
                     else
                         _mounted && setMovieSources(null);
+                    _mounted && setLoadingSources(false);
                 })
 
         }
-        setMovieDetail();
-        getMovieSources();
-        return () => {
-            _mounted = false;
-        };
-    }, [props.match.params.movieId]);
+        let _mounted = true;
+        // Get movie infos (vote, title, overview, poster...)
+        if (_mounted ) {
+            setMovieDetail();
+            getMovieSources();
+        }
+        return () => { _mounted = false }
+    }, []);
 
 
     const sourceMessage = () => {

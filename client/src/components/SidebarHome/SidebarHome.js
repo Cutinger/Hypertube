@@ -88,8 +88,8 @@ function SidebarHome(props) {
     const theme = useTheme();
     const [open, setOpen] = useState(false);
     const [genres, setGenres] = useState([]);
-    const [yearValue, setYearValue] = useState(null);
-    const [voteValue, setVoteValue] = useState(null);
+    const [yearValue, setYearValue] = useState(2019);
+    const [voteValue, setVoteValue] = useState(5);
     const [genreValues, setGenresValue] = useState([])
 
     
@@ -112,38 +112,28 @@ function SidebarHome(props) {
         }, [props.genres, genres])
 
     // Handle changes genres
-        const handleGenresChange = (event, newValue) => {
-            if (newValue !== voteValue)
-                setGenresValue(newValue)
-        }
+        const handleGenresChange = (event, newValue) => { newValue !== voteValue && setGenresValue(newValue) };
     // Handle changes sliders
         // Vote handle change
-        const handleVoteChange = (event, newValue) => {
-            if (newValue !== voteValue)
-                setVoteValue(newValue)
-        }
+        const handleVoteChange = (event, newValue) => { newValue !== voteValue && setVoteValue(newValue) };
          // Year handle change
-         const handleYearChange = (event, newValue) => {
-            if (newValue !== yearValue)
-                setYearValue(newValue)
-        }
+        const handleYearChange = (event, newValue) => { newValue !== yearValue && setYearValue(newValue) };
+
     // Handle search submit
         const handleSubmitSearch = () => {
-            // Construct request
-            // let baseURL= 'https://api.themoviedb.org/3/discover/movie?';
-            // let apiKey = 'api_key=f29f2233f1aa782b0f0dc8d6d9493c64';
-            // let language = 'language=en-US';
-            // let voteFilter = 'vote_average.gte=';
-            // let voteAverage = voteValue;
-            // let includeAdult = 'include_adult=false'
-            let genresTab = null;
+            let genresTab = '';
+            const baseURL= 'https://api.themoviedb.org/3/discover/movie?';
+            const apiKey = 'api_key=f29f2233f1aa782b0f0dc8d6d9493c64';
+            const language = 'language=en-US';
+            const voteFilter = 'vote_average.gte=';
+            const voteAverage = voteValue * 2;
+            const includeAdult = 'include_adult=false';
             if (genreValues && genreValues.length)
-                genresTab = genreValues.map((obj, i) => {
-                    return obj.id
-                }).join(',');
-            console.log(genresTab);
+                genresTab = genreValues.map((obj) => { return obj.id }).join(',');
+            const query = `${baseURL}${apiKey}&${language}&${voteFilter}${voteAverage}&${includeAdult}&with_genres=${genresTab}&page=`;
+            props.pushQuery(query);
           
-        }
+        };
     return (
         <Drawer
             variant="persistent"

@@ -16,9 +16,9 @@ export default function App(props) {
 
   const handleActiveSidebar = (bool) => {
     if (history && history.location.pathname === '/'){
-      homeRef.current && homeRef.current.setSidebar(bool);  
+      homeRef.current && homeRef.current.setSidebar(bool);
     }
-  }
+  };
 
   return (
     <div>

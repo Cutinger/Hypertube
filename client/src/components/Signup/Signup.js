@@ -396,7 +396,7 @@ const useStyles = makeStyles(theme => ({
                                     className={classes.buttonFacebook}>
                                     Facebook
                                 </Button>
-                                <a href="http://localhost:5000/api/auth/facebook" target="_blank">test</a> 
+                                <a href="http://localhost:5000/api/auth/facebook" rel="noopener noreferrer" target="_blank">test</a>
                             </ButtonGroup>
                             <Grid container justify="flex-end">
                                 <Grid item>

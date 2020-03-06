@@ -34,7 +34,7 @@ const movieSchema = new mongoose.Schema({
         default: Date.now,
         required: false,
         type: Date
-    }
+    },
     userViews: {
         required: false,
         type: Array
