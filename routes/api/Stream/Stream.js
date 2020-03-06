@@ -4,6 +4,8 @@ const fs            = require('fs');
 const ffmpeg        = require('fluent-ffmpeg');
 const db            = mongoose.connection;
 const schema        = require('../../../models/MovieSchema.js')
+const jwt           = require('jsonwebtoken')
+const key           = require('../../../config/keys.js')
 
 const ffmpegPath    = require('@ffmpeg-installer/ffmpeg').path;
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -64,7 +66,7 @@ const setDownloadedMovie = (magnet, moviePath, movieInfos, req) => {
     })
 }
 
-const addMovietoDB = async (req, movieInfos, magnet) => {
+const addMovietoDB = async (req, movieInfos, magnet, userID) => {
     var imdb_code = movieInfos.imdb_code
     try {
 
@@ -75,7 +77,8 @@ const addMovietoDB = async (req, movieInfos, magnet) => {
 
         var addMovie = new Movie({
             imdb_code:   imdb_code,
-            downloaded: notDownloaded
+            downloaded: notDownloaded,
+            userViews: userID,
         })
 
         addMovie.save( (err) => { console.log(err) })
@@ -180,7 +183,7 @@ const streamMP4 = (res, req, engine, file, range, filexists = false) => {
     stream.pipe(res)
 }
 
-const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB) => {
+const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID) => {
     var moviePath
     var filexists = false
     const engine = torrent(magnet, options)
@@ -210,7 +213,7 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB) => {
                         }
                     }
                 }
-                if (!inDB && !filexists) { addMovietoDB(req, movieInfos, magnet) }
+                if (!inDB && !filexists) { addMovietoDB(req, movieInfos, magnet, userID) }
                 if (getExtensions(['avi', 'mkv'], file.name) && !filexists)
                     streamConvert(res, file, range)
                 else if (!filexists)
@@ -225,11 +228,31 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB) => {
     })
 }
 
+const addViews = (imdbcode, userID) => {
+    Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
+        if (!data)
+            return ;
+        if (err) {
+            console.log(err)
+        } else if (userID && !data.userViews.includes(userID)) {
+            data.userViews.push(userID)
+            data.save( (err) => { console.log(err) })
+        }
+    })
+}
+
 const initStreaming = async (req, res, magnet, movieInfos) => {
     var imdb = req.params.imdbcode
     var streaming = false
+
     console.log('== init streaming ==')
     console.log('== ========================  ==')
+
+    var userID
+    if (req.cookies.token)
+        userID = jwt.verify(req.cookies.token, key.secretOrKey).id
+
+    addViews(imdb, userID)
 
     var actualRequest = JSON.stringify({ type: req.params.stream,
                           magnet: magnet,
@@ -256,7 +279,7 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
                     break ;
                 } else if (dbIndex === notDownloaded && !streaming) {
                     console.log('- Movie is in DB, but download is not over yet. Download is starting -')
-                    downloadTorrent(req, res, magnet, movieInfos, data, true)
+                    downloadTorrent(req, res, magnet, movieInfos, data, true, userID)
                     streaming = true
                     break ;
                 }
@@ -265,13 +288,14 @@ const initStreaming = async (req, res, magnet, movieInfos) => {
                 console.log('- Movie is in the DB, but have no entries for this quality / stream provenance -')
                 data.downloaded.push(JSON.parse(notDownloaded))
                 data.save( (err) => { console.log(err) })
-                downloadTorrent(req, res, magnet, movieInfos, data, true, true)
+                downloadTorrent(req, res, magnet, movieInfos, data, true, userID)
                 return ;
             }
         } else {
             console.log('Movie not found in the DB. Download is starting')
-            downloadTorrent(req, res, magnet, movieInfos, data, false)
-        } if (err) { console.log(err) }
+            downloadTorrent(req, res, magnet, movieInfos, data, false, userID)
+        }
+        if (err) { console.log(err) }
     })
 }
 
