@@ -55,6 +55,7 @@ const createInstance = async (baseUrl, type) => {
                         inYTS: false,
                         ytsInfo: [],
                         inLeet: false,
+                        subtitles: [],
                         leetInfo: []
                     };
                     return data
@@ -145,7 +146,9 @@ const parseData = async (idMovie, res) => {
             dataMovie.inLeet = true
             dataMovie.leetInfo = isInLEET
         }
-        subtitles.getSubtitles(dataMovie.imdb_code)
+        var sub = await subtitles.getSubtitles(dataMovie.imdb_code)
+        if (sub.en || sub.fr)
+            dataMovie.subtitles = sub
         res.json(dataMovie);
     } catch (err) { console.log(err) }
 }

@@ -35,6 +35,10 @@ const movieSchema = new mongoose.Schema({
         required: false,
         type: Date
     }
+    userViews: {
+        required: false,
+        type: Array
+    }
 });
 
 module.exports = Movie = mongoose.model("Movie", movieSchema);

@@ -71,6 +71,8 @@ const getSubtitles = (imdb_code) => {
                         subtitles.fr = path
                     }
                     catch(err) { console.log('An error occured during when providing the subtitles: ' + err) }
+                } else if (frenchSub) {
+                    subtitles.fr = `${dir}/${imdb_code}/movie_fr.vtt`
                 }
                 if (datasub.en && !engSub) {
                     try {
@@ -79,6 +81,8 @@ const getSubtitles = (imdb_code) => {
                         subtitles.en = path
                     }
                     catch(err) { console.log('An error occured during when providing the subtitles: ' + err) }
+                } else if (engSub) {
+                    subtitles.en = `${dir}/${imdb_code}/movie_en.vtt`
                 }
                 if (!datasub.fr && !datasub.en) { console.log('No subtitles available for this movie... Or it has already been downloaded') }
 
@@ -86,6 +90,8 @@ const getSubtitles = (imdb_code) => {
             }
             catch(err) { console.log('An error occured during when providing the subtitles: ' + err) }
         })
+    } else {
+        return ({ en: `${dir}/${imdb_code}/movie_en.vtt`, fr: `${dir}/${imdb_code}/movie_fr.vtt` })
     }
 }
 
