@@ -122,6 +122,9 @@ const leetSearch = async (movieTitle) => {
                     fhd = true
                 }
             }
+            if (!fhd && !hd) {
+                return null
+            }
             return arr
         })
         .catch(err => {
