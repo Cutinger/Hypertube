@@ -15,7 +15,7 @@ const movieSchema = new mongoose.Schema({
     like: {
         default: [],
         required: false,
-        type: [ Array ]
+        type: Array
     },
     comments: {
         default: [],
