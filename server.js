@@ -45,13 +45,16 @@ app.use ("/api/users", users);
 // OauthRoute
 app.use ("/api/auth", auth);
 // Stream routes
-app.get('/api/movies/:stream/:quality/:imdbcode', (req, res) => { stream.getDataMovie(req, res) })
+app.get('/api/movies/:stream/:quality/:imdbcode', auth, (req, res) => { stream.getDataMovie(req, res) })
 // Catch Movies route
 app.get('/api/movies/:id', (req, res) => { moviesData.parseData(req.params.id, res) })
 // Catch Subtitles
 app.get('/api/subtitles/:imdbcode/:lang', (req, res) => { subtitles.readSub(req.params.imdbcode, req.params.lang, res) })
 // Actions to a video
 app.get('/api/movies/:id/:action', auth, (req, res) => { interact.Actions(req, res) })
+// Get watchlist
+app.get('/api/watchlist', auth, (req, res) => { interact.getWatchlist(req, res) })
+
 
 // Connect to server
 const port = process.env.PORT || 5000;

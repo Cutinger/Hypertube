@@ -78,7 +78,7 @@ const addMovietoDB = async (req, movieInfos, magnet, userID) => {
         var addMovie = new Movie({
             imdb_code:   imdb_code,
             downloaded: notDownloaded,
-            userViews: userID,
+            userViews: [ userID ]
         })
 
         addMovie.save( (err) => { console.log(err) })

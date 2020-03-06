@@ -4,6 +4,7 @@ const jwt           = require('jsonwebtoken')
 const key           = require('../../../config/keys.js')
 const schema        = require('../../../models/WatchList.js')
 
+// Valeur à mettre: imdbcode
 const likeInteraction = (req, res) => {
     var imdbcode = req.params.id
     if (!req.cookies.token) { return res.sendStatus(403) }
@@ -22,6 +23,7 @@ const likeInteraction = (req, res) => {
     return res.sendStatus(200)
 }
 
+// Valeur à mettre = id
 const watchList = (req, res) => {
     var imdbcode = req.params.id
     if (!req.cookies.token) { return res.sendStatus(403) }
@@ -47,6 +49,19 @@ const watchList = (req, res) => {
     })
 }
 
+// Valeur à mettre: id
+const getWatchlist = (req, res) => {
+    var imdbcode = req.params.id
+    if (!req.cookies.token) { return res.sendStatus(403) }
+    var userID = jwt.verify(req.cookies.token, key.secretOrKey).id
+    if (!userID) { return res.sendStatus(403) }
+
+    WatchList.findOne({ user_id: userID }, (err, data) => {
+        if (!data) { return res.sendStatus(404) }
+        else { res.json({ watchlist: data.movies }); }
+    })
+}
+
 const Actions = (req, res) => {
     if (req.params.action == 'like') {
         likeInteraction(req, res)
@@ -55,4 +70,4 @@ const Actions = (req, res) => {
     }
 }
 
-module.exports = { Actions }
+module.exports = { Actions, getWatchlist }
