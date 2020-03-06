@@ -70,7 +70,10 @@ const getSubtitles = (imdb_code) => {
                         const path = await convertVTT(datasub.fr.url, imdb_code, 'movie', 'fr')
                         subtitles.fr = path
                     }
-                    catch(err) { console.log('An error occured during when providing the subtitles: ' + err) }
+                    catch(err) {
+                        console.log('An error occured during when providing the subtitles: ' + err)
+                        return null
+                    }
                 } else if (frenchSub) {
                     subtitles.fr = `${dir}/${imdb_code}/movie_fr.vtt`
                 }
@@ -88,7 +91,10 @@ const getSubtitles = (imdb_code) => {
 
                 return res(subtitles)
             }
-            catch(err) { console.log('An error occured during when providing the subtitles: ' + err) }
+            catch(err) {
+                console.log('An error occured during when providing the subtitles: ' + err)
+                return null;
+            }
         })
     } else {
         return ({ en: `${dir}/${imdb_code}/movie_en.vtt`, fr: `${dir}/${imdb_code}/movie_fr.vtt` })
