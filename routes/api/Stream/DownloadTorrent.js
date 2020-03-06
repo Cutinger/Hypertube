@@ -30,7 +30,7 @@ async function axiosQuery(baseURL, type) {
                         return null
                     return res.data.movie_results[0].id
                 case 'leet':
-                    if (res.data.inLeet == 'yes')
+                    if (res.data.inLeet == true)
                         return res.data
                     return null
                 case 'yts':
