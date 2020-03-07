@@ -210,16 +210,12 @@ const addViews = (imdbcode, userID) => {
     })
 }
 
-const initStreaming = async (req, res, magnet, movieInfos) => {
+const initStreaming = async (req, res, magnet, movieInfos, userID) => {
     var imdb = req.params.imdbcode
     var streaming = false
 
     console.log('== init streaming ==')
     console.log('== ========================  ==')
-
-    var userID
-    if (req.cookies.token)
-        userID = jwt.verify(req.cookies.token, key.secretOrKey).id
 
     addViews(imdb, userID)
 

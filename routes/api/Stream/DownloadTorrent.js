@@ -67,11 +67,11 @@ const printLeet = async (req, res, quality, imdbcode) => {
         if ( !restReq || quality === false)
             return res.sendStatus(404)
         var magnetLink = restReq.leetInfo[quality].magnet
-        stream.initStreaming(req, res, magnetLink, restReq)
+        stream.initStreaming(req, res, magnetLink, restReq, res.locals.id)
     } catch (err) { return res.sendStatus(203) }
 }
 
-const printYTS = async (baseURL, req, res, quality, imdbcode) => {
+const printYTS = async (baseURL, req, res, quality) => {
     try {
         var movie = await axiosQuery(baseURL, 'yts');
         if (movie != null) {
@@ -85,7 +85,7 @@ const printYTS = async (baseURL, req, res, quality, imdbcode) => {
             if (correctQuality == false)
                res.sendStatus(404);
             var magnet = URLmagnetYTS(movie.torrents[index].hash, movie.title_long)
-            stream.initStreaming(req, res, magnet, movie)
+            stream.initStreaming(req, res, magnet, movie, res.locals.id)
         }
         else
             return res.sendStatus(404)
@@ -96,8 +96,9 @@ const getDataMovie = (req, res) => {
     const paramStream = req.params.stream
     const quality     = req.params.quality + 'p'
     var imdbcode      = req.params.imdbcode
+
     if (paramStream == 'yts') {
-        printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbcode}`, req, res, quality, imdbcode)
+        printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbcode}`, req, res, quality)
     } else if (paramStream == '1377') {
         printLeet(req, res, quality, imdbcode)
     } else {

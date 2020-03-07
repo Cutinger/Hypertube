@@ -46,7 +46,7 @@ app.use ("/api/users", users);
 // OauthRoute
 app.use ("/api/auth", auth);
 // Stream routes
-app.get('/api/movies/:stream/:quality/:imdbcode', auth, (req, res) => { stream.getDataMovie(req, res) })
+app.post('/api/movies/:stream/:quality/:imdbcode', withAuth, stream.getDataMovie )
 // Catch Movies route
 app.get('/api/movies/:id', moviesData.parseData);
 // Actions to a video
