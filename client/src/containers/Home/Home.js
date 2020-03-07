@@ -13,7 +13,7 @@ import {
     Zoom
 } from '@material-ui/core'
 
-
+const key = 'f29f2233f1aa782b0f0dc8d6d9493c64';
 const useStyles = makeStyles(theme => ({
     containerGridTopMovie: {
         marginTop: theme.spacing(13),
@@ -38,7 +38,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const query = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=f29f2233f1aa782b0f0dc8d6d9493c64&page='
+const query = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${key}&page=`
 
 const App = (forwardRef((props, ref) => {
     const classes = useStyles();
@@ -60,7 +60,7 @@ const App = (forwardRef((props, ref) => {
                 })
         }
         async function getMoviesGenres() {
-            axios.get('https://api.themoviedb.org/3/genre/movie/list?api_key=f29f2233f1aa782b0f0dc8d6d9493c64')
+            axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${key}`)
                 .then(res => {
                     if (res.data && res.data.genres && res.data.genres.length)
                         !isCancelled && setMoviesGenres(res.data.genres)
@@ -106,6 +106,12 @@ const App = (forwardRef((props, ref) => {
     useImperativeHandle(ref, () => ({
         setSidebar(bool){
             setOpen(bool);
+        },
+        setWatchlist(movies){
+            setTopMoviesList(movies);
+        },
+        setSearch(movies){
+            setTopMoviesList(movies);
         }
     }));
     // Receive query from SidebarHome
@@ -159,7 +165,7 @@ const App = (forwardRef((props, ref) => {
                 pushHistory={(link) => props.history.push(link)}
                 setLoad={() => console.log(1)}
             />
-             Scroll to top
+            {/* Scroll to top */}
             <Zoom in={trigger}>
                 <div onClick={handleClick} role="presentation" className={classes.rootScroll}>
                     <Fab color="secondary" size="small" aria-label="scroll back to top">

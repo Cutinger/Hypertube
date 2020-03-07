@@ -68,5 +68,15 @@ export default {
                 headers: headers
             }
         )
+    },
+    getWatchlist: () => {
+        return axios.get(
+            `${burl}/watchlist`,
+            {},
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
     }
 }

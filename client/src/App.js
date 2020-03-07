@@ -19,10 +19,17 @@ export default function App(props) {
       homeRef.current && homeRef.current.setSidebar(bool);
     }
   };
+  const handleSetWatchlist= (movies) => {
+      homeRef.current && homeRef.current.setWatchlist(movies);
+    }
+
+  const handleSearchMovie = (movies) => {
+      homeRef.current && homeRef.current.setSearch(movies);
+  }
 
   return (
     <div>
-      <Route component={(matchProps) => <Menu {...matchProps} {...props} setSidebar={handleActiveSidebar}/>}/>
+      <Route component={(matchProps) => <Menu {...matchProps} {...props} search={handleSearchMovie} setWatchlist={handleSetWatchlist} setSidebar={handleActiveSidebar}/>}/>
   
       <Switch>
         <Route exact path="/movie/:movieId" component={(matchProps) => <MovieCard {...props} {...matchProps} movieDetails={movieDetails}/>} />

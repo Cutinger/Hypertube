@@ -9,7 +9,7 @@ const stream = require('./routes/api/Stream/DownloadTorrent.js');
 const moviesData = require('./routes/api/MovieInfos/MoviesInfos.js');
 const subtitles = require('./routes/api/Stream/Subtitles.js');
 const interact = require('./routes/api/Interactions/Actions.js');
-
+const withAuth = require('./utils/middleware')
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const db = require("./config/keys").mongoURI;
@@ -53,7 +53,7 @@ app.get('/api/subtitles/:imdbcode/:lang', (req, res) => { subtitles.readSub(req.
 // Actions to a video
 app.get('/api/movies/:id/:action', auth, (req, res) => { interact.Actions(req, res) })
 // Get watchlist
-app.get('/api/watchlist', auth, (req, res) => { interact.getWatchlist(req, res) })
+app.get('/api/watchlist', withAuth, (req, res) => { interact.getWatchlist(req, res) })
 
 
 // Connect to server

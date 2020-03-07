@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -13,6 +13,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
 import MoreIcon from '@material-ui/icons/MoreVert';
+import axios from 'axios';
 import API from '../../utils/API';
 
 const useStyles = makeStyles(theme => ({
@@ -90,9 +91,11 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const key = 'f29f2233f1aa782b0f0dc8d6d9493c64';
+
 export default function PrimarySearchAppBar(props) {
     const classes = useStyles();
-
+    const [searchValue, setSearchValue] = React.useState('');
     const [anchorEl, setAnchorEl] = React.useState(null);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
@@ -122,6 +125,26 @@ export default function PrimarySearchAppBar(props) {
     }
     const handleMobileMenuOpen = event => {
         setMobileMoreAnchorEl(event.currentTarget);
+    };
+    // Get watchlist
+    useEffect(() => {
+        API.getWatchlist()
+            .then(res => {
+                if (res.status === 200)
+                    console.log(res.data);
+            })
+            .catch(err => console.log(err));
+    }, [])
+
+    const handleKeyDown = (e) => {
+        if (e.keyCode === 13 && searchValue) {
+            axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${searchValue}`)
+                .then(res => {
+                    if (res.status === 200)
+                        props.search(res.data.results);
+                });
+            setSearchValue('');
+        }
     };
 
     const menuId = 'primary-search-account-menu';
@@ -183,7 +206,9 @@ export default function PrimarySearchAppBar(props) {
                     className={classes.menuButton}
                     color="inherit"
                     aria-label="open drawer"
-                    onClick={() => props.setSidebar(true)}
+                    onClick={() => {
+                        props.setSidebar(true) ;
+                        props.setWatchlist()}}
                 >
                     <MenuIcon />
                 </IconButton>
@@ -201,6 +226,9 @@ export default function PrimarySearchAppBar(props) {
                         placeholder="Search…"
                         classes={{root: classes.inputRoot, input: classes.inputInput }}
                         inputProps={{ 'aria-label': 'search' }}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
                     />
                 </div>
                 <div className={classes.grow} />

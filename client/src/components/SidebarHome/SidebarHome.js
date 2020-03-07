@@ -127,10 +127,11 @@ function SidebarHome(props) {
             const language = 'language=en-US';
             const voteFilter = 'vote_average.gte=';
             const voteAverage = voteValue * 2;
+            const year = `primary_release_year=${yearValue}`
             const includeAdult = 'include_adult=false';
             if (genreValues && genreValues.length)
                 genresTab = genreValues.map((obj) => { return obj.id }).join(',');
-            const query = `${baseURL}${apiKey}&${language}&${voteFilter}${voteAverage}&${includeAdult}&with_genres=${genresTab}&page=`;
+            const query = `${baseURL}${apiKey}&${language}&${year}&${voteFilter}${voteAverage}&${includeAdult}&with_genres=${genresTab}&page=`;
             props.pushQuery(query);
           
         };
