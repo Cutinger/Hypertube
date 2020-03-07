@@ -40,11 +40,11 @@ export default {
         )
     },
     stream: (stream, quality, imdb_id) => {
-        return axios.get(
+        return axios.post(
             `${burl}/movies/${stream}/${quality}/${imdb_id}`,
             {},
             {
-                // withCredentials: 'true',
+                withCredentials: 'true',
                 headers: headers,
             }
         )
