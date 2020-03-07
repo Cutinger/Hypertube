@@ -132,11 +132,23 @@ const streamVIDEO = (res, file, range, filexists = false, contentType) => {
     if (contentType == 'video/webm') {
         console.log('Start conversion into WEBM')
         var videoStream = ffmpeg(stream)
-        .on('error', function(err) {
-            console.log('error: ', err)
-        })
-        .format('webm')
-        .videoCodec('libvpx')
+            .on('error', function(err) {
+                console.log('error:', err)
+            })
+            .audioBitrate(128)
+            .audioCodec('libvorbis')
+            .format('webm')
+            .outputOptions([
+                '-cpu-used 2',
+                '-deadline realtime',
+                '-error-resilient 1',
+                '-threads 4'
+            ])
+            .videoBitrate(1024)
+            .videoCodec('libvpx')
+            .on('end', () => {
+                console.log('Conversion into WEBM is a success!!')
+            })
     } else {
         console.log('Start streaming in MP4')
         var videoStream = stream
