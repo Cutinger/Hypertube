@@ -288,7 +288,7 @@ export default function HomeMoviesCards(props) {
                                                     <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />
                                                 </Grid>
                                                 <Grid item xs={'auto'} className={classes.movieAddList}>
-                                                    <AddCircle onClick={() => handleClickAddWatchlist(obj.id)} id="addCircle"/>
+                                                    <AddCircle onClick={() => handleClickAddWatchlist(obj.imdb_id)} id="addCircle"/>
                                                 </Grid>
                                             </Grid>
                                         </Grid>

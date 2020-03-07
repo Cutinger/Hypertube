@@ -13,12 +13,12 @@ const likeInteraction = (req, res) => {
     if (userID && imdbcode) {
         return  Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
             if (!data || err)
-                return res.status(403)
+                return res.status(403).json({})
             if (!data.like.includes(userID))
                 data.like.push(userID);
             else
                 data.like = data.like.filter(like => like != userID)
-            data.save((err) => { if(err) return res.status(403) })
+            data.save((err) => { if(err) return res.status(403).json({}) })
         });
         return res.status(200).json({})
     }
@@ -38,8 +38,9 @@ const watchList = (req, res) => {
                     movies: [imdbcode]
                 });
                 addList.save((err) => {
+                    console.log(err + 'd');
                     if(err)
-                        return res.status(403)
+                        return res.status(403).json({})
                 })
             } else {
                 if (!data.movies.includes(imdbcode))
@@ -47,13 +48,14 @@ const watchList = (req, res) => {
                 else
                     data.movies = data.movies.filter(movies => movies != imdbcode);
                 data.save((err) => {
-                    if (err) return res.status(403);
+                    console.log(err);
+                    if (err) return res.status(403).json({})
                 })
             }
-            return res.status(200)
+            return res.status(200).json({})
         })
     }
-    return res.status(403)
+    return res.status(403).json({})
 
 };
 
@@ -64,7 +66,7 @@ const getWatchlist = (req, res) => {
         return WatchList.findOne({user_id: userID}, (err, data) => {
             console.log(err);
             if (err)
-                return res.status(400);
+                return res.status(400).json({})
             else
                return res.status(200).json({watchlist: data && data.movies ? data.movies : []});
         })
@@ -78,7 +80,7 @@ const Actions = (req, res) => {
     } else if (req.params.action === 'watchlist') {
         watchList(req, res)
     }
-    return res.status(400);
+    return res.status(400).json({});
 };
 
 module.exports = { Actions, getWatchlist };
