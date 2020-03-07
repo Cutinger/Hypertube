@@ -40,9 +40,8 @@ export default {
         )
     },
     stream: (stream, quality, imdb_id) => {
-        return axios.post(
+        return axios.get(
             `${burl}/movies/${stream}/${quality}/${imdb_id}`,
-            {},
             {
                 withCredentials: 'true',
                 headers: headers,
@@ -52,7 +51,6 @@ export default {
     getMovieSources: (imdb_id) => {
         return axios.get(
             `${burl}/movies/${imdb_id}`,
-            {},
             {
                 withCredentials: 'true',
                 headers: headers,
@@ -62,7 +60,6 @@ export default {
     facebookAuth: () => {
         return axios.get(
             `${burl}/auth/facebook`,
-            {},
             {
                 withCredentials: 'true',
                 headers: headers
@@ -70,9 +67,8 @@ export default {
         )
     },
     getWatchlist: () => {
-        return axios.post(
+        return axios.get(
             `${burl}/watchlist`,
-            {},
             {
                 withCredentials: 'true',
                 headers: headers
@@ -80,9 +76,8 @@ export default {
         )
     },
     likeWatchlist: (movieID) => {
-        return axios.post(
+        return axios.get(
             `${burl}/movies/${movieID}/watchlist`,
-            {},
             {
                 withCredentials: 'true',
                 headers: headers

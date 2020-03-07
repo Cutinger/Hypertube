@@ -7,7 +7,6 @@ const app = express();
 
 const stream = require('./routes/api/Stream/DownloadTorrent.js');
 const moviesData = require('./routes/api/MovieInfos/MoviesInfos.js');
-const subtitles = require('./routes/api/Stream/Subtitles.js');
 const interact = require('./routes/api/Interactions/Actions.js');
 
 const helmet = require('helmet');
@@ -46,13 +45,13 @@ app.use ("/api/users", users);
 // OauthRoute
 app.use ("/api/auth", auth);
 // Stream routes
-app.post('/api/movies/:stream/:quality/:imdbcode', withAuth, stream.getDataMovie )
+app.get('/api/movies/:stream/:quality/:imdbcode', withAuth, stream.getDataMovie )
 // Catch Movies route
 app.get('/api/movies/:id', moviesData.parseData);
 // Actions to a video
-app.post('/api/movies/:id/:action', withAuth, interact.Actions);
+app.get('/api/movies/:id/:action', withAuth, interact.Actions);
 // Get watchlist
-app.post('/api/watchlist', withAuth, interact.getWatchlist);
+app.get('/api/watchlist', withAuth, interact.getWatchlist);
 
 
 // Connect to server
