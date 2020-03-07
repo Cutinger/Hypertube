@@ -16,6 +16,8 @@ import MoreIcon from '@material-ui/icons/MoreVert';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import axios from 'axios';
 import API from '../../utils/API';
+import Cookies from 'universal-cookie';
+const cookies = new Cookies();
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -129,13 +131,14 @@ export default function PrimarySearchAppBar(props) {
     };
     // Get watchlist
     useEffect(() => {
-        API.getWatchlist()
-            .then(res => {
-                // if (res.status === 200)
-                //     // console.log(res.data);
-            })
-            .catch(err => console.log(err));
-    }, [])
+        if (cookies.get('token'))
+            API.getWatchlist()
+                .then(res => {
+                    // if (res.status === 200)
+                    //     // console.log(res.data);
+                })
+                .catch(err => console.log(err));
+        }, [])
 
     const handleKeyDown = (e) => {
         if (e.keyCode === 13 && searchValue) {

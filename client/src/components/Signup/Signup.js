@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {Grow, ButtonGroup, Fab, Paper, Typography, Checkbox, TextField, Button, Container, Grid, Link, FormControlLabel } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import AddIcon from '@material-ui/icons/Add';
@@ -8,6 +8,7 @@ import IcomoonReact from "icomoon-react";
 import Logo from './../../assets/img/hypairtube-logov2.png'
 import VALIDATION from './../../utils/validation';
 import API from './../../utils/API';
+import Cookies from "universal-cookie";
 
 // Style
 const useStyles = makeStyles(theme => ({
@@ -142,6 +143,20 @@ const useStyles = makeStyles(theme => ({
         props.history.push('/login'); 
     };
 
+      useEffect(() => {
+          async function fetchAPI() {
+              const cookies = new Cookies();
+              if (cookies.get('token'))
+                  await API.withAuth()
+                      .then(res => {
+                          if (res.status === 200){
+                              props.history.push('/');
+                          }
+                      })
+                      .catch((err) => cookies.remove('token'));
+          }
+          fetchAPI();
+      }, [mounted, props.history]);
 
     /* Input onChange -> Update value, store it in state(setTextFieldsValues), if user has a previous warnings then dismiss it with false */
     const handleChange = (event) => {
@@ -396,7 +411,6 @@ const useStyles = makeStyles(theme => ({
                                     className={classes.buttonFacebook}>
                                     Facebook
                                 </Button>
-                                <a href="http://localhost:5000/api/auth/facebook" rel="noopener noreferrer" target="_blank">test</a>
                             </ButtonGroup>
                             <Grid container justify="flex-end">
                                 <Grid item>

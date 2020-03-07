@@ -10,6 +10,7 @@ import API from './../../utils/API';
 import Cookies from 'universal-cookie';
 
 
+
 // Style
 const useStyles = makeStyles(theme => ({
     loginContainer: {
@@ -89,10 +90,11 @@ const useStyles = makeStyles(theme => ({
             if (cookies.get('token'))
                 await API.withAuth()
                     .then(res => {
-                        if (res.status === 200)
-                            props.history.push('/home');
+                        if (res.status === 200){
+                            props.history.push('/');
+                        }
                     })
-                    .catch((err) => cookies.remove('token'));
+                    .catch((err) => { console.log(err); cookies.remove('token')})
         }
         fetchAPI();
     }, [mounted, props.history]);
@@ -115,7 +117,7 @@ const useStyles = makeStyles(theme => ({
         API.facebookAuth()
             .then(res => {
                 if (res.status === 200)
-                    props.history.push('/home')
+                    props.history.push('/');
                 else
                     console.log(['Res error', res]);
             })
