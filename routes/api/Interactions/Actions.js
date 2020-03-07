@@ -13,16 +13,16 @@ const likeInteraction = (req, res) => {
     if (userID && imdbcode) {
         return  Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
             if (!data || err)
-                return res.sendStatus(403).json({})
+                return res.sendStatus(403)
             if (!data.like.includes(userID))
                 data.like.push(userID);
             else
                 data.like = data.like.filter(like => like != userID)
-            data.save((err) => { if(err) return res.sendStatus(403).json({}) })
+            data.save((err) => { if(err) return res.sendStatus(403)})
         });
-        return res.sendStatus(200).json({})
+        return res.sendStatus(200)
     }
-    return res.sendStatus(403).json({})
+    return res.sendStatus(403)
 }
 
 
@@ -40,7 +40,7 @@ const watchList = (req, res) => {
                 addList.save((err) => {
                     console.log(err + 'd');
                     if(err)
-                        return res.sendStatus(403).json({})
+                        return res.status(403).json({})
                 })
             } else {
                 if (!data.movies.includes(imdbcode))
@@ -49,7 +49,7 @@ const watchList = (req, res) => {
                     data.movies = data.movies.filter(movies => movies != imdbcode);
                 data.save((err) => {
                     console.log(err);
-                    if (err) return res.sendStatus(403).json({})
+                    if (err) return res.status(403)
                 })
             }
             return res.sendStatus(200)
@@ -66,9 +66,9 @@ const getWatchlist = (req, res) => {
         return WatchList.findOne({user_id: userID}, (err, data) => {
             console.log(err);
             if (err)
-                return res.sendStatus(400).json({})
+                return res.sendStatus(400)
             else
-               return res.sendStatus(200).json({watchlist: data && data.movies ? data.movies : []});
+               return res.status(200).json({watchlist: data && data.movies ? data.movies : []});
         })
     }
     return res.sendStatus(400);
@@ -80,7 +80,7 @@ const Actions = (req, res) => {
     } else if (req.params.action === 'watchlist') {
         watchList(req, res)
     }
-    return res.sendStatus(400).json({});
+    return res.sendStatus(400)
 };
 
 module.exports = { Actions, getWatchlist };
