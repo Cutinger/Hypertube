@@ -1,7 +1,6 @@
 const axios         = require('axios');
 const stream        = require('./Stream.js')
-
-const apiKey    = 'f29f2233f1aa782b0f0dc8d6d9493c64'
+const key           = require('../../../config/keys.js')
 
 const udpYTS = [
     'udp://open.demonii.com:1337/announce',
@@ -58,7 +57,7 @@ const checkQuality1377 = (leetinfos, quality) => {
 
 const printLeet = async (req, res, quality, imdbcode) => {
     try {
-        var urlID = `https://api.themoviedb.org/3/find/${imdbcode}?api_key=${apiKey}&external_source=imdb_id`
+        var urlID = `https://api.themoviedb.org/3/find/${imdbcode}?api_key=${key.apiIMDB}&external_source=imdb_id`
         var imdbID = await axiosQuery(urlID, 'imdb_id')
         if ( !imdbID )
             return res.sendStatus(404)
@@ -96,6 +95,8 @@ const getDataMovie = (req, res) => {
     const paramStream = req.params.stream
     const quality     = req.params.quality + 'p'
     var imdbcode      = req.params.imdbcode
+
+    console.log(res.locals.id)
 
     if (paramStream == 'yts') {
         printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbcode}`, req, res, quality)

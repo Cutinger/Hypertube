@@ -5,31 +5,53 @@ const key           = require('../../../config/keys.js');
 const Watchlist        = require('../../../models/WatchList.js');
 const Movie        = require('../../../models/MovieSchema.js');
 
-
-// Valeur à mettre: imdbcode
-const likeInteraction = (req, res) => {
-    let imdbcode = req.params.id;
-    let userID = res.locals.id;
-    if (userID && imdbcode) {
-        return  Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
-            if (!data || err)
-                return res.sendStatus(403)
-            if (!data.like.includes(userID))
-                data.like.push(userID);
-            else
-                data.like = data.like.filter(like => like != userID)
-            data.save((err) => { if(err) return res.sendStatus(403)})
+const createInstance = async (baseUrl) => {
+    try {
+        let instance = axios.create({
+            baseURL: baseUrl,
+            headers: {  'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'X-Requested-With': 'XMLHttpRequest' }
         });
-        return res.sendStatus(200)
-    }
-    return res.sendStatus(403)
+        return instance.get()
+        .then((res => {
+            if (!res.data.imdb_id)
+                return null
+            return res.data.imdb_id
+        }))
+    } catch (err) { return null }
+}
+
+// Valeur à mettre: imdbid
+const likeInteraction = async (req, res) => {
+    try {
+        let imdbid = req.params.id;
+        let userID = res.locals.id;
+        let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
+        let imdbcode = await createInstance(urlID)
+        if (userID && imdbcode) {
+            return  Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
+                if (!data || err)
+                    return res.sendStatus(403)
+                if (!data.like.includes(userID))
+                    data.like.push(userID);
+                else
+                    data.like = data.like.filter(like => like != userID)
+                data.save((err) => { if(err) return res.sendStatus(403)})
+            });
+            return res.sendStatus(200)
+        }
+        return res.sendStatus(403)
+    } catch (err) { console.log(err) }
 }
 
 
-// Valeur à mettre = id
+// Valeur à mettre = imdbid
 const watchList = (req, res) => {
-    let imdbcode = req.params.id;
+    let imdbid = req.params.id;
     let userID = res.locals.id;
+    let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
+    let imdbcode = await createInstance(urlID)
     if (userID && imdbcode) {
         return WatchList.findOne({user_id: userID}, (err, data) => {
             if (!data) {
