@@ -63,7 +63,7 @@ const getSubtitles = (imdb_code) => {
             try {
                 console.log('Looking for subtitles for' + ' (' + imdb_code + ')')
                 const datasub = await OpenSubtitles.search({ imdbid: imdb_code })
-                const subtitles = { en: null, fr: null }
+                const subtitles = {}
                 if (datasub.fr && !frenchSub) {
                     try {
                         console.log('found in french: ' + datasub.en.url)
