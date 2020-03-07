@@ -1,72 +1,84 @@
 const mongoose      = require('mongoose');
 const db            = mongoose.connection;
-const jwt           = require('jsonwebtoken')
-const key           = require('../../../config/keys.js')
-const schema        = require('../../../models/WatchList.js')
+const jwt           = require('jsonwebtoken');
+const key           = require('../../../config/keys.js');
+const Watchlist        = require('../../../models/WatchList.js');
+const Movie        = require('../../../models/MovieSchema.js');
+
 
 // Valeur à mettre: imdbcode
 const likeInteraction = (req, res) => {
-    var imdbcode = req.params.id
-    if (!req.cookies.token) { return res.sendStatus(403) }
-    var userID = jwt.verify(req.cookies.token, key.secretOrKey).id
-    if (!userID) { return res.sendStatus(403) }
-    Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
-        if (!data)
-            res.sendStatus(403)
-        if (!data.like.includes(userID)) {
-            data.like.push(userID)
-        } else {
-            data.like = data.like.filter(like => like != userID)
-        }
-        data.save( (err) => { console.log(err) })
-    })
-    return res.sendStatus(200)
+    let imdbcode = req.params.id;
+    let userID = res.locals.id;
+    if (userID && imdbcode) {
+        return  Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
+            if (!data || err)
+                return res.status(403)
+            if (!data.like.includes(userID))
+                data.like.push(userID);
+            else
+                data.like = data.like.filter(like => like != userID)
+            data.save((err) => { if(err) return res.status(403) })
+        });
+        return res.status(200).json({})
+    }
+    return res.status(403).json({})
 }
+
 
 // Valeur à mettre = id
 const watchList = (req, res) => {
-    var imdbcode = req.params.id
-    if (!req.cookies.token) { return res.sendStatus(403) }
-    var userID = jwt.verify(req.cookies.token, key.secretOrKey).id
-    if (!userID) { return res.sendStatus(403) }
-
-    WatchList.findOne({ user_id: userID }, (err, data) => {
-        if (!data) {
-            var addList = new WatchList({
-                user_id:   userID,
-                movies: [ imdbcode ]
-            })
-            addList.save( (err) => { console.log(err) })
-        } else {
-            if (!data.movies.includes(imdbcode)) {
-                data.movies.push(imdbcode)
+    let imdbcode = req.params.id;
+    let userID = res.locals.id;
+    if (userID && imdbcode) {
+        return WatchList.findOne({user_id: userID}, (err, data) => {
+            if (!data) {
+                let addList = new WatchList({
+                    user_id: userID,
+                    movies: [imdbcode]
+                });
+                addList.save((err) => {
+                    if(err)
+                        return res.status(403)
+                })
             } else {
-                data.movies = data.movies.filter(movies => movies != imdbcode)
+                if (!data.movies.includes(imdbcode))
+                    data.movies.push(imdbcode)
+                else
+                    data.movies = data.movies.filter(movies => movies != imdbcode);
+                data.save((err) => {
+                    if (err) return res.status(403);
+                })
             }
-            data.save( (err) => { console.log(err) })
-        }
-        return res.sendStatus(200)
-    })
-}
+            return res.status(200)
+        })
+    }
+    return res.status(403)
+
+};
 
 // Valeur à mettre: id
 const getWatchlist = (req, res) => {
-    if (!req.cookies.token) { return res.sendStatus(403) }
-    var userID = jwt.verify(req.cookies.token, key.secretOrKey).id
-    if (!userID) { return res.sendStatus(403) }
-
-    WatchList.findOne({ user_id: userID }, (err, data) => {
-        if (!data) { return res.sendStatus(404) }
-        else { res.json({ watchlist: data.movies }); }
-    })
-}
+    let userID = res.locals.id;
+    if (userID) {
+        return WatchList.findOne({user_id: userID}, (err, data) => {
+            console.log(err);
+            if (err)
+                return res.status(400);
+            else
+               return res.status(200).json({watchlist: data && data.movies ? data.movies : []});
+        })
+    }
+    return res.status(400);
+};
 
 const Actions = (req, res) => {
-    if (req.params.action == 'like') {
+    if (req.params.action === 'like') {
         likeInteraction(req, res)
-    } else if (req.params.action == 'watchlist') {
+    } else if (req.params.action === 'watchlist') {
         watchList(req, res)
     }
-}
+    return res.status(400);
+};
 
-module.exports = { Actions, getWatchlist }
+module.exports = { Actions, getWatchlist };

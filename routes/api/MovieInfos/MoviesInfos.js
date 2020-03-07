@@ -132,7 +132,8 @@ const leetSearch = async (movieTitle) => {
         })
 }
 
-const parseData = async (idMovie, res) => {
+const parseData = async (req, res) => {
+    let idMovie = req.params.id;
     try {
         var baseURL_imdb = `https://api.themoviedb.org/3/movie/${idMovie}?api_key=${apiKey}`
         var dataMovie = await createInstance(baseURL_imdb, 'imdb')

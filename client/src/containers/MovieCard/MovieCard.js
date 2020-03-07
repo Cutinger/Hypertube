@@ -300,7 +300,7 @@ export default function MovieCard(props){
                                         fontSize="large"
                                         style={{color: 'white'}}
                                         id="arrowBackIosIcon"
-                                        onClick={() =>  props.history.push('/')}
+                                        onClick={(e) => {e.preventDefault(); props.history.push('/')}}
                                     />
                                 </a>
                             </Grid>

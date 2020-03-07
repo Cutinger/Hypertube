@@ -9,17 +9,18 @@ const stream = require('./routes/api/Stream/DownloadTorrent.js');
 const moviesData = require('./routes/api/MovieInfos/MoviesInfos.js');
 const subtitles = require('./routes/api/Stream/Subtitles.js');
 const interact = require('./routes/api/Interactions/Actions.js');
-const withAuth = require('./utils/middleware')
+
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const db = require("./config/keys").mongoURI;
 const auth = require("./routes/api/auth");
+const withAuth = require('./utils/middleware')
 require("./config/passport")(passport);
 
 app.use(helmet());
 app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Credentials', true);
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
     res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
     next();
@@ -47,13 +48,11 @@ app.use ("/api/auth", auth);
 // Stream routes
 app.get('/api/movies/:stream/:quality/:imdbcode', auth, (req, res) => { stream.getDataMovie(req, res) })
 // Catch Movies route
-app.get('/api/movies/:id', (req, res) => { moviesData.parseData(req.params.id, res) })
-// Catch Subtitles
-app.get('/api/subtitles/:imdbcode/:lang', (req, res) => { subtitles.readSub(req.params.imdbcode, req.params.lang, res) })
+app.get('/api/movies/:id', moviesData.parseData);
 // Actions to a video
-app.get('/api/movies/:id/:action', auth, (req, res) => { interact.Actions(req, res) })
+app.post('/api/movies/:id/:action', withAuth, interact.Actions);
 // Get watchlist
-app.get('/api/watchlist', withAuth, (req, res) => { interact.getWatchlist(req, res) })
+app.post('/api/watchlist', withAuth, interact.getWatchlist);
 
 
 // Connect to server

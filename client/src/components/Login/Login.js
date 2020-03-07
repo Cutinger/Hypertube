@@ -227,10 +227,10 @@ const useStyles = makeStyles(theme => ({
                                     className={classes.button42}>
                                     Auth
                                 </Button>
-                                <Button 
-                                    startIcon={<FacebookIcon />} 
-                                    className={classes.buttonFacebook}>
+                                <Button
                                     onClick={handleFacebookConnection}
+                                    startIcon={<FacebookIcon />}
+                                    className={classes.buttonFacebook}>
                                     Facebook
                                 </Button>
                             </ButtonGroup>

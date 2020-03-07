@@ -8,6 +8,7 @@ import {
     Paper,
     Grid
 } from '@material-ui/core';
+import API from './../../utils/API';
 
 const useStyles = makeStyles(theme => ({
     movieCover: {
@@ -247,6 +248,14 @@ export default function HomeMoviesCards(props) {
         return null;
     };
 
+    const handleClickAddWatchlist = (id) => {
+        API.likeWatchlist(id)
+            .then(res => {
+                if (res.status === 200)
+                    console.log(res);
+            })
+            .catch((err) => console.log(err));
+    }
     function GridMovies(obj, key) {
         return (
             <Grid key={key} id={key === 1 ? "back-to-top-anchor" : null} item>
@@ -279,7 +288,7 @@ export default function HomeMoviesCards(props) {
                                                     <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />
                                                 </Grid>
                                                 <Grid item xs={'auto'} className={classes.movieAddList}>
-                                                    <AddCircle id="addCircle"/>
+                                                    <AddCircle onClick={() => handleClickAddWatchlist(obj.id)} id="addCircle"/>
                                                 </Grid>
                                             </Grid>
                                         </Grid>

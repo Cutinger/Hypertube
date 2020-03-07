@@ -70,8 +70,18 @@ export default {
         )
     },
     getWatchlist: () => {
-        return axios.get(
+        return axios.post(
             `${burl}/watchlist`,
+            {},
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
+    },
+    likeWatchlist: (movieID) => {
+        return axios.post(
+            `${burl}/movies/${movieID}/watchlist`,
             {},
             {
                 withCredentials: 'true',

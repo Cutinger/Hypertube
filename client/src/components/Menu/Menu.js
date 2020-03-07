@@ -13,6 +13,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
 import MoreIcon from '@material-ui/icons/MoreVert';
+import WhatshotIcon from '@material-ui/icons/Whatshot';
 import axios from 'axios';
 import API from '../../utils/API';
 
@@ -138,6 +139,10 @@ export default function PrimarySearchAppBar(props) {
 
     const handleKeyDown = (e) => {
         if (e.keyCode === 13 && searchValue) {
+            if (props.history.location.pathname !== '/') {
+                e.preventDefault();
+                props.history.push('/');
+            }
             axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${searchValue}`)
                 .then(res => {
                     if (res.status === 200)
@@ -176,6 +181,15 @@ export default function PrimarySearchAppBar(props) {
             onClose={handleMobileMenuClose}
             className={classes.mobileDotContainer}
         >
+
+            <MenuItem>
+                <IconButton aria-label="show 11 new notifications" color="inherit">
+                    <Badge badgeContent={'20+'} color="secondary">
+                        <WhatshotIcon />
+                    </Badge>
+                </IconButton>
+                <p>What's hot</p>
+            </MenuItem>
             <MenuItem>
                 <IconButton aria-label="show 11 new notifications" color="inherit">
                     <Badge badgeContent={11} color="secondary">
@@ -207,14 +221,15 @@ export default function PrimarySearchAppBar(props) {
                     color="inherit"
                     aria-label="open drawer"
                     onClick={() => {
-                        props.setSidebar(true) ;
-                        props.setWatchlist()}}
+                        props.setSidebar(true)
+                        // props.setWatchlist()}
+                        }}
                 >
                     <MenuIcon />
                 </IconButton>
                 <img 
                     src={Logo}
-                    onClick={() => props.history.push('/')}
+                    onClick={(e) => { e.preventDefault(); props.history.push('/') }}
                     alt='Hypeertube'
                     className={classes.logo}
                 />
@@ -233,6 +248,11 @@ export default function PrimarySearchAppBar(props) {
                 </div>
                 <div className={classes.grow} />
                 <div className={classes.sectionDesktop}>
+                    <IconButton aria-label="show 17 new notifications" color="inherit">
+                        <Badge badgeContent={'+'} color="secondary">
+                            <WhatshotIcon />
+                        </Badge>
+                    </IconButton>
                     <IconButton aria-label="show 17 new notifications" color="inherit">
                         <Badge badgeContent={17} color="secondary">
                             <SubscriptionsIcon />
