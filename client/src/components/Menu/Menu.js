@@ -131,8 +131,8 @@ export default function PrimarySearchAppBar(props) {
     useEffect(() => {
         API.getWatchlist()
             .then(res => {
-                if (res.status === 200)
-                    console.log(res.data);
+                // if (res.status === 200)
+                //     // console.log(res.data);
             })
             .catch(err => console.log(err));
     }, [])

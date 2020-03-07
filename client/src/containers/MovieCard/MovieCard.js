@@ -385,9 +385,9 @@ export default function MovieCard(props){
                                             controls={true}
                                             config={{
                                                     file: {
-                                                        attributes: {
-                                                            crossOrigin: 'true'
-                                                        },
+                                                        // attributes: {
+                                                        //     crossOrigin: 'true'
+                                                        // },
                                                         tracks: subtitles
                                                     }
                                             }}

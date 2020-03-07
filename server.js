@@ -34,7 +34,7 @@ mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true, useCreat
 .catch(err => { console.log(`DB Connection Error: ${err.message}`) });
 
 // Passport middleware
-app.use(passport.initialize());;
+app.use(passport.initialize());
 
 // Use static files for subtitles
 app.use('/api/subtitles', express.static('files/subtitles'));
