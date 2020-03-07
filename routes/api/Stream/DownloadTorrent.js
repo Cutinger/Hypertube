@@ -96,8 +96,6 @@ const getDataMovie = (req, res) => {
     const quality     = req.params.quality + 'p'
     var imdbcode      = req.params.imdbcode
 
-    console.log(res.locals.id)
-
     if (paramStream == 'yts') {
         printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbcode}`, req, res, quality)
     } else if (paramStream == '1377') {

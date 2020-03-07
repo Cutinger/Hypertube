@@ -52,6 +52,8 @@ app.get('/api/movies/:id', moviesData.parseData);
 app.get('/api/movies/:id/:action', withAuth, interact.Actions);
 // Get watchlist
 app.get('/api/watchlist', withAuth, interact.getWatchlist);
+// Get history
+app.get('/api/history', withAuth, interact.getHistory);
 
 
 // Connect to server

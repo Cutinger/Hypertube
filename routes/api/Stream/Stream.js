@@ -4,6 +4,7 @@ const fs            = require('fs');
 const ffmpeg        = require('fluent-ffmpeg');
 const db            = mongoose.connection;
 const schema        = require('../../../models/MovieSchema.js')
+const user          = require('../../../models/User.js')
 const jwt           = require('jsonwebtoken')
 const key           = require('../../../config/keys.js')
 
@@ -82,7 +83,7 @@ const addMovietoDB = async (req, movieInfos, magnet, userID) => {
         })
 
         addMovie.save( (err) => { console.log(err) })
-        
+
     } catch (err) { console.log(err) }
 }
 
@@ -207,6 +208,24 @@ const addViews = (imdbcode, userID) => {
             data.userViews.push(userID)
             data.save( (err) => { console.log(err) })
         }
+    })
+    User.findById(userID, (err, data) => {
+        let exists = false
+        let currentDate = new Date();
+        if (!data)
+            return ;
+        for (let index = 0; index < data.history.length; index++) {
+            if (data.history[index].imdbcode == imdbcode) {
+                data.history[index].date = currentDate.getFullYear() + '-' + ( currentDate.getMonth() +1 ) + '-' + currentDate.getDate();
+                exists = true
+                break ;
+            }
+        }
+        if (!exists) {
+            let newElem = { imdbcode: imdbcode, date: currentDate }
+            data.history.push(newElem)
+        }
+        data.save( (err) => { console.log(err) })
     })
 }
 

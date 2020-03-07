@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema({
     img:{
         type: String,
     },
+    history: {
+        type: Array,
+        required: false
+    },
     oauthID:String,
     facebook: JSON,
     github: JSON,

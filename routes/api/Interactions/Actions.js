@@ -3,6 +3,7 @@ const db            = mongoose.connection;
 const jwt           = require('jsonwebtoken');
 const key           = require('../../../config/keys.js');
 const Watchlist        = require('../../../models/WatchList.js');
+const User        = require('../../../models/User.js');
 const Movie        = require('../../../models/MovieSchema.js');
 const axios         = require('axios');
 
@@ -101,6 +102,17 @@ const getWatchlist = (req, res) => {
     return res.status(400);
 };
 
+const getHistory = (req, res) => {
+    let userID = res.locals.id;
+    if (!userID)
+        return res.sendStatus(404)
+    User.findById(userID, (err, data) => {
+        if (!data)
+            return res.sendStatus(403)
+        return res.json(data.history)
+    })
+}
+
 const Actions = (req, res) => {
     if (req.params.action === 'like') {
         return likeInteraction(req, res)
@@ -110,4 +122,4 @@ const Actions = (req, res) => {
     return res.status(400).json({})
 };
 
-module.exports = { Actions, getWatchlist };
+module.exports = { Actions, getWatchlist, getHistory };
