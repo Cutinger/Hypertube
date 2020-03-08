@@ -54,7 +54,6 @@ const deleteOldMovies = async () => {
         var checkDate = unixDate
         checkDate.setMonth(checkDate.getMonth() - 1)
         var deleteDate = checkDate.getFullYear() + '-' + ( checkDate.getMonth() +1 ) + '-' + ( checkDate.getDate() );
-        console.log(deleteDate)
 
         Movie.find({lastView: {$lt: deleteDate}}, (err, data) => {
             if (!data || err) { return; }
