@@ -122,6 +122,7 @@ const addMovietoDB = async (req, movieInfos, magnet, userID) => {
 }
 
 const addViews = (imdbcode, userID) => {
+    var currentTimestamp = Math.round(unixDate.getTime() / 1000);
     Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
         if (!data)
             return ;
@@ -131,7 +132,7 @@ const addViews = (imdbcode, userID) => {
             data.userViews.push(userID)
         }
         if (data) {
-            data.lastView = currentDate
+            data.lastView = currentTimestamp
             data.save( (err) => { console.log(err) })
         }
     })
@@ -141,13 +142,13 @@ const addViews = (imdbcode, userID) => {
             return ;
         for (let index = 0; index < data.history.length; index++) {
             if (data.history[index].imdbcode == imdbcode) {
-                data.history[index].date = currentDate
+                data.history[index].date = currentTimestamp
                 exists = true
                 break ;
             }
         }
         if (!exists) {
-            let newElem = { imdbcode: imdbcode, date: currentDate }
+            let newElem = { imdbcode: imdbcode, date: currentTimestamp }
             data.history.push(newElem)
         }
         data.save( (err) => { console.log(err) })

@@ -34,7 +34,8 @@ const userSchema = new mongoose.Schema({
     },
     history: {
         type: Array,
-        required: false
+        required: false,
+        timestamps: true
     },
     oauthID:String,
     facebook: JSON,
