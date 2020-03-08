@@ -233,12 +233,13 @@ export default function MovieCard(props){
         }
         let _mounted = true;
         // Get movie infos (vote, title, overview, poster...)
-        if (_mounted ) {
+        if (_mounted && props.match.params.movieId) {
+            console.log(1);
             setMovieDetail();
             getMovieSources();
         }
         return () => { _mounted = false }
-    }, []);
+    }, [props.match.params.movieId]);
 
 
     const sourceMessage = () => {

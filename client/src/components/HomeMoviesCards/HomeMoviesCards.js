@@ -52,9 +52,6 @@ const useStyles = makeStyles(theme => ({
             transition: 'all 2s ',
         }
     },
-    containerGridTopMovie: {
-        marginTop: theme.spacing(13),
-    },
     growContainer: {
         background: 'transparent !important'
     },
@@ -250,18 +247,15 @@ export default function HomeMoviesCards(props) {
 
     const handleClickAddWatchlist = (id) => {
         API.likeWatchlist(id)
-            .then(res => {
-                if (res.status === 200)
-                    console.log(res);
-            })
             .catch((err) => console.log(err));
-    }
+    };
+
     function GridMovies(obj, key) {
         return (
             <Grid key={key} id={key === 1 ? "back-to-top-anchor" : null} item>
                 <Grow in={true} className={classes.growContainer}>
                     {/* Movie Card Item*/}
-                    <Paper elevation={5} className={classes.paper}>
+                    <Paper elevation={8} className={classes.paper}>
                         {movieFocus !== key ?
                             <div className={classes.movieCoverContainer} onMouseLeave={()=> handleMouseLeaveMovie(key)} onMouseEnter={() => handleMouseEnterMovie(key) }>
                                 <img
@@ -329,7 +323,7 @@ export default function HomeMoviesCards(props) {
         )
     }
     return (
-        <div className={classes.containerGridTopMovie}>
+        <div>
                 <Grid direction="row" alignItems="flex-start" justify="center" container className={classes.root} spacing={2}>
                     {topMoviesList && topMoviesList.map((obj, key) => {
                         return ( GridMovies(obj, key) )

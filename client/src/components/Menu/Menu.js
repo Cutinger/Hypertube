@@ -105,6 +105,8 @@ export default function PrimarySearchAppBar(props) {
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
+    // Badge counter for list icon
+    const [counterList, setCounterList] = React.useState(0);
     const handleProfileMenuOpen = event => {
         setAnchorEl(event.currentTarget);
     };
@@ -129,16 +131,26 @@ export default function PrimarySearchAppBar(props) {
     const handleMobileMenuOpen = event => {
         setMobileMoreAnchorEl(event.currentTarget);
     };
-    // Get watchlist
+
     useEffect(() => {
-        if (cookies.get('token'))
+        let _mounted = true;
+        function getWatchlist() {
             API.getWatchlist()
                 .then(res => {
-                    // if (res.status === 200)
-                    //     // console.log(res.data);
+                    if (res.status === 200 && res.data.watchlist && res.data.watchlist.length) {
+                        _mounted && setCounterList(res.data.watchlist.length);
+                        console.log(res.data.watchlist);
+                    }
                 })
                 .catch(err => console.log(err));
-        }, [])
+        }
+
+        if (_mounted && cookies.get('token')) {
+            getWatchlist()
+        }
+        return (() => _mounted = false)
+    }, []);
+
 
     const handleKeyDown = (e) => {
         if (e.keyCode === 13 && searchValue) {
@@ -195,7 +207,7 @@ export default function PrimarySearchAppBar(props) {
             </MenuItem>
             <MenuItem>
                 <IconButton aria-label="show 11 new notifications" color="inherit">
-                    <Badge badgeContent={11} color="secondary">
+                    <Badge badgeContent={counterList} color="secondary">
                         <SubscriptionsIcon />
                     </Badge>
                 </IconButton>
@@ -257,7 +269,7 @@ export default function PrimarySearchAppBar(props) {
                         </Badge>
                     </IconButton>
                     <IconButton aria-label="show 17 new notifications" color="inherit">
-                        <Badge badgeContent={17} color="secondary">
+                        <Badge badgeContent={counterList} color="secondary">
                             <SubscriptionsIcon />
                         </Badge>
                     </IconButton>

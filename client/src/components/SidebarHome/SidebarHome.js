@@ -17,7 +17,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 const useStyles = makeStyles(theme => ({
     drawerPaper:{
         background: 'linear-gradient(-333deg, rgba(32, 122, 244, 0.8) -39%, #0b1123, #0b1123 70%, rgba(240, 38, 120, 0.8) 223% ) !important',
-        opacity: '0.95',
+        opacity: '0.97',
         boxShadow: '1px -7px 22px 11px rgba(0,0,0,0.5)'
     },
     sidebarHomeContainer: {
@@ -146,7 +146,7 @@ function SidebarHome(props) {
             <div className={classes.drawerHeader}>
                 <Grid container direction="row" alignContent="flex-end" justify="space-between" alignItems={"center"}>
                     <Grid item xs={6} style={{padding: '12px'}}>
-                        <Typography style={{color: 'white', fontSize: '1.5em', fontWeight: 'bold', verticalAlign: 'middle'}}>Filters</Typography>
+                        <Typography style={{color: 'white', fontSize: '1.2em', fontWeight: 'bold', verticalAlign: 'middle'}}>Search filters</Typography>
                     </Grid>
                     <Grid item xs={6} style={{textAlign: 'right'}}>
                         <IconButton onClick={props.sidebarClose}>

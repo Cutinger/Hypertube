@@ -155,7 +155,11 @@ const useStyles = makeStyles(theme => ({
         /* SEND REQUEST */
         if (!errors.username && !errors.password) {
             API.login(fieldValue.username, fieldValue.password)
-            .then(response => { if (response.status === 200) props.history.push('/home') })
+            .then(response => {
+                if (response.status === 200){
+                    props.history.push('/')
+                }
+            })
             .catch(err => setValidationErrors({...validationErrors, err_username: 'Incorrect username or password' }));
         }
     }

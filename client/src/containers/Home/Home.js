@@ -12,12 +12,10 @@ import {
     useScrollTrigger,
     Zoom
 } from '@material-ui/core'
+import API from "../../utils/API";
 
 const key = 'f29f2233f1aa782b0f0dc8d6d9493c64';
 const useStyles = makeStyles(theme => ({
-    containerGridTopMovie: {
-        marginTop: theme.spacing(13),
-    },
     paper: {
         width: '190px !important',
         height: '280px !important',
@@ -35,145 +33,165 @@ const useStyles = makeStyles(theme => ({
         '& .MuiFab-secondary':{
             background: 'rgba(83, 26, 62, 1)'
         }
+    },
+    containerGridTopMovie: {
+        marginTop: theme.spacing(13)
+    },
+    title: {
+        textAlign: 'left',
+        padding: '8px',
+        color: 'white',
+        fontSize: '2.2em',
+        fontWeight: '900',
+        fontFamily: 'Open-Sans, sans-serif'
+    },
+    topBackground: {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        height: '250px',
+        width: '100%',
+        zIndex: -1,
+        background: 'linear-gradient(-180deg, rgb(13, 28, 55), rgba(240, 38, 120, 0) ) !important'
     }
 }));
 
 const query = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${key}&page=`
 
+
 const App = (forwardRef((props, ref) => {
     const classes = useStyles();
-    const [hasMoreContent, setHasMoreContent] = useState(0);
     const [topMoviesList, setTopMoviesList] = useState(false);
     const [moviesGenres, setMoviesGenres] = useState(false);
-    // const [load, setLoad] = useState(false);
     const [sidebarQuery, setSidebarQuery] = useState(false);
-    // const [defaultQuery] = useState(query)
+    const [watchlist, setWatchlist] = useState(false);
+
+    // ScrollToTop
+        const trigger = useScrollTrigger({
+            disableHysteresis: true,
+            threshold: 200,
+        });
+        const handleClick = event => {
+            const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
+            anchor && anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
 
     // First load (top movies)
-    useEffect(() => {
-        let isCancelled = false;
-        async function getTopMoviesList() {
-            axios.get(`${query}${1}`)
-                .then(res => {
-                    if (res.data && res.data.results && res.data.results.length)
-                        !isCancelled && setTopMoviesList(res.data.results);
-                })
-        }
-        async function getMoviesGenres() {
-            axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${key}`)
-                .then(res => {
-                    if (res.data && res.data.genres && res.data.genres.length)
-                        !isCancelled && setMoviesGenres(res.data.genres)
-                })
-        }
-        getMoviesGenres();
-        getTopMoviesList();
-        console.log(1);
-        return () => { isCancelled = true }
-    }, []);
+        useEffect(() => {
+            let isCancelled = false;
+            const getWatchlist = () => {
+                API.getWatchlist()
+                    .then(res => {
+                        if (res.status === 200 && res.data.watchlist && res.data.watchlist.length) {
+                            !isCancelled && setWatchlist(res.data.watchlist.length);
+                        }
+                    })
+                    .catch(err => console.log(err));
+            };
+            const getTopMoviesList = async() => {
+                axios.get(`${query}${1}`)
+                    .then(res => {
+                        if (res.data && res.data.results && res.data.results.length)
+                            !isCancelled && setTopMoviesList(res.data.results);
+                    })
+            };
+            const getMoviesGenres = async() =>{
+                axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${key}`)
+                    .then(res => {
+                        if (res.data && res.data.genres && res.data.genres.length)
+                            !isCancelled && setMoviesGenres(res.data.genres)
+                    })
+            };
+            getMoviesGenres();
+            if (props.history.location.pathname === '/')
+                getTopMoviesList();
+            else {
+                getWatchlist();
+            }
 
-
-    // // Infinite Scroll
-    // // Handle function when scroll is on bottom
-    // const handleSetLoadMovies = () => {
-    //     if (topMoviesList && topMoviesList.length) {
-    //         setLoad(true);
-    //         setHasMoreContent(hasMoreContent + 1)
-    //     }
-    // };
-    // useEffect(() => {
-    //     let _mounted = true;
-    //     function loadMore() {
-    //         console.log(1);
-    //         axios.get(`${defaultQuery}${hasMoreContent}`)
-    //             .then(res => {
-    //                 if (res.data && res.data.results && res.data.results.length)
-    //                     _mounted && setTopMoviesList([].concat(topMoviesList, res.data.results));
-    //             })
-    //     }
-    //     if (_mounted && load){
-    //         loadMore();
-    //     }
-    //     return (() => {
-    //         _mounted = false;
-    //     })
-    // }, [hasMoreContent, load, topMoviesList, defaultQuery]);
+            return () => { isCancelled = true }
+        }, [props.history.location.pathname]);
 
     // Sidebar
     const [open, setOpen] = React.useState(false);
     const handleDrawerClose = () => setOpen(false)
     // Ref accessible by App.js
     useImperativeHandle(ref, () => ({
-        setSidebar(bool){
-            setOpen(bool);
-        },
-        setWatchlist(movies){
-            setTopMoviesList(movies);
-        },
-        setSearch(movies){
-            setTopMoviesList(movies);
-        }
+        setSidebar(bool){ setOpen(bool) },
+        setSearch(movies){ setTopMoviesList(movies) }
     }));
+
     // Receive query from SidebarHome
     const handlePushQuery = (query) => query && query.length && setSidebarQuery(query);
 
     useEffect(() => {
         let isCancelled = false;
-        function getMoviesList() {
+        async function getMoviesList() {
             axios.get(sidebarQuery)
                 .then(res => {
-                    if (res.data && res.data.results && res.data.results.length) {
+                    if (res.data && res.data.results && res.data.results.length)
                         !isCancelled && setTopMoviesList(res.data.results)
-                        !isCancelled && setHasMoreContent(0);
-                    }
                 })
-        }
+        };
         if (sidebarQuery)
             getMoviesList();
         return () => { isCancelled = true }
     }, [sidebarQuery]);
 
 
-    // ScrollToTop
-    const trigger = useScrollTrigger({
-        disableHysteresis: true,
-        threshold: 200,
-    });
-    const handleClick = event => {
-        const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
-        anchor && anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-
 
     return (
-        <Container component="main">
-            {/* Loader -> when page load */}
-            <Backdrop className={classes.backdrop} open={!topMoviesList ? true : false} >
-                <CircularProgress color="inherit" />
-            </Backdrop>
-            {/* Sidebar -> App.js send props here, then home send props to sidebar */}
-            <SidebarHome
-                sidebarClose={handleDrawerClose}
-                sidebarActive={open}
-                genres={moviesGenres}
-                pushQuery={handlePushQuery}
-            />
-            {/* Movies card map */}
-            <HomeMovieCards
-                topMoviesList={topMoviesList}
-                moviesGenres={moviesGenres}
-                pushHistory={(link) => props.history.push(link)}
-                setLoad={() => console.log(1)}
-            />
-            {/* Scroll to top */}
-            <Zoom in={trigger}>
-                <div onClick={handleClick} role="presentation" className={classes.rootScroll}>
-                    <Fab color="secondary" size="small" aria-label="scroll back to top">
-                        <KeyboardArrowUpIcon />
-                    </Fab>
-                </div>
-            </Zoom>
-        </Container>
+        props.history.location.pathname === "/" ?
+            <Container component="main" className={classes.containerGridTopMovie}>
+                <div className={classes.topBackground} />
+                {/* Loader -> when page load */}
+                <Backdrop className={classes.backdrop} open={!topMoviesList ? true : false} >
+                    <CircularProgress color="inherit" />
+                </Backdrop>
+                {/* Sidebar -> App.js send props here, then home send props to sidebar */}
+                <SidebarHome
+                    sidebarClose={handleDrawerClose}
+                    sidebarActive={open}
+                    genres={moviesGenres}
+                    pushQuery={handlePushQuery}
+                />
+                <h1 className={classes.title}>Top movies</h1>
+                {/* Movies card map */}
+                <HomeMovieCards
+                    topMoviesList={topMoviesList}
+                    moviesGenres={moviesGenres}
+                    pushHistory={(link) => props.history.push(link)}
+                />
+                {/* Scroll to top */}
+                <Zoom in={trigger}>
+                    <div onClick={handleClick} role="presentation" className={classes.rootScroll}>
+                        <Fab color="secondary" size="small" aria-label="scroll back to top">
+                            <KeyboardArrowUpIcon />
+                        </Fab>
+                    </div>
+                </Zoom>
+            </Container> :
+            <Container component="main">
+                {/* Loader -> when page load */}
+                <Backdrop className={classes.backdrop} open={!topMoviesList ? true : false} >
+                    <CircularProgress color="inherit" />
+                </Backdrop>
+                {/* Movies card map */}
+                <HomeMovieCards
+                    topMoviesList={watchlist}
+                    moviesGenres={moviesGenres}
+                    pushHistory={(link) => props.history.push(link)}
+                />
+                {/* Scroll to top */}
+                <Zoom in={trigger}>
+                    <div onClick={handleClick} role="presentation" className={classes.rootScroll}>
+                        <Fab color="secondary" size="small" aria-label="scroll back to top">
+                            <KeyboardArrowUpIcon />
+                        </Fab>
+                    </div>
+                </Zoom>
+            </Container>
+
     )
 }));
 
