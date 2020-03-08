@@ -5,14 +5,14 @@ const ffmpeg        = require('fluent-ffmpeg');
 const db            = mongoose.connection;
 const schema        = require('../../../models/MovieSchema.js')
 const user          = require('../../../models/User.js')
-const jwt           = require('jsonwebtoken')
-const key           = require('../../../config/keys.js')
 
 const ffmpegPath    = require('@ffmpeg-installer/ffmpeg').path;
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-const path = './files/test'
 
+const path = './files/test'
+const unixDate = new Date();
+const currentDate = unixDate.getFullYear() + '-' + ( unixDate.getMonth() + 1 ) + '-' + unixDate.getDate();
 const options = {
     connections: 100,
     uploads: 10,
@@ -20,7 +20,7 @@ const options = {
     path: path
 }
 
-function formatBytes(bytes, decimals = 2) {
+const formatBytes = (bytes, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
 
     const k = 1024;
@@ -32,7 +32,7 @@ function formatBytes(bytes, decimals = 2) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-var getExtensions = (ext, filename) => {
+const getExtensions = (ext, filename) => {
     for (let index = 0; index < ext.length; index++) {
         if (ext[index] == filename.substr(filename.length - 3, filename.length)) {
             return true
@@ -47,6 +47,40 @@ const getPathByMagnet = (magnet, movieDB) => {
         if (movieDB.path[index].magnet == magnet)
             return movieDB.path[index].path
     }
+}
+
+const deleteOldMovies = async () => {
+    try {
+        var checkDate = unixDate
+        checkDate.setMonth(checkDate.getMonth() - 1)
+        var deleteDate = checkDate.getFullYear() + '-' + ( checkDate.getMonth() +1 ) + '-' + ( checkDate.getDate() );
+        console.log(deleteDate)
+
+        Movie.find({lastView: {$lt: deleteDate}}, (err, data) => {
+            if (!data || err) { return; }
+            for (let index = 0; index < data.length; index++) {
+                for (let j = 0; j < data[index].path.length; j++) {
+                    if (data[index].path[j].path) { fs.unlinkSync(data[index].path[j].path) }
+                }
+            }
+        })
+
+        Movie.updateMany({
+            lastView: {$lt: deleteDate},
+            downloaded: {
+                $elemMatch: {
+                    state: true
+                }
+            }
+        }, {
+            $set: {
+                'downloaded.$.state': false,
+                path: []
+            }
+        }, (err, data) => {
+            if (err) { console.log(err) }
+        })
+    } catch (err) { console.log(err) }
 }
 
 const setDownloadedMovie = (magnet, moviePath, movieInfos, req) => {
@@ -87,7 +121,40 @@ const addMovietoDB = async (req, movieInfos, magnet, userID) => {
     } catch (err) { console.log(err) }
 }
 
-function checkTorrentStatus(engine, magnet, moviePath, movieInfos, req) {
+const addViews = (imdbcode, userID) => {
+    Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
+        if (!data)
+            return ;
+        if (err) {
+            console.log(err)
+        } else if (userID && !data.userViews.includes(userID)) {
+            data.userViews.push(userID)
+        }
+        if (data) {
+            data.lastView = currentDate
+            data.save( (err) => { console.log(err) })
+        }
+    })
+    User.findById(userID, (err, data) => {
+        let exists = false
+        if (!data)
+            return ;
+        for (let index = 0; index < data.history.length; index++) {
+            if (data.history[index].imdbcode == imdbcode) {
+                data.history[index].date = currentDate
+                exists = true
+                break ;
+            }
+        }
+        if (!exists) {
+            let newElem = { imdbcode: imdbcode, date: currentDate }
+            data.history.push(newElem)
+        }
+        data.save( (err) => { console.log(err) })
+    })
+}
+
+const checkTorrentStatus = (engine, magnet, moviePath, movieInfos, req) => {
     var total = 0
     engine.files.forEach((file) => {
         if (getExtensions(['mp4', 'avi', 'mkv', 'webm'], file.name)) {
@@ -210,37 +277,6 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID) =>
     })
 }
 
-const addViews = (imdbcode, userID) => {
-    Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
-        if (!data)
-            return ;
-        if (err) {
-            console.log(err)
-        } else if (userID && !data.userViews.includes(userID)) {
-            data.userViews.push(userID)
-            data.save( (err) => { console.log(err) })
-        }
-    })
-    User.findById(userID, (err, data) => {
-        let exists = false
-        let currentDate = new Date();
-        if (!data)
-            return ;
-        for (let index = 0; index < data.history.length; index++) {
-            if (data.history[index].imdbcode == imdbcode) {
-                data.history[index].date = currentDate.getFullYear() + '-' + ( currentDate.getMonth() +1 ) + '-' + currentDate.getDate();
-                exists = true
-                break ;
-            }
-        }
-        if (!exists) {
-            let newElem = { imdbcode: imdbcode, date: currentDate }
-            data.history.push(newElem)
-        }
-        data.save( (err) => { console.log(err) })
-    })
-}
-
 const initStreaming = async (req, res, magnet, movieInfos, userID) => {
     var imdb = req.params.imdbcode
     var streaming = false
@@ -249,6 +285,7 @@ const initStreaming = async (req, res, magnet, movieInfos, userID) => {
     console.log('== ========================  ==')
 
     addViews(imdb, userID)
+    deleteOldMovies()
 
     var actualRequest = JSON.stringify({ type: req.params.stream,
                           magnet: magnet,
