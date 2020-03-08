@@ -55,6 +55,7 @@ app.get('/api/watchlist', withAuth, interact.getWatchlist);
 // Get history
 app.get('/api/history', withAuth, interact.getHistory);
 
+app.post('/api/comment/:id', withAuth, interact.addComment)
 
 // Connect to server
 const port = process.env.PORT || 5000;

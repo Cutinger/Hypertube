@@ -7,6 +7,30 @@ const User        = require('../../../models/User.js');
 const Movie        = require('../../../models/MovieSchema.js');
 const axios         = require('axios');
 
+const addComment = (req, res) => {
+    
+    var currentTimestamp = Math.round((Date.now() / 1000))
+
+    let imdbid = req.params.id;
+    let userID = res.locals.id;
+    let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
+
+    if (!userID) { return res.sendStatus(403) }
+
+    let imdbcode = createInstance(urlID)
+    if (!imdbcode) { return res.sendStatus(404) }
+
+    var comment = req.body.comment
+    if ( comment.length < 8 || isEmpty(comment) ) { return res.sendStatus(405) }
+
+    Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
+        if (!data || err) { return res.sendStatus(404) }
+        let newComment = {user: userID, comment: comment, date: currentTimestamp }
+        data.comments.push(newComment)
+        data.save( (err) => { if (err) { console.log(err) } })
+    });
+}
+
 const createInstance = async (baseUrl) => {
     try {
         let instance = axios.create({
@@ -122,4 +146,4 @@ const Actions = (req, res) => {
     return res.status(400).json({})
 };
 
-module.exports = { Actions, getWatchlist, getHistory };
+module.exports = { Actions, getWatchlist, getHistory, addComment };

@@ -20,7 +20,7 @@ const movieSchema = new mongoose.Schema({
     comments: {
         default: [],
         required: false,
-        type: [ Array ]
+        type: Array
     },
     path: {
         required: false,
