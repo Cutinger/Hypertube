@@ -29,6 +29,7 @@ const addComment = (req, res) => {
         data.comments.push(newComment)
         data.save( (err) => { if (err) { console.log(err) } })
     });
+    return res.sendStatus(200)
 }
 
 const createInstance = async (baseUrl) => {
