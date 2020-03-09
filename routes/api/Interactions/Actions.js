@@ -25,7 +25,7 @@ const addComment = (req, res) => {
 
     User.findById(userID, (err, data) => {
         if (!data || err) { return res.sendStatus(403) }
-        const username = data.username
+        var username = data.username
     });
 
     var comment = req.body.comment
@@ -39,6 +39,39 @@ const addComment = (req, res) => {
         data.save( (err) => { if (err) { console.log(err) } })
     });
     return res.sendStatus(200)
+}
+
+const deleteComment = async (req, res) => {
+    try {
+        let imdbid = req.params.imdbid;
+        var id = req.params.comment;
+        let userID = res.locals.id;
+        var deleted = false
+        if (!userID) { return res.sendStatus(403) }
+
+        let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
+        let imdbcode = await createInstance(urlID)
+
+        User.findById(userID, (err, data) => {
+            if (!data || err) { return res.sendStatus(403) }
+            var username = data.username
+        });
+
+        Movie.findOne({imdb_code: imdbcode}, (err, data) => {
+            if (!data || err) { return res.sendStatus(403) }
+            for (let index = 0; index < data.comments.length; index++) {
+                if (data.comments[index].user == username && data.comments[index].id == id) {
+                    data.comments.splice(index, 1)
+                    deleted = true
+                    break ;
+                }
+            }
+        });
+
+        if (deleted) { return res.sendStatus(200) }
+        else { return res.sendStatus(404) }
+
+    } catch (err) { console.log(err) }
 }
 
 const getComments = async (req, res) => {
@@ -60,7 +93,6 @@ const getComments = async (req, res) => {
 }
 ///////////////////////////////////////////
 ///////////////////////////////////////////
-
 
 const createInstance = async (baseUrl) => {
     try {
@@ -177,4 +209,4 @@ const Actions = (req, res) => {
     return res.status(400).json({})
 };
 
-module.exports = { Actions, getWatchlist, getHistory, addComment, getComments };
+module.exports = { Actions, getWatchlist, getHistory, addComment, getComments, deleteComment };

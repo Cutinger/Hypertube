@@ -56,6 +56,8 @@ app.get('/api/watchlist', withAuth, interact.getWatchlist);
 app.get('/api/history', withAuth, interact.getHistory);
 // Get comment
 app.get('/api/comments/:id', withAuth, interact.getComments);
+// Delete comment
+app.get('/api/delete/comment/:imdbid/:id', withAuth, interact.deleteComment);
 
 app.post('/api/comment/:id', withAuth, interact.addComment)
 
