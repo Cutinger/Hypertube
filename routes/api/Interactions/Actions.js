@@ -21,7 +21,7 @@ const addComment = (req, res) => {
     if (!imdbcode) { return res.sendStatus(404) }
 
     var comment = req.body.comment
-    if ( comment.length < 8 || isEmpty(comment) ) { return res.sendStatus(405) }
+    if ( comment.length < 8  || isEmpty(comment) ) { return res.sendStatus(405) }
 
     Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
         if (!data || err) { return res.sendStatus(404) }
@@ -127,6 +127,22 @@ const getWatchlist = (req, res) => {
     return res.status(400);
 };
 
+const getComments = async (req, res) => {
+    try {
+        let imdbid = req.params.id;
+        let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
+        let imdbcode = await createInstance(urlID)
+        if (imdbcode) {
+            var comments = []
+            Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
+                if (err) { return res.sendStatus(403) }
+                if (!data) { return res.json({}) }
+                return res.json(data.comments)
+            });
+        } else { return res.sendStatus(404) }
+    } catch (err) { console.log(err) }
+}
+
 const getHistory = (req, res) => {
     let userID = res.locals.id;
     if (!userID)
@@ -147,4 +163,4 @@ const Actions = (req, res) => {
     return res.status(400).json({})
 };
 
-module.exports = { Actions, getWatchlist, getHistory, addComment };
+module.exports = { Actions, getWatchlist, getHistory, addComment, getComments };

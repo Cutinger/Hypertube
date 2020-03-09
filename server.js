@@ -54,6 +54,8 @@ app.get('/api/movies/:id/:action', withAuth, interact.Actions);
 app.get('/api/watchlist', withAuth, interact.getWatchlist);
 // Get history
 app.get('/api/history', withAuth, interact.getHistory);
+// Get comment
+app.get('/api/comments/:id', withAuth, interact.getComments);
 
 app.post('/api/comment/:id', withAuth, interact.addComment)
 
