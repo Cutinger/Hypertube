@@ -4,6 +4,7 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
 import SidebarHome from '../../components/SidebarHome/SidebarHome'
 import HomeMovieCards from '../../components/HomeMoviesCards/HomeMoviesCards'
 import Historic from '../../components/HomeMoviesCards/Historic'
+import InfiniteScroll from "react-infinite-scroll-component";
 
 import axios from 'axios'
 import {
@@ -12,7 +13,7 @@ import {
     Backdrop,
     Fab,
     useScrollTrigger,
-    Zoom, Divider, Drawer
+    Zoom, Divider
 } from '@material-ui/core'
 import API from "../../utils/API";
 
@@ -59,7 +60,7 @@ const useStyles = makeStyles(theme => ({
         height: '250px',
         width: '100%',
         zIndex: -1,
-        background: 'linear-gradient(-180deg, rgb(13, 28, 55), rgba(240, 38, 120, 0) ) !important'
+        background: 'linear-gradient(-180deg, #0d1c37 20%, rgba(0, 0, 0, 0) ) !important'
     },
     dividerTitle: {
         background: 'linear-gradient(-90deg, #3f51b5, rgba(255,255,255,0))',
@@ -83,6 +84,8 @@ const App = (forwardRef((props, ref) => {
     const [moviesGenres, setMoviesGenres] = useState(false);
     const [sidebarQuery, setSidebarQuery] = useState(false);
     const [watchlist, setWatchlist] = useState(false);
+    const [loadPage, setLoadPage] = useState(1);
+    const [load, setLoad] = useState(false);
 
     // ScrollToTop
         const trigger = useScrollTrigger({
@@ -95,7 +98,28 @@ const App = (forwardRef((props, ref) => {
         };
 
 
-
+// // Infinite Scroll
+    // Handle function when scroll is on bottom
+    const handleSetLoadMovies = () => {
+        if (topMoviesList && topMoviesList.length) {
+            setLoadPage(loadPage + 1);
+            setLoad(true);
+        }
+    };
+    useEffect(() => {
+        function loadMore() {
+            let selectQuery = sidebarQuery ? sidebarQuery : query;
+            axios.get(`${selectQuery}${loadPage}`)
+                .then(res => {
+                    if (res.data && res.data.results && res.data.results.length)
+                        setTopMoviesList([].concat(topMoviesList, res.data.results));
+                });
+        }
+        if (load) {
+            loadMore();
+            setLoad(false);
+        }
+    }, [load, topMoviesList, loadPage, sidebarQuery]);
 
     // First load (top movies)
         useEffect(() => {
@@ -156,16 +180,24 @@ const App = (forwardRef((props, ref) => {
     // Ref accessible by App.js
     useImperativeHandle(ref, () => ({
         setSidebar(bool){ setOpen(bool) },
-        setSearch(movies){ setTopMoviesList(movies) }
+        setSearch(query){
+            setLoadPage(1);
+            setSidebarQuery(query)
+        }
     }));
 
     // Receive query from SidebarHome
-    const handlePushQuery = (query) => query && query.length && setSidebarQuery(query);
+    const handlePushQuery = (query) => {
+        if (query && query.length){
+            setSidebarQuery(query);
+            setLoadPage(1);
+        }
+    };
 
     useEffect(() => {
         let isCancelled = false;
         async function getMoviesList() {
-            axios.get(sidebarQuery)
+            axios.get(`${sidebarQuery}${loadPage}`)
                 .then(res => {
                     if (res.data && res.data.results && res.data.results.length)
                         !isCancelled && setTopMoviesList(res.data.results)
@@ -197,6 +229,7 @@ const App = (forwardRef((props, ref) => {
                     <h1 className={classes.title}>Top Movies</h1>
                     <Divider className={classes.dividerTitle}/>
                 </div>
+                <InfiniteScroll next={handleSetLoadMovies} hasMore={true} dataLength={topMoviesList ? topMoviesList.length : 0} ></InfiniteScroll>
                 {/* Movies card map */}
                 <HomeMovieCards
                     topMoviesList={topMoviesList}
@@ -241,7 +274,6 @@ const App = (forwardRef((props, ref) => {
                 {/* Movies card map */}
                 <Historic
                     topMoviesList={watchlist}
-                    moviesGenres={moviesGenres}
                     pushHistory={(link) => props.history.push(link)}
                 />
                 {/* Scroll to top */}

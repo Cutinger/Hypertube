@@ -40,7 +40,7 @@ export default function App(props) {
         <Route exact path="/" component={
           // withAuth(
               (props) => <Home  history={history} {...props} ref={homeRef} setSidebar={handleActiveSidebar} />
-              // )
+               // )
         } />
         <Route exact path="/historic" component={
           // withAuth(

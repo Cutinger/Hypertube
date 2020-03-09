@@ -100,6 +100,7 @@ export default function PrimarySearchAppBar(props) {
     const classes = useStyles();
     const [searchValue, setSearchValue] = React.useState('');
     const [anchorEl, setAnchorEl] = React.useState(null);
+    const [isConnected, setConnected] = React.useState(false);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
     const isMenuOpen = Boolean(anchorEl);
@@ -139,6 +140,7 @@ export default function PrimarySearchAppBar(props) {
                 .then(res => {
                     if (res.status === 200 && res.data.watchlist && res.data.watchlist.length) {
                         _mounted && setCounterList(res.data.watchlist.length);
+                        _mounted && setConnected(true);
                     }
                 })
                 .catch(err => console.log(err));
@@ -157,11 +159,7 @@ export default function PrimarySearchAppBar(props) {
                 e.preventDefault();
                 props.history.push('/');
             }
-            axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${searchValue}`)
-                .then(res => {
-                    if (res.status === 200)
-                        props.search(res.data.results);
-                });
+            props.search(`https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${searchValue}&page=`);
             setSearchValue('');
         }
     };
@@ -182,7 +180,66 @@ export default function PrimarySearchAppBar(props) {
             <MenuItem onClick={handleLogout}>Log out</MenuItem>
         </Menu>
     );
+    const renderMenuOffline = (
+        <Menu
+            anchorEl={anchorEl}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            id={menuId}
+            keepMounted
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            open={isMenuOpen}
+            onClose={handleMenuClose}
+        >
+            <MenuItem onClick={(e) => { e.preventDefault(); props.history.push('/login')} }>Log in</MenuItem>
+            <MenuItem onClick={(e) => { e.preventDefault(); props.history.push('/signup')} }>Sign up</MenuItem>
+        </Menu>
+    );
 
+    function sectionDesktop(){
+        if (isConnected)
+            return (
+                <div className={classes.sectionDesktop}>
+                    <IconButton aria-label="show 17 new notifications" color="inherit">
+                        <Badge badgeContent={'+'} color="secondary">
+                            <WhatshotIcon/>
+                        </Badge>
+                    </IconButton>
+                    <IconButton aria-label="show 17 new notifications" color="inherit">
+                        <Badge badgeContent={counterList} color="secondary">
+                            <SubscriptionsIcon onClick={(e) => {
+                                e.preventDefault();
+                                props.history.push('/historic')
+                            }}/>
+                        </Badge>
+                    </IconButton>
+                    <IconButton
+                        edge="end"
+                        aria-label="account of current user"
+                        aria-controls={menuId}
+                        aria-haspopup="true"
+                        onClick={handleProfileMenuOpen}
+                        color="inherit"
+                    >
+                        <AccountCircle/>
+                    </IconButton>
+                </div>
+             )
+        else
+            return (
+                <div className={classes.sectionDesktop}>
+                    <IconButton
+                        edge="end"
+                        aria-label="account of current user"
+                        aria-controls={menuId}
+                        aria-haspopup="true"
+                        onClick={handleProfileMenuOpen}
+                        color="inherit"
+                    >
+                        <AccountCircle/>
+                    </IconButton>
+                </div>
+            )
+}
     const mobileMenuId = 'primary-search-account-menu-mobile';
     const renderMobileMenu = (
         <Menu
@@ -228,26 +285,50 @@ export default function PrimarySearchAppBar(props) {
             </MenuItem>
         </Menu>
     );
+    const renderMobileMenuOffline = (
+        <Menu
+            anchorEl={mobileMoreAnchorEl}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            id={mobileMenuId}
+            keepMounted
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            open={isMobileMenuOpen}
+            onClose={handleMobileMenuClose}
+            className={classes.mobileDotContainer}
+        >
+        <MenuItem onClick={handleProfileMenuOpen}>
+            <IconButton
+                aria-label="account of current user"
+                aria-controls="primary-search-account-menu"
+                aria-haspopup="true"
+                color="inherit"
+            >
+                <AccountCircle />
+            </IconButton>
+            <p>Connect</p>
+        </MenuItem>
+        </Menu>
+    );
     return (
         <div className={classes.grow}>
             <AppBar style={{boxShadow: 'none'}} position="fixed">
                 <Toolbar>
-                <IconButton
-                    edge="start"
-                    className={classes.menuButton}
-                    color="inherit"
-                    aria-label="open drawer"
-                    onClick={() => { props.setSidebar(true) }}
-                >
-                    <MenuIcon />
-                </IconButton>
+                    {isConnected ? <IconButton
+                        edge="start"
+                        className={classes.menuButton}
+                        color="inherit"
+                        aria-label="open drawer"
+                        onClick={() => { props.setSidebar(true) }}
+                    >
+                        <MenuIcon />
+                    </IconButton> : null }
                 <img 
                     src={Logo}
                     onClick={(e) => { e.preventDefault(); props.history.push('/') }}
                     alt='Hypeertube'
                     className={classes.logo}
                 />
-                <div className={classes.search}>
+                {isConnected ? <div className={classes.search}>
                     <div className={classes.searchIcon}>
                         <SearchIcon />
                     </div>
@@ -259,33 +340,9 @@ export default function PrimarySearchAppBar(props) {
                         onChange={(e) => setSearchValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                     />
-                </div>
+                </div> : null }
                 <div className={classes.grow} />
-                <div className={classes.sectionDesktop}>
-                    <IconButton aria-label="show 17 new notifications" color="inherit">
-                        <Badge badgeContent={'+'} color="secondary">
-                            <WhatshotIcon />
-                        </Badge>
-                    </IconButton>
-                    <IconButton aria-label="show 17 new notifications" color="inherit">
-                        <Badge badgeContent={counterList} color="secondary">
-                            <SubscriptionsIcon onClick={(e) => {
-                                e.preventDefault();
-                                props.history.push('/historic')
-                            }}/>
-                        </Badge>
-                    </IconButton>
-                    <IconButton
-                    edge="end"
-                    aria-label="account of current user"
-                    aria-controls={menuId}
-                    aria-haspopup="true"
-                    onClick={handleProfileMenuOpen}
-                    color="inherit"
-                    >
-                    <AccountCircle />
-                    </IconButton>
-                </div>
+                    {sectionDesktop()}
                 <div className={classes.sectionMobile}>
                     <IconButton
                         aria-label="show more"
@@ -299,8 +356,8 @@ export default function PrimarySearchAppBar(props) {
                 </div>
                 </Toolbar>
             </AppBar>
-            {renderMobileMenu}
-            {renderMenu}
+            {isConnected ? renderMobileMenu : renderMobileMenuOffline}
+            {isConnected ? renderMenu : renderMenuOffline}
         </div>
         );
 }

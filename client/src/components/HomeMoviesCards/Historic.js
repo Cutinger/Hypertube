@@ -5,7 +5,6 @@ import AddCircle from '@material-ui/icons/AddCircle';
 import StarRatings from 'react-star-ratings';
 import {
     Grow,
-    Paper,
     Grid
 } from '@material-ui/core';
 import API from './../../utils/API';
@@ -197,21 +196,17 @@ export default function HomeMoviesCards(props) {
     const classes = useStyles();
     const [movieFocus, setMovieFocus] = useState(false);
     const [topMoviesList, setTopMoviesList] = useState(false);
-    const [moviesGenres, setMoviesGenres] = useState(false);
     const [activeTextAutoScroll, setActiveTextAutoScroll] = useState(false);
 
     // Get props on load (moviesGenres && topMoviesList)
     useEffect(() => {
         function setProps() {
-            if (props.moviesGenres && props.topMoviesList){
+            if (props.topMoviesList){
                 setTopMoviesList(props.topMoviesList);
-                setMoviesGenres(props.moviesGenres);
             }
         }
-        if (props.moviesGenres && props.moviesGenres.length) {
-            setProps();
-        }
-    }, [props.moviesGenres, props.topMoviesList])
+        setProps();
+    }, [props.topMoviesList])
 
     // Movie:hover
     const handleMouseEnterMovie = (key) => { setMovieFocus(key) };
@@ -227,9 +222,6 @@ export default function HomeMoviesCards(props) {
         }
     }, []);
 
-    {/*<Grid key={key} className={classes.moviesGenres} item>*/}
-    {/*    <span >{genre.name}</span>*/}
-    {/*</Grid> : null;*/}
     // Movies genres generator
     const genMovieGenres = (obj) => {
         if (obj && Object.values(obj.genres))
@@ -331,8 +323,8 @@ export default function HomeMoviesCards(props) {
                 style={{
                     paddingLeft: '8px',
                     overflowX: 'auto',
-                    WebkitOverflowScrolling: 'touch',
-                    msOverflowStyle: '-ms-autohiding-scrollbar'
+                    // WebkitOverflowScrolling: 'touch',
+                    // msOverflowStyle: '-ms-autohiding-scrollbar'
                 }}
             >
                 {topMoviesList && topMoviesList.map((obj, key) => {

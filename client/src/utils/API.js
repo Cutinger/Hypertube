@@ -32,7 +32,6 @@ export default {
     logout: () => {
         return axios.post(
             `${burl}/users/logout`,
-            {},
             {
                 withCredentials: 'true',
                 headers: headers,

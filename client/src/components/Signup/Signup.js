@@ -27,7 +27,7 @@ const useStyles = makeStyles(theme => ({
         backgroundColor: 'white',
         borderRadius: '12px',
         padding: theme.spacing(3),
-        boxShadow: '1px 1px 42px rgba(238, 28, 115,0.2);',
+        boxShadow: '1px 1px 42px rgba(238, 28, 115,0.15§);',
     },
     logo: {
         maxWidth: '100%',
@@ -345,6 +345,7 @@ const useStyles = makeStyles(theme => ({
                                         id="username"
                                         label="Username"
                                         name="username"
+                                        autoComplete="username"
                                         className={classes.textfield}
                                     />
                                 </Grid>

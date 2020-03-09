@@ -14,7 +14,7 @@ import { makeStyles, withStyles, useTheme } from '@material-ui/core/styles';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
     drawerPaper:{
         background: 'linear-gradient(-333deg, rgba(32, 122, 244, 0.8) -39%, #0b1123, #0b1123 70%, rgba(240, 38, 120, 0.8) 223% ) !important',
         opacity: '0.97',
