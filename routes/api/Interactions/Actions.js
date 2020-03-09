@@ -7,6 +7,8 @@ const User        = require('../../../models/User.js');
 const Movie        = require('../../../models/MovieSchema.js');
 const axios         = require('axios');
 
+///////////////////////////////////////////
+// COMMENT GESTION
 const addComment = (req, res) => {
     
     var currentTimestamp = Math.round((Date.now() / 1000))
@@ -20,17 +22,45 @@ const addComment = (req, res) => {
     let imdbcode = createInstance(urlID)
     if (!imdbcode) { return res.sendStatus(404) }
 
+
+    User.findById(userID, (err, data) => {
+        if (!data || err) { return res.sendStatus(403) }
+        const username = data.username
+    });
+
     var comment = req.body.comment
     if ( comment.length < 8  || isEmpty(comment) ) { return res.sendStatus(405) }
 
     Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
         if (!data || err) { return res.sendStatus(404) }
-        let newComment = {user: userID, comment: comment, date: currentTimestamp }
+        let id = data.comments.length + 1
+        let newComment = {id: id, user: username, comment: comment, date: currentTimestamp }
         data.comments.push(newComment)
         data.save( (err) => { if (err) { console.log(err) } })
     });
     return res.sendStatus(200)
 }
+
+const getComments = async (req, res) => {
+    try {
+        let imdbid = req.params.id;
+        let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
+        let imdbcode = await createInstance(urlID)
+        if (imdbcode) {
+            Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
+                if (err) { return res.sendStatus(403) }
+                if (!data) { return res.json({}) }
+                let commentsList = data.comments.sort( (a, b) => {
+                    return a.date - b.date;
+                });
+                return res.json(commentsList)
+            });
+        } else { return res.sendStatus(404) }
+    } catch (err) { console.log(err) }
+}
+///////////////////////////////////////////
+///////////////////////////////////////////
+
 
 const createInstance = async (baseUrl) => {
     try {
@@ -126,22 +156,6 @@ const getWatchlist = (req, res) => {
     }
     return res.status(400);
 };
-
-const getComments = async (req, res) => {
-    try {
-        let imdbid = req.params.id;
-        let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
-        let imdbcode = await createInstance(urlID)
-        if (imdbcode) {
-            var comments = []
-            Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
-                if (err) { return res.sendStatus(403) }
-                if (!data) { return res.json({}) }
-                return res.json(data.comments)
-            });
-        } else { return res.sendStatus(404) }
-    } catch (err) { console.log(err) }
-}
 
 const getHistory = (req, res) => {
     let userID = res.locals.id;
