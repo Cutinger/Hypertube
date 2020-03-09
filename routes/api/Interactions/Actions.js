@@ -51,7 +51,7 @@ const getComments = async (req, res) => {
                 if (err) { return res.sendStatus(403) }
                 if (!data) { return res.json({}) }
                 let commentsList = data.comments.sort( (a, b) => {
-                    return a.date - b.date;
+                    return b.date - a.date;
                 });
                 return res.json(commentsList)
             });
