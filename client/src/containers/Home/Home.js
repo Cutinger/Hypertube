@@ -3,6 +3,8 @@ import { makeStyles } from '@material-ui/core/styles'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
 import SidebarHome from '../../components/SidebarHome/SidebarHome'
 import HomeMovieCards from '../../components/HomeMoviesCards/HomeMoviesCards'
+import Historic from '../../components/HomeMoviesCards/Historic'
+
 import axios from 'axios'
 import {
     Container,
@@ -10,7 +12,7 @@ import {
     Backdrop,
     Fab,
     useScrollTrigger,
-    Zoom
+    Zoom, Divider, Drawer
 } from '@material-ui/core'
 import API from "../../utils/API";
 
@@ -35,15 +37,20 @@ const useStyles = makeStyles(theme => ({
         }
     },
     containerGridTopMovie: {
-        marginTop: theme.spacing(13)
+        marginTop: theme.spacing(8)
     },
     title: {
+        marginBottom: '0',
         textAlign: 'left',
-        padding: '8px',
         color: 'white',
         fontSize: '2.2em',
-        fontWeight: '900',
-        fontFamily: 'Open-Sans, sans-serif'
+        fontWeight: '100',
+        fontFamily: 'Open-Sans, sans-serif',
+        textShadow: '6px 12px 22px #bd20857a'
+    },
+    titleContainer: {
+        padding: '8px',
+
     },
     topBackground: {
         position: 'absolute',
@@ -53,6 +60,17 @@ const useStyles = makeStyles(theme => ({
         width: '100%',
         zIndex: -1,
         background: 'linear-gradient(-180deg, rgb(13, 28, 55), rgba(240, 38, 120, 0) ) !important'
+    },
+    dividerTitle: {
+        background: 'linear-gradient(-90deg, #3f51b5, rgba(255,255,255,0))',
+        marginBottom : '1.5em',
+        paddingTop: '1.5px',
+        borderRadius: '10px',
+        opacity: '0.25',
+        boxShadow: '6px 12px 22px #bd20857a'
+
+
+
     }
 }));
 
@@ -76,19 +94,39 @@ const App = (forwardRef((props, ref) => {
             anchor && anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
 
+
+
+
     // First load (top movies)
         useEffect(() => {
             let isCancelled = false;
+            let watchlistTab = [];
+            const transormWatchlist = async(watchlist) => {
+                if (watchlist && watchlist.length){
+                    for(let i = 0; i < watchlist.length; i++){
+                      await axios.get(`https://api.themoviedb.org/3/movie/${watchlist[i]}?api_key=c91b62254304ec5dbb322351b0dc1094`)
+                          .then(res => {
+                              if (res.status === 200 && res.data) {
+                                  watchlistTab.push(res.data);
+                              }
+                          });
+                  }
+                }
+                setWatchlist(watchlistTab.reverse());
+            };
             const getWatchlist = () => {
                 API.getWatchlist()
-                    .then(res => {
+                    .then(async(res) => {
                         if (res.status === 200 && res.data.watchlist && res.data.watchlist.length) {
-                            !isCancelled && setWatchlist(res.data.watchlist.length);
+                            !isCancelled && await transormWatchlist(res.data.watchlist);
                         }
+                        else
+                            setWatchlist([])
+
                     })
                     .catch(err => console.log(err));
             };
-            const getTopMoviesList = async() => {
+            const getTopMoviesList = () => {
                 axios.get(`${query}${1}`)
                     .then(res => {
                         if (res.data && res.data.results && res.data.results.length)
@@ -155,7 +193,10 @@ const App = (forwardRef((props, ref) => {
                     genres={moviesGenres}
                     pushQuery={handlePushQuery}
                 />
-                <h1 className={classes.title}>Top movies</h1>
+                <div className={classes.titleContainer}>
+                    <h1 className={classes.title}>Top Movies</h1>
+                    <Divider className={classes.dividerTitle}/>
+                </div>
                 {/* Movies card map */}
                 <HomeMovieCards
                     topMoviesList={topMoviesList}
@@ -171,13 +212,34 @@ const App = (forwardRef((props, ref) => {
                     </div>
                 </Zoom>
             </Container> :
-            <Container component="main">
+            <Container component="main" className={classes.containerGridTopMovie}>
+                <div className={classes.topBackground} />
                 {/* Loader -> when page load */}
-                <Backdrop className={classes.backdrop} open={!topMoviesList ? true : false} >
+                <Backdrop className={classes.backdrop} open={watchlist ? false : true} >
                     <CircularProgress color="inherit" />
                 </Backdrop>
+                <div className={classes.titleContainer}>
+                    <h1 className={classes.title}>Watch list</h1>
+                    {watchlist && watchlist.length < 1 ?
+                        <p style={{
+                            color: 'white',
+                        }}>
+                            No movies in watch list
+                        </p> : null}
+                    <Divider className={classes.dividerTitle}/>
+                </div>
                 {/* Movies card map */}
-                <HomeMovieCards
+                <Historic
+                    topMoviesList={watchlist}
+                    moviesGenres={moviesGenres}
+                    pushHistory={(link) => props.history.push(link)}
+                />
+                <div className={classes.titleContainer}>
+                    <h1 className={classes.title}>Recent views</h1>
+                    <Divider className={classes.dividerTitle}/>
+                </div>
+                {/* Movies card map */}
+                <Historic
                     topMoviesList={watchlist}
                     moviesGenres={moviesGenres}
                     pushHistory={(link) => props.history.push(link)}

@@ -43,9 +43,9 @@ export default function App(props) {
               // )
         } />
         <Route exact path="/historic" component={
-          withAuth(
+          // withAuth(
               (props) => <Home  history={history} {...props} />
-          )
+          // )
         } />
         <Route exact path="/login" component={Login}/>
         <Route exact path="/signup" render={() => <Signup {...props} history={history} />}/>

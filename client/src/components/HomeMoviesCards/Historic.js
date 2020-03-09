@@ -3,7 +3,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
 import AddCircle from '@material-ui/icons/AddCircle';
 import StarRatings from 'react-star-ratings';
-import { Grow, Grid } from '@material-ui/core';
+import {
+    Grow,
+    Paper,
+    Grid
+} from '@material-ui/core';
 import API from './../../utils/API';
 
 const useStyles = makeStyles(theme => ({
@@ -204,7 +208,9 @@ export default function HomeMoviesCards(props) {
                 setMoviesGenres(props.moviesGenres);
             }
         }
-        setProps();
+        if (props.moviesGenres && props.moviesGenres.length) {
+            setProps();
+        }
     }, [props.moviesGenres, props.topMoviesList])
 
     // Movie:hover
@@ -221,21 +227,16 @@ export default function HomeMoviesCards(props) {
         }
     }, []);
 
-
+    {/*<Grid key={key} className={classes.moviesGenres} item>*/}
+    {/*    <span >{genre.name}</span>*/}
+    {/*</Grid> : null;*/}
     // Movies genres generator
     const genMovieGenres = (obj) => {
-        if(moviesGenres && moviesGenres.length)
-            return moviesGenres.map((genre) => {
-                if (obj.genre_ids && Object.keys(obj.genre_ids.length))
-                    return Object.keys(obj.genre_ids).map((genreO, key) => {
-                        if (obj.genre_ids[key] === genre.id)
-                            return key < 4 ?
-                                <Grid key={key} className={classes.moviesGenres} item>
-                                    <span >{genre.name}</span>
-                                </Grid> : null;
-                        return null
-                    });
-                return null
+        if (obj && Object.values(obj.genres))
+            return Object.values(obj.genres).map((obj, key) => {
+                return <Grid key={key} className={classes.moviesGenres} item>
+                        <span >{obj.name}</span>
+                    </Grid>
             });
         return null;
     };
@@ -319,11 +320,25 @@ export default function HomeMoviesCards(props) {
     }
     return (
         <div>
-                <Grid direction="row" alignItems="flex-start" justify="center" container className={classes.root} spacing={2}>
-                    {topMoviesList && topMoviesList.map((obj, key) => {
-                        return ( GridMovies(obj, key) )
-                    })}
-                </Grid>
-            </div>
+            <Grid
+                direction="row"
+                wrap='nowrap'
+                alignItems="flex-start"
+                justify="flex-start"
+                alignContent="flex-start"
+                container
+                spacing={2}
+                style={{
+                    paddingLeft: '8px',
+                    overflowX: 'auto',
+                    WebkitOverflowScrolling: 'touch',
+                    msOverflowStyle: '-ms-autohiding-scrollbar'
+                }}
+            >
+                {topMoviesList && topMoviesList.map((obj, key) => {
+                    return ( GridMovies(obj, key) )
+                })}
+            </Grid>
+        </div>
     )
 }

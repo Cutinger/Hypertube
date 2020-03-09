@@ -139,7 +139,6 @@ export default function PrimarySearchAppBar(props) {
                 .then(res => {
                     if (res.status === 200 && res.data.watchlist && res.data.watchlist.length) {
                         _mounted && setCounterList(res.data.watchlist.length);
-                        console.log(res.data.watchlist);
                     }
                 })
                 .catch(err => console.log(err));
@@ -205,7 +204,10 @@ export default function PrimarySearchAppBar(props) {
                 </IconButton>
                 <p>What's hot</p>
             </MenuItem>
-            <MenuItem>
+            <MenuItem onClick={(e) => {
+                e.preventDefault();
+                props.history.push('/historic')
+            }}>
                 <IconButton aria-label="show 11 new notifications" color="inherit">
                     <Badge badgeContent={counterList} color="secondary">
                         <SubscriptionsIcon />
@@ -235,10 +237,7 @@ export default function PrimarySearchAppBar(props) {
                     className={classes.menuButton}
                     color="inherit"
                     aria-label="open drawer"
-                    onClick={() => {
-                        props.setSidebar(true)
-                        // props.setWatchlist()}
-                        }}
+                    onClick={() => { props.setSidebar(true) }}
                 >
                     <MenuIcon />
                 </IconButton>
@@ -253,7 +252,7 @@ export default function PrimarySearchAppBar(props) {
                         <SearchIcon />
                     </div>
                     <InputBase
-                        placeholder="Search…"
+                        placeholder="Search movies..."
                         classes={{root: classes.inputRoot, input: classes.inputInput }}
                         inputProps={{ 'aria-label': 'search' }}
                         value={searchValue}
@@ -270,7 +269,10 @@ export default function PrimarySearchAppBar(props) {
                     </IconButton>
                     <IconButton aria-label="show 17 new notifications" color="inherit">
                         <Badge badgeContent={counterList} color="secondary">
-                            <SubscriptionsIcon />
+                            <SubscriptionsIcon onClick={(e) => {
+                                e.preventDefault();
+                                props.history.push('/historic')
+                            }}/>
                         </Badge>
                     </IconButton>
                     <IconButton
