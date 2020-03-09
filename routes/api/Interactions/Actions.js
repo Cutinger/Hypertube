@@ -63,6 +63,7 @@ const deleteComment = async (req, res) => {
                 if (data.comments[index].user == username && data.comments[index].id == id) {
                     data.comments.splice(index, 1)
                     deleted = true
+                    data.save( (err) => { if (err) { console.log(err) } })
                     break ;
                 }
             }
