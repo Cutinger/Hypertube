@@ -32,8 +32,13 @@ const addComment = (req, res) => {
     if ( comment.length < 8  || isEmpty(comment) ) { return res.sendStatus(405) }
 
     Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
+        let id
         if (!data || err) { return res.sendStatus(404) }
-        let id = data.comments.length + 1
+        if (!data.comments.id) {
+            id = 1
+        } else {
+            id = Math.max(...data.comments.map(o => o.id), 0) + 1;
+        }
         let newComment = {id: id, user: username, comment: comment, date: currentTimestamp }
         data.comments.push(newComment)
         data.save( (err) => { if (err) { console.log(err) } })
