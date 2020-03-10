@@ -198,7 +198,6 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-
 function SimpleDialog(props) {
     const classes = useStyles();
     const { onClose, selectedValue, open, movieSources } = props;
