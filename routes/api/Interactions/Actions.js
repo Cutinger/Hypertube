@@ -102,8 +102,7 @@ const getComments = async (req, res) => {
         var dataMovies = await Movie.findOne({ imdb_code: imdbcode })
         if (!dataMovies) {
             let addMovie = new Movie({
-                imdb_code:   imdbcode,
-                userViews: [ userID ]
+                imdb_code:   imdbcode
             })
             addMovie.save( (err) => { console.log(err) })
             dataMovies = await Movie.findOne({imdb_code: imdbcode});
