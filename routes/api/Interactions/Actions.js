@@ -46,7 +46,7 @@ const addComment = async(req, res) => {
             data = await Movie.findOne({imdb_code: imdbcode});
         }
         let id;
-        if (!data.comments.id) { id = 1; }
+        if (data.comments.length == 0) { id = 1; }
         else { id = Math.max(...data.comments.map(o => o.id), 0) + 1; }
         var newComment = {id: id, user: username, comment: comment, date: currentTimestamp};
         data.comments.push(newComment);
