@@ -234,7 +234,7 @@ export default function HomeMoviesCards(props) {
 
     // Movies genres generator
     const genMovieGenres = (obj) => {
-        if (obj && Object.values(obj.genres))
+        if (obj && obj.genres && Object.values(obj.genres))
             return Object.values(obj.genres).map((obj, key) => {
                 return <Grid key={key} className={classes.moviesGenres} item>
                         <span >{obj.name}</span>
@@ -276,7 +276,7 @@ export default function HomeMoviesCards(props) {
                                         <Grid container direction="row" justify="center" alignContent="flex-start" alignItems="center">
                                             <Grid className={classes.topDateStarsAddContainer} alignItems="center" direction="row" justify="center" container>
                                                 <Grid item xs={3}>
-                                                    <span className={classes.releaseDate}>{obj.release_date.slice(0,4)}</span>
+                                                    <span className={classes.releaseDate}>{obj.release_date && obj.release_date.slice(0,4)}</span>
                                                 </Grid>
                                                 <Grid item xs={6} className={classes.movieRating}>
                                                     <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />

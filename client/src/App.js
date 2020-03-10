@@ -30,8 +30,8 @@ export default function App(props) {
 
   };
 
-  const handleSearchMovie = (movies) => {
-      homeRef.current && homeRef.current.setSearch(movies);
+  const handleSearchMovie = (query, value) => {
+      homeRef.current && homeRef.current.setSearch(query, value);
   };
 
   return (

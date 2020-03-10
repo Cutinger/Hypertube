@@ -160,7 +160,7 @@ export default function PrimarySearchAppBar(props) {
                 e.preventDefault();
                 props.history.push('/');
             }
-            props.search(`https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${searchValue}&page=`);
+            props.search(`https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${searchValue}&page=`, searchValue);
             setSearchValue('');
         }
     };
@@ -202,7 +202,10 @@ export default function PrimarySearchAppBar(props) {
                 <div className={classes.sectionDesktop}>
                     <IconButton aria-label="show 17 new notifications" color="inherit">
                         <Badge badgeContent={'+'} color="secondary">
-                            <WhatshotIcon/>
+                            <WhatshotIcon onClick={(e) => {
+                                e.preventDefault();
+                                props.history.push('/')
+                            }}/>
                         </Badge>
                     </IconButton>
                     <IconButton aria-label="show 17 new notifications" color="inherit">
@@ -257,7 +260,10 @@ export default function PrimarySearchAppBar(props) {
             <MenuItem>
                 <IconButton aria-label="show 11 new notifications" color="inherit">
                     <Badge badgeContent={'20+'} color="secondary">
-                        <WhatshotIcon />
+                        <WhatshotIcon onClick={(e) => {
+                            e.preventDefault();
+                            props.history.push('/historic')
+                        }}/>
                     </Badge>
                 </IconButton>
                 <p>What's hot</p>

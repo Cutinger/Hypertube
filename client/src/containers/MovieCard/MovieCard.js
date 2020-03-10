@@ -269,7 +269,7 @@ export default function MovieCard(props){
         API.getComments(movieID)
             .then(res => {
                 if (res.status === 200 && res.data.commentsList) {
-                    console.log(res.data.commentsList);
+                    console.log(res.data);
                     setComments(res.data.commentsList)
                 }
             })
@@ -565,8 +565,8 @@ export default function MovieCard(props){
         if (getComments && getComments.length){
             return getComments.map((obj, key) => {
                 return (
-                    <Aux>
-                        <ListItem key={key} alignItems="flex-start">
+                    <Aux key={key}>
+                        <ListItem alignItems="flex-start">
                             <ListItemAvatar>
                                 <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
                             </ListItemAvatar>

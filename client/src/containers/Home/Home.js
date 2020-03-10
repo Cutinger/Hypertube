@@ -84,6 +84,7 @@ const App = (forwardRef((props, ref) => {
     const [moviesGenres, setMoviesGenres] = useState(false);
     const [sidebarQuery, setSidebarQuery] = useState(false);
     const [watchlist, setWatchlist] = useState(false);
+    const [searchValue, setSearchValue] = useState(false)
     const [loadPage, setLoadPage] = useState(1);
     const [load, setLoad] = useState(false);
 
@@ -166,8 +167,9 @@ const App = (forwardRef((props, ref) => {
     // Ref accessible by App.js
     useImperativeHandle(ref, () => ({
         setSidebar(bool){ setOpen(bool) },
-        setSearch(query){
-            setSidebarQuery(query)
+        setSearch(query, searchValue){
+            setSidebarQuery(query);
+            setSearchValue(searchValue);
         },
         async getWatchlist(watchlist){
             setWatchlist(watchlist);
@@ -190,6 +192,8 @@ const App = (forwardRef((props, ref) => {
                 .then(res => {
                     if (res.data && res.data.results && res.data.results.length)
                         !isCancelled && setTopMoviesList(res.data.results)
+                    else
+                        !isCancelled && setTopMoviesList([])
                 })
         };
         if (sidebarQuery)
@@ -215,7 +219,7 @@ const App = (forwardRef((props, ref) => {
                     pushQuery={handlePushQuery}
                 />
                 <div className={classes.titleContainer}>
-                    <h1 className={classes.title}>Top Movies</h1>
+                    <h1 className={classes.title}>{searchValue ? `Search for ${searchValue}` : 'Top Movies'}</h1>
                     <Divider className={classes.dividerTitle}/>
                 </div>
                 <InfiniteScroll next={handleSetLoadMovies} hasMore={true} dataLength={topMoviesList ? topMoviesList.length : 0} ></InfiniteScroll>

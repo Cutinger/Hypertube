@@ -113,8 +113,7 @@ const getComments = async (req, res) => {
             commentsList = dataMovies.comments.sort( (a, b) => {
                 return b.date - a.date;
             });
-        commentsList.push({userID: userID})
-        return res.status(200).json({commentsList})
+        return res.status(200).json({userID: userID, commentsList: commentsList})
     } catch (err) { console.log(err); res.status(403).json({}) }
 }
 ///////////////////////////////////////////
