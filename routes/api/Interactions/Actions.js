@@ -33,7 +33,7 @@ const addComment = async(req, res) => {
         return res.status(403).json({})
     }
     
-    if ( !comment || comment && comment.length < 8 )
+    if ( !comment || comment && (comment.length < 8 || comment.length > 130) )
         return res.status(405).json({});
     try {
         var data = await Movie.findOne({imdb_code: imdbcode});
@@ -48,7 +48,7 @@ const addComment = async(req, res) => {
         let id;
         if (data.comments.length == 0) { id = 1; }
         else { id = Math.max(...data.comments.map(o => o.id), 0) + 1; }
-        var newComment = {id: id, user: username, comment: comment, date: currentTimestamp};
+        var newComment = {id: id, user: username, userID: userID, comment: comment, date: currentTimestamp};
         data.comments.push(newComment);
         data.save((err) => { if (err) return res.status(403).json({})})
     } catch(err) {
@@ -112,6 +112,7 @@ const getComments = async (req, res) => {
             commentsList = dataMovies.comments.sort( (a, b) => {
                 return b.date - a.date;
             });
+        commentsList.push({userID: userID})
         return res.status(200).json({commentsList})
     } catch (err) { console.log(err); res.status(403).json({}) }
 }
