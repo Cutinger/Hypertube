@@ -96,6 +96,7 @@ const deleteComment = async (req, res) => {
 const getComments = async (req, res) => {
     let commentsList = [];
     let imdbid = req.params.id;
+    var userID = res.locals.id;
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
     let imdbcode = await createInstance(urlID)
     if (!imdbcode) { return res.status(404).json({}) }
