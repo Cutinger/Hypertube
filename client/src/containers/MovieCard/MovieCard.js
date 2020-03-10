@@ -12,8 +12,9 @@ import ReactPlayer from "react-player";
 import API from './../../utils/API';
 import CommentIcon from '@material-ui/icons/Sms';
 import SendIcon from '@material-ui/icons/Send';
-import Aux from './../../utils/Aux'
 const burl = 'http://localhost:5000/api'
+
+const Aux = (props) => props.children;
 
 const useStyles = makeStyles(theme => ({
     containerMovieDetails: {
