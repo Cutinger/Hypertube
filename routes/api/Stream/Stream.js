@@ -173,7 +173,9 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID) =>
 const initStreaming = async (req, res, magnet, movieInfos, userID) => {
     var imdb = req.params.imdbcode
     var streaming = false
-
+    var emptyDownloaded = false
+    var dbIndex
+    
     console.log('== init streaming ==')
     console.log('== ========================  ==')
 
@@ -212,6 +214,12 @@ const initStreaming = async (req, res, magnet, movieInfos, userID) => {
             }
             if (data.downloaded.length > 0 && !streaming) {
                 console.log('- Movie is in the DB, but have no entries for this quality / stream provenance -')
+                data.downloaded.push(JSON.parse(notDownloaded))
+                data.save( (err) => { console.log(err) })
+                downloadTorrent(req, res, magnet, movieInfos, data, true, userID)
+                return ;
+            }  else if (data && data.downloaded.length == 0) {
+                console.log('- Movie is in DB, but without any informations -')
                 data.downloaded.push(JSON.parse(notDownloaded))
                 data.save( (err) => { console.log(err) })
                 downloadTorrent(req, res, magnet, movieInfos, data, true, userID)
