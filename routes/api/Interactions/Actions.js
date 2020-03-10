@@ -11,7 +11,7 @@ const axios         = require('axios');
 // COMMENT GESTION
 const addComment = async(req, res) => {
     let currentTimestamp = Math.round((Date.now() / 1000))
-    let comment = 'excellent film! g kiffé!!!!!';
+    let comment = req.body.comment
     let username = '';
     let imdbid = req.params.id;
     let userID = res.locals.id;
