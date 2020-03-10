@@ -99,8 +99,15 @@ const getComments = async (req, res) => {
     let imdbcode = await createInstance(urlID)
     if (!imdbcode) { return res.status(404).json({}) }
     try {
-        let dataMovies = await Movie.findOne({ imdb_code: imdbcode })
-        if (!dataMovies) { throw new Error ('No movie found with this imdbcode: ', imdbcode); }
+        var dataMovies = await Movie.findOne({ imdb_code: imdbcode })
+        if (!dataMovies) {
+            let addMovie = new Movie({
+                imdb_code:   imdbcode,
+                userViews: [ userID ]
+            })
+            addMovie.save( (err) => { console.log(err) })
+            dataMovies = await Movie.findOne({imdb_code: imdbcode});
+        }
         let commentsList = dataMovies.comments.sort( (a, b) => {
             return b.date - a.date;
         });
