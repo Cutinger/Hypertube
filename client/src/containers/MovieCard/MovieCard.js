@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import {fade, makeStyles} from '@material-ui/core/styles';
 import {Container, Popover, Divider, Typography, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText} from '@material-ui/core';
 import StarRatings from 'react-star-ratings';
+import InputBase from '@material-ui/core/InputBase';
 import axios from 'axios';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -10,8 +11,8 @@ import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import ReactPlayer from "react-player";
 import API from './../../utils/API';
 import CommentIcon from '@material-ui/icons/Sms';
-import SearchIcon from "@material-ui/core/SvgIcon/SvgIcon";
-import InputBase from "@material-ui/core/InputBase";
+import SendIcon from '@material-ui/icons/Send';
+import Aux from './../../utils/Aux'
 const burl = 'http://localhost:5000/api'
 
 const useStyles = makeStyles(theme => ({
@@ -154,11 +155,47 @@ const useStyles = makeStyles(theme => ({
         color: 'white'
     },
     listCommentUsername: {
-        color: 'white'
+        color: 'white',
+        fontWeight: 'bold',
     },
     listCommentText: {
         color: 'white'
-    }
+    },
+    inputCommentContainer: {
+        margin: 0,
+        marginTop: '8px',
+        marginBottom: '-8px',
+        position: 'relative',
+        backgroundColor: fade(theme.palette.common.white, 0.15),
+        '&:hover': {
+            backgroundColor: fade(theme.palette.common.white, 0.25),
+        },
+        width: '100%',
+        [theme.breakpoints.up('sm')]: {
+            width: 'auto',
+        },
+    },
+    sendIcon: {
+        width: theme.spacing(7),
+        height: '100%',
+        position: 'absolute',
+        pointerEvents: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    inputRoot: {
+        color: 'inherit',
+        width: '100%',
+    },
+    inputInput: {
+        padding: theme.spacing(1, 1, 1, 7),
+        transition: theme.transitions.create('width'),
+        width: '100%',
+        [theme.breakpoints.up('md')]: {
+            width: 200,
+        },
+    },
 }));
 
 
@@ -231,8 +268,10 @@ export default function MovieCard(props){
     const handleGetComments = (movieID) => {
         API.getComments(movieID)
             .then(res => {
-                if (res.status === 200)
-                    console.log(res.data);
+                if (res.status === 200 && res.data.commentsList) {
+                    console.log(res.data.commentsList);
+                    setComments(res.data.commentsList)
+                }
             })
     };
     const handleKeyDownComment = (e) => {
@@ -396,7 +435,24 @@ export default function MovieCard(props){
                                     }}
                                     className={classes.popoverComment}
                                 >
-                                    {comments()}
+                                    <List className={classes.listComment}  >
+                                        <div className={classes.commentContainer}>
+                                            {comments()}
+                                            <div className={classes.inputCommentContainer}>
+                                                <div className={classes.sendIcon}>
+                                                    <SendIcon />
+                                                </div>
+                                                <InputBase
+                                                    placeholder="Press enter to send"
+                                                    classes={{root: classes.inputRoot, input: classes.inputInput }}
+                                                    inputProps={{ 'aria-label': 'comment' }}
+                                                    value={commentValue}
+                                                    onChange={(e) => setCommentValue(e.target.value)}
+                                                    onKeyDown={handleKeyDownComment}
+                                                />
+                                            </div>
+                                        </div>
+                                    </List>
                                 </Popover>
                             </Grid>
                         </Grid>
@@ -506,49 +562,44 @@ export default function MovieCard(props){
     const handleClickComment = event => { setAnchorEl(event.currentTarget) };
     const handleCloseComment = () => { setAnchorEl(null) };
     const comments = () => {
-        return (
-
-            <div className={classes.commentContainer}>
-                <List className={classes.listComment}  >
-                    <ListItem alignItems="flex-start">
-                        <ListItemAvatar>
-                            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                        </ListItemAvatar>
-                        <ListItemText
-                            secondary={
-                                <React.Fragment>
-                                    <Typography
-                                        component="span"
-                                        variant="body2"
-                                        className={classes.listCommentUsername}
-                                    >
-                                        Ali Connors
-                                    </Typography>
-                                    <span  className={classes.listCommentUsername}>
-                                        {" — I'll be in your neighborhood doing errands this…"}
+        if (getComments && getComments.length){
+            return getComments.map((obj, key) => {
+                return (
+                    <Aux>
+                        <ListItem key={key} alignItems="flex-start">
+                            <ListItemAvatar>
+                                <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+                            </ListItemAvatar>
+                            <ListItemText
+                                secondary={
+                                    <React.Fragment>
+                                        <Typography
+                                            component="span"
+                                            variant="body2"
+                                            className={classes.listCommentUsername}
+                                        >
+                                            {obj.user}
+                                        </Typography>
+                                        <span  className={classes.listCommentUsername}>
+                                            {" — "}{obj.comment}
                                     </span>
-                                </React.Fragment>
-                            }
-                        />
-                    </ListItem>
-                    <Divider style={{backgroundColor: 'white', opacity: '0.5'}} variant="inset" component="li" />
-                    <div className={classes.search}>
-                        <div className={classes.searchIcon}>
-                            <SearchIcon />
-                        </div>
-                        <InputBase
-                            placeholder="Search movies..."
-                            classes={{root: classes.inputRoot, input: classes.inputInput }}
-                            inputProps={{ 'aria-label': 'search' }}
-                            value={commentValue}
-                            onChange={(e) => setCommentValue(e.target.value)}
-                            onKeyDown={handleKeyDownComment}
-                        />
-                    </div>
-                </List>
-            </div>
-
-        )
+                                    </React.Fragment>
+                                }
+                            />
+                        </ListItem>
+                        {key < getComments.length - 1 ?
+                            <Divider style={{backgroundColor: '#f7c12d', opacity: '0.5'}} variant="inset" component="li" />
+                            : null}
+                    </Aux>
+                )
+            })
+        }
+        else
+            return (
+                <div className={classes.commentContainer}>
+                    <p style={{ color : 'white', paddingLeft: '10px'}}>No Comments </p>
+                </div>
+            )
     };
     if (movieDetails) {
         return (

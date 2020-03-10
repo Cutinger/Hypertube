@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
-import AddCircle from '@material-ui/icons/AddCircle';
 import StarRatings from 'react-star-ratings';
 import {
     Grow,
     Grid
 } from '@material-ui/core';
 import API from './../../utils/API';
+import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 
 const useStyles = makeStyles(theme => ({
     movieCover: {
@@ -188,6 +188,16 @@ const useStyles = makeStyles(theme => ({
             opacity: '1',
             transform: 'scale(1.05)'
         }
+    },
+    movieRemoveList: {
+        opacity: '0.5',
+        color: '#4bbe4b',
+        paddingTop: '5px',
+        verticalAlign: 'middle' ,
+        '&:hover': {
+            opacity: '1',
+            transform: 'scale(1.05)'
+        }
     }
 }));
 
@@ -233,6 +243,8 @@ export default function HomeMoviesCards(props) {
         return null;
     };
 
+    // Get watchlist
+
     const handleClickAddWatchlist = (id) => {
         API.likeWatchlist(id)
             .catch((err) => console.log(err));
@@ -269,8 +281,10 @@ export default function HomeMoviesCards(props) {
                                                 <Grid item xs={6} className={classes.movieRating}>
                                                     <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />
                                                 </Grid>
-                                                <Grid item xs={'auto'} className={classes.movieAddList}>
-                                                    <AddCircle onClick={() => handleClickAddWatchlist(obj.id)} id="addCircle"/>
+                                                <Grid item xs={'auto'} className={classes.movieRemoveList}>
+                                                    <HighlightOffIcon onClick={() =>{
+                                                        handleClickAddWatchlist(obj.id);
+                                                    }} id="removeCircle"/>
                                                 </Grid>
                                             </Grid>
                                         </Grid>

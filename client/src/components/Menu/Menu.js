@@ -14,7 +14,6 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
-import axios from 'axios';
 import API from '../../utils/API';
 import Cookies from 'universal-cookie';
 const cookies = new Cookies();
@@ -133,6 +132,8 @@ export default function PrimarySearchAppBar(props) {
         setMobileMoreAnchorEl(event.currentTarget);
     };
 
+
+
     useEffect(() => {
         let _mounted = true;
         function getWatchlist() {
@@ -141,6 +142,7 @@ export default function PrimarySearchAppBar(props) {
                     if (res.status === 200 && res.data.watchlist && res.data.watchlist.length) {
                         _mounted && setCounterList(res.data.watchlist.length);
                         _mounted && setConnected(true);
+                        _mounted && props.setWatchlist(res.data.watchlist)
                     }
                 })
                 .catch(err => console.log(err));
@@ -150,8 +152,7 @@ export default function PrimarySearchAppBar(props) {
             getWatchlist()
         }
         return (() => _mounted = false)
-    }, []);
-
+    }, [props]);
 
     const handleKeyDown = (e) => {
         if (e.keyCode === 13 && searchValue) {

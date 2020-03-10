@@ -5,6 +5,8 @@ import AddCircle from '@material-ui/icons/AddCircle';
 import StarRatings from 'react-star-ratings';
 import { Grow, Grid } from '@material-ui/core';
 import API from './../../utils/API';
+import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import { store } from 'react-notifications-component';
 
 const useStyles = makeStyles(theme => ({
     movieCover: {
@@ -185,6 +187,16 @@ const useStyles = makeStyles(theme => ({
             opacity: '1',
             transform: 'scale(1.05)'
         }
+    },
+    movieRemoveList: {
+        opacity: '0.5',
+        color: '#4bbe4b',
+        paddingTop: '5px',
+        verticalAlign: 'middle' ,
+        '&:hover': {
+            opacity: '1',
+            transform: 'scale(1.05)'
+        }
     }
 }));
 
@@ -195,6 +207,7 @@ export default function HomeMoviesCards(props) {
     const [topMoviesList, setTopMoviesList] = useState(false);
     const [moviesGenres, setMoviesGenres] = useState(false);
     const [activeTextAutoScroll, setActiveTextAutoScroll] = useState(false);
+    const [watchlist, setWatchlist] = useState([]);
 
     // Get props on load (moviesGenres && topMoviesList)
     useEffect(() => {
@@ -240,10 +253,67 @@ export default function HomeMoviesCards(props) {
         return null;
     };
 
+
+    // Get watchlist
+    useEffect(() => {
+        if (props && props.watchlist) {
+            setWatchlist(props.watchlist);
+        }
+    }, [props.watchlist])
+
     const handleClickAddWatchlist = (id) => {
         API.likeWatchlist(id)
             .catch((err) => console.log(err));
     };
+
+    const addMovie = (id) => {
+        let find = false;
+        let indexFind = null;
+        if (watchlist && watchlist.length){
+           watchlist.map((obj, index) => { if (obj.id === id) { indexFind = index; find = true} } );
+           if (find)
+               return <Grid item xs={'auto'} className={classes.movieRemoveList}>
+                   <HighlightOffIcon onClick={() =>{
+                       handleClickAddWatchlist(id);
+                       store.addNotification({
+                           message: "Movie was successfully removed from watch list",
+                           insert: "top",
+                           type: 'success',
+                           container: "top-right",
+                           animationIn: ["animated", "fadeIn"],
+                           animationOut: ["animated", "fadeOut"],
+                           dismiss: {
+                               duration: 5000,
+                               onScreen: true
+                           }
+                       });
+                       setWatchlist(watchlist.slice(indexFind, -1))
+                   }} id="removeCircle"/>
+               </Grid>
+        }
+        return (
+            <Grid item xs={'auto'} className={classes.movieAddList}>
+                <AddCircle onClick={() => {
+                    handleClickAddWatchlist(id);
+                    store.addNotification({
+                        message: "Movie was successfully added from watch list",
+                        type: 'success',
+                        insert: "top",
+                        container: "top-right",
+                        animationIn: ["animated", "fadeIn"],
+                        animationOut: ["animated", "fadeOut"],
+                        dismiss: {
+                            duration: 5000,
+                            onScreen: true
+                        }
+                    });
+                    let newMovie = Object.assign({id: id});
+                    watchlist.push(newMovie);
+                    setWatchlist(watchlist);
+                }} id="addCircle"/>
+            </Grid>
+        )
+    }
 
     function GridMovies(obj, key) {
         return (
@@ -276,9 +346,7 @@ export default function HomeMoviesCards(props) {
                                                 <Grid item xs={6} className={classes.movieRating}>
                                                     <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />
                                                 </Grid>
-                                                <Grid item xs={'auto'} className={classes.movieAddList}>
-                                                    <AddCircle onClick={() => handleClickAddWatchlist(obj.id)} id="addCircle"/>
-                                                </Grid>
+                                                {addMovie(obj.id)}
                                             </Grid>
                                         </Grid>
                                         <Grid item>

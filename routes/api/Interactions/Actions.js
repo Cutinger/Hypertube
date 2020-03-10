@@ -94,6 +94,7 @@ const deleteComment = async (req, res) => {
 }
 
 const getComments = async (req, res) => {
+    let commentsList = [];
     let imdbid = req.params.id;
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
     let imdbcode = await createInstance(urlID)
@@ -107,11 +108,12 @@ const getComments = async (req, res) => {
             addMovie.save( (err) => { console.log(err) })
             dataMovies = await Movie.findOne({imdb_code: imdbcode});
         }
-        let commentsList = dataMovies.comments.sort( (a, b) => {
-            return b.date - a.date;
-        });
+        if (dataMovies && dataMovies.comments)
+            commentsList = dataMovies.comments.sort( (a, b) => {
+                return b.date - a.date;
+            });
         return res.status(200).json({commentsList})
-    } catch (err) { res.status(403).json({}) }
+    } catch (err) { console.log(err); res.status(403).json({}) }
 }
 ///////////////////////////////////////////
 ///////////////////////////////////////////

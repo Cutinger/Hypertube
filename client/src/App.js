@@ -6,6 +6,9 @@ import Menu from './components/Menu/Menu';
 import Home from './containers/Home/Home';
 import MovieCard from './containers/MovieCard/MovieCard';
 import withAuth from './utils/withAuth';
+import 'react-notifications-component/dist/theme.css'
+
+import ReactNotification from 'react-notifications-component';
 import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
 
 export default function App(props) {
@@ -13,6 +16,7 @@ export default function App(props) {
   // const [watchlist, setWatchlist] = useState([]);
 
   const homeRef = React.useRef();
+  const historicRef = React.useRef();
   const history = useHistory();
 
   const handleActiveSidebar = (bool) => {
@@ -20,18 +24,22 @@ export default function App(props) {
       homeRef.current && homeRef.current.setSidebar(bool);
     }
   };
-  // const handleSetWatchlist= (movies) => {
-  //     homeRef.current && homeRef.current.setWatchlist(movies);
-  //   }
+  const handleSetWatchlist= (watchlist) => {
+      homeRef.current && homeRef.current.getWatchlist(watchlist);
+      historicRef.current && historicRef.current.getWatchlist(watchlist);
+
+  };
 
   const handleSearchMovie = (movies) => {
       homeRef.current && homeRef.current.setSearch(movies);
-  }
+  };
 
   return (
     <div>
-      <Route component={(matchProps) => <Menu {...matchProps} {...props} search={handleSearchMovie}  setSidebar={handleActiveSidebar}/>}/>
-  
+      <Route component={(matchProps) => <Menu {...matchProps} {...props} search={handleSearchMovie} setWatchlist={handleSetWatchlist} setSidebar={handleActiveSidebar}/>}/>
+      <div className={"notifications"}>
+        <ReactNotification />
+    </div>
       <Switch>
         <Route exact path="/movie/:movieId" component={
           // withAuth(
@@ -45,7 +53,7 @@ export default function App(props) {
         } />
         <Route exact path="/historic" component={
           // withAuth(
-              (props) => <Home  history={history} {...props} />
+              (props) => <Home  history={history} ref={historicRef} {...props} />
           // )
         } />
         <Route exact path="/login" component={Login}/>

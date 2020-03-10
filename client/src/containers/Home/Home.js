@@ -124,32 +124,6 @@ const App = (forwardRef((props, ref) => {
     // First load (top movies)
         useEffect(() => {
             let isCancelled = false;
-            let watchlistTab = [];
-            const transormWatchlist = async(watchlist) => {
-                if (watchlist && watchlist.length){
-                    for(let i = 0; i < watchlist.length; i++){
-                      await axios.get(`https://api.themoviedb.org/3/movie/${watchlist[i]}?api_key=c91b62254304ec5dbb322351b0dc1094`)
-                          .then(res => {
-                              if (res.status === 200 && res.data) {
-                                  watchlistTab.push(res.data);
-                              }
-                          });
-                  }
-                }
-                setWatchlist(watchlistTab.reverse());
-            };
-            const getWatchlist = () => {
-                API.getWatchlist()
-                    .then(async(res) => {
-                        if (res.status === 200 && res.data.watchlist && res.data.watchlist.length) {
-                            !isCancelled && await transormWatchlist(res.data.watchlist);
-                        }
-                        else
-                            setWatchlist([])
-
-                    })
-                    .catch(err => console.log(err));
-            };
             const getTopMoviesList = () => {
                 axios.get(`${query}${1}`)
                     .then(res => {
@@ -167,22 +141,37 @@ const App = (forwardRef((props, ref) => {
             getMoviesGenres();
             if (props.history.location.pathname === '/')
                 getTopMoviesList();
-            else {
-                getWatchlist();
-            }
-
             return () => { isCancelled = true }
         }, [props.history.location.pathname]);
 
     // Sidebar
     const [open, setOpen] = React.useState(false);
     const handleDrawerClose = () => setOpen(false)
+
+
+    const transormWatchlist = async(watchlist) => {
+        let watchlistTab = [];
+        if (watchlist && watchlist.length){
+            for(let i = 0; i < watchlist.length; i++){
+                await axios.get(`https://api.themoviedb.org/3/movie/${watchlist[i]}?api_key=c91b62254304ec5dbb322351b0dc1094`)
+                    .then(res => {
+                        if (res.status === 200 && res.data) {
+                            watchlistTab.push(res.data);
+                        }
+                    });
+            }
+        }
+        setWatchlist(watchlistTab.reverse());
+    };
     // Ref accessible by App.js
     useImperativeHandle(ref, () => ({
         setSidebar(bool){ setOpen(bool) },
         setSearch(query){
-            setLoadPage(1);
             setSidebarQuery(query)
+        },
+        async getWatchlist(watchlist){
+            setWatchlist(watchlist);
+            await transormWatchlist(watchlist);
         }
     }));
 
@@ -196,7 +185,7 @@ const App = (forwardRef((props, ref) => {
 
     useEffect(() => {
         let isCancelled = false;
-        async function getMoviesList() {
+        function getMoviesList() {
             axios.get(`${sidebarQuery}${loadPage}`)
                 .then(res => {
                     if (res.data && res.data.results && res.data.results.length)
@@ -206,7 +195,7 @@ const App = (forwardRef((props, ref) => {
         if (sidebarQuery)
             getMoviesList();
         return () => { isCancelled = true }
-    }, [sidebarQuery]);
+    }, [sidebarQuery, loadPage]);
 
 
 
@@ -232,6 +221,7 @@ const App = (forwardRef((props, ref) => {
                 <InfiniteScroll next={handleSetLoadMovies} hasMore={true} dataLength={topMoviesList ? topMoviesList.length : 0} ></InfiniteScroll>
                 {/* Movies card map */}
                 <HomeMovieCards
+                    watchlist={watchlist}
                     topMoviesList={topMoviesList}
                     moviesGenres={moviesGenres}
                     pushHistory={(link) => props.history.push(link)}
