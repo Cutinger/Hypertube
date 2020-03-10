@@ -13,7 +13,7 @@ const validateLoginInput = require("../../validation/login");
 
 router.get('/checkToken', withAuth, (req, res) => { res.sendStatus(200) });
 
-router.post('/logout', withAuth, (req, res) => {
+router.get('/logout', withAuth, (req, res) => {
   res.clearCookie('token');
   res.sendStatus(200);
 });

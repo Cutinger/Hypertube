@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {Container, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText} from '@material-ui/core';
+import {Container, Popover, Divider, Typography, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText} from '@material-ui/core';
 import StarRatings from 'react-star-ratings';
 import axios from 'axios';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
@@ -9,7 +9,9 @@ import AddCircle from '@material-ui/icons/AddCircle';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import ReactPlayer from "react-player";
 import API from './../../utils/API';
-
+import CommentIcon from '@material-ui/icons/Sms';
+import SearchIcon from "@material-ui/core/SvgIcon/SvgIcon";
+import InputBase from "@material-ui/core/InputBase";
 const burl = 'http://localhost:5000/api'
 
 const useStyles = makeStyles(theme => ({
@@ -90,6 +92,15 @@ const useStyles = makeStyles(theme => ({
         textAlign: 'left',
         marginTop: '1em'
     },
+    commentIcon: {
+        color: '#ffffff',
+        fontSize: '2em',
+        verticalAlign: 'middle' ,
+        '&:hover': {
+            opacity: '1',
+            transform: 'scale(1.2)'
+        }
+    },
     movieAddList: {
         color: '#f7c12d',
         fontSize: '2em',
@@ -119,6 +130,34 @@ const useStyles = makeStyles(theme => ({
     loadingSources: {
         marginRight: '1em',
         color: 'white',
+    },
+    commentContainer: {
+        'MuiPaper-root': {
+            borderRadius: '10px',
+            background: 'none'
+        }
+    },
+    inline: {
+        display: 'inline',
+    },
+    popoverComment: {
+        '& .MuiPopover-paper' : {
+            background: 'none !important',
+            borderRadius: '10px',
+        }
+    },
+    listComment: {
+        width: '100%',
+        maxWidth: 360,
+        borderRadius: '10px',
+        background: 'radial-gradient(rgb(77, 24, 60), rgb(11, 16, 35)) !important',
+        color: 'white'
+    },
+    listCommentUsername: {
+        color: 'white'
+    },
+    listCommentText: {
+        color: 'white'
     }
 }));
 
@@ -182,27 +221,50 @@ export default function MovieCard(props){
     // Set subtitles
     const [subtitles, setSubtitles] = useState([]);
 
-    // {kind: 'subtitles', src: 'subs/subtitles.en.vtt', srcLang: 'en'},
-    const constructSubtitles = (subtitles) => {
-        if (subtitles){
-            let subTab = Object.entries(subtitles);
-            let subObject = [];
-            if (subTab && subTab.length)
-                for (let i = 0; i < subTab.length; i++){
-                    let src = subTab[i][1].split('/');
-                    src = src[src.length - 2].concat("/" + src[src.length -1]);
-                    subObject.push(Object.assign({
-                        kind: 'subtitles',
-                        src: `${burl}/subtitles/${src}`,
-                        srcLang: subTab[i][0],
-                    }))
-                }
-            return subObject;
+    // Comments
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [getComments, setComments] = React.useState([]);
+    const [commentValue, setCommentValue] = React.useState([]);
+
+
+
+    const handleGetComments = (movieID) => {
+        API.getComments(movieID)
+            .then(res => {
+                if (res.status === 200)
+                    console.log(res.data);
+            })
+    };
+    const handleKeyDownComment = (e) => {
+        if (e.keyCode === 13 && commentValue) {
+            API.addComment(props.match.params.movieId, commentValue)
+                .then(res => {
+                    if (res.status === 200)
+                        console.log(res.data);
+                })
+            setCommentValue('');
         }
-    }
+    };
 
     // On mount (when props are received or when the page with /movie/:id is loaded
     useEffect(() => {
+        const constructSubtitles = (subtitles) => {
+            if (subtitles){
+                let subTab = Object.entries(subtitles);
+                let subObject = [];
+                if (subTab && subTab.length)
+                    for (let i = 0; i < subTab.length; i++){
+                        let src = subTab[i][1].split('/');
+                        src = src[src.length - 2].concat("/" + src[src.length -1]);
+                        subObject.push(Object.assign({
+                            kind: 'subtitles',
+                            src: `${burl}/subtitles/${src}`,
+                            srcLang: subTab[i][0],
+                        }))
+                    }
+                return subObject;
+            }
+        };
         function setMovieDetail() {
             let data = null;
             axios.get(`https://api.themoviedb.org/3/movie/${props.match.params.movieId}?api_key=c91b62254304ec5dbb322351b0dc1094`)
@@ -234,20 +296,15 @@ export default function MovieCard(props){
         let _mounted = true;
         // Get movie infos (vote, title, overview, poster...)
         if (_mounted && props.match.params.movieId) {
-            console.log(1);
             setMovieDetail();
             getMovieSources();
+            handleGetComments(props.match.params.movieId);
         }
         return () => { _mounted = false }
     }, [props.match.params.movieId]);
 
 
-    const sourceMessage = () => {
-        if (movieSources)
-            return selectedValue ? selectedValue : `Choose a source (${movieSources.ytsInfo.length + movieSources.leetInfo.length})`;
-        else
-            return 'No source available'
-    };
+
 
     // Movie source selection
     const handleClickOpen = () => {
@@ -283,9 +340,16 @@ export default function MovieCard(props){
         return null;
     };
 
-
-    if (movieDetails) {
-        const poster = movieDetails.poster_path ? `https://image.tmdb.org/t/p/w185${movieDetails.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png';
+    const sourceMessage = () => {
+        if (movieSources)
+            return selectedValue ? selectedValue : `Choose a source (${movieSources.ytsInfo.length + movieSources.leetInfo.length})`;
+        else
+            return 'No source available'
+    };
+    const poster = movieDetails && movieDetails.poster_path ? `https://image.tmdb.org/t/p/w185${movieDetails.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png';
+    const movieCardContainer = () => {
+        const openComment = Boolean(anchorEl);
+        const id = openComment ? 'simple-popover' : undefined;
         return (
             <Grow in={true}>
                 <Container>
@@ -294,19 +358,46 @@ export default function MovieCard(props){
                         className={classes.containerMovieDetails}
                     >
 
-                        <Grid  style={{ marginBottom: '1.5em'}} container justify={'space-between'} alignItems={'flex-start'} alignContent={'center'}>
+                        <Grid style={{marginBottom: '1.5em'}} container justify={'space-between'}
+                              alignItems={'flex-start'} alignContent={'center'}>
                             <Grid item xs={'auto'} className={classes.movieReturnBack}>
                                 <a href={'#  '}>
                                     <ArrowBackIosIcon
                                         fontSize="large"
                                         style={{color: 'white'}}
                                         id="arrowBackIosIcon"
-                                        onClick={(e) => {e.preventDefault(); props.history.push('/')}}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            props.history.push('/')
+                                        }}
                                     />
                                 </a>
                             </Grid>
                             <Grid item xs={'auto'} className={classes.movieAddList}>
                                 <AddCircle fontSize="large" id="addCircle"/>
+                            </Grid>
+                        </Grid>
+                        <Grid style={{marginBottom: '1.5em'}} container justify={'space-between'}
+                              alignItems={'flex-end'} justify={"flex-end"}alignContent={'flex-end'}>
+                            <Grid item xs={'auto'} className={classes.commentIcon}>
+                                <CommentIcon onClick={handleClickComment} aria-describedby={id} fontSize="large" id="commentIcon"/>
+                                <Popover
+                                    id={id}
+                                    open={openComment}
+                                    anchorEl={anchorEl}
+                                    onClose={handleCloseComment}
+                                    anchorOrigin={{
+                                        vertical: 'top',
+                                        horizontal: 'left',
+                                    }}
+                                    transformOrigin={{
+                                        vertical: 'top',
+                                        horizontal: 'left',
+                                    }}
+                                    className={classes.popoverComment}
+                                >
+                                    {comments()}
+                                </Popover>
                             </Grid>
                         </Grid>
                         <div
@@ -322,7 +413,8 @@ export default function MovieCard(props){
                                 opacity: '0.3'
                             }}
                         />
-                        <Grid style={{ marginTop: '1.5em'}}container alignContent={"center"} direction="row" justify="center" alignItems="center">
+                        <Grid style={{marginTop: '1.5em'}} container alignContent={"center"} direction="row"
+                              justify="center" alignItems="center">
                             <Grid className={classes.containerImg} item xs={'auto'} sm={4}>
                                 <img
                                     className={classes.movieCoverContainer}
@@ -330,14 +422,17 @@ export default function MovieCard(props){
                                     alt={movieDetails.title}
                                 />
                             </Grid>
-                            <Grid style={{ paddingLeft: '1em', paddingRight: '1em'}} item xs={'auto'} sm={8}>
+                            <Grid style={{paddingLeft: '1em', paddingRight: '1em'}} item xs={'auto'} sm={8}>
                                 <Grid item xs={12} sm={12}>
                                     <Grid className={classes.containerDate_Vote} item xs={8}>
-                                        <span className={classes.releaseDate}>{movieDetails.release_date.slice(0,4)}</span>
-                                        <StarRatings rating={movieDetails.vote_average / 2} starRatedColor="#f7c12d" starDimension="17px" starSpacing="1.5px" />
+                                        <span
+                                            className={classes.releaseDate}>{movieDetails.release_date.slice(0, 4)}</span>
+                                        <StarRatings rating={movieDetails.vote_average / 2} starRatedColor="#f7c12d"
+                                                     starDimension="17px" starSpacing="1.5px"/>
                                     </Grid>
                                     <Grid item xs={12}>
-                                        <Grid container style={{  marginTop: '1em', marginBottom: '0.5em'}} direction="row" justify="flex-start" alignItems="flex-start">
+                                        <Grid container style={{marginTop: '1em', marginBottom: '0.5em'}}
+                                              direction="row" justify="flex-start" alignItems="flex-start">
                                             {genMovieGenres(movieDetails)}
                                         </Grid>
                                     </Grid>
@@ -349,14 +444,15 @@ export default function MovieCard(props){
                                             {movieDetails.overview}
                                         </p>
                                     </Grid>
-                                    <Grid style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }} item xs={12}>
+                                    <Grid style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}} item
+                                          xs={12}>
                                         {loadingSources ?
-                                        <div className={classes.loadingSources}>
-                                            <Fade in={loadingSources} unmountOnExit>
-                                                <CircularProgress style={{color: 'white'}}/>
-                                            </Fade>
-                                        </div> : null }
-                                        <br />
+                                            <div className={classes.loadingSources}>
+                                                <Fade in={loadingSources} unmountOnExit>
+                                                    <CircularProgress style={{color: 'white'}}/>
+                                                </Fade>
+                                            </div> : null}
+                                        <br/>
                                         <Button
                                             variant="outlined"
                                             className={classes.buttonChooseSource}
@@ -365,7 +461,8 @@ export default function MovieCard(props){
                                         >
                                             {sourceMessage()}
                                         </Button>
-                                        <SimpleDialog movieSources={movieSources} selectedValue={selectedValue} open={open} onClose={handleClose} />
+                                        <SimpleDialog movieSources={movieSources} selectedValue={selectedValue}
+                                                      open={open} onClose={handleClose}/>
                                     </Grid>
 
                                 </Grid>
@@ -374,33 +471,92 @@ export default function MovieCard(props){
                     </Container>
                     {
                         movieSrc ?
-                        <Container style={{padding: '0', marginTop: '2.5em', userSelect: 'false'}}>
-                            <Grid container>
-                                <Grid item xs={12}>
-                                    <div className={classes.player}>
-                                        <ReactPlayer
-                                            width='100%'
-                                            height='100%'
-                                            url={movieSrc}
-                                            playing
-                                            controls={true}
-                                            config={{
+                            <Container style={{padding: '0', marginTop: '2.5em', userSelect: 'false'}}>
+                                <Grid container>
+                                    <Grid item xs={12}>
+                                        <div className={classes.player}>
+                                            <ReactPlayer
+                                                width='100%'
+                                                height='100%'
+                                                url={movieSrc}
+                                                playing
+                                                controls={true}
+                                                config={{
                                                     file: {
                                                         attributes: {
                                                             crossOrigin: 'use-credentials'
                                                         },
                                                         tracks: subtitles
                                                     }
-                                            }}
-                                        />
-                                    </div>
+                                                }}
+                                            />
+                                        </div>
+                                    </Grid>
                                 </Grid>
-                            </Grid>
-                        </Container> : null
+                            </Container> : null
                     }
                 </Container>
             </Grow>
-        );
+        )
+    };
+
+
+    // Comment icon
+
+    const handleClickComment = event => { setAnchorEl(event.currentTarget) };
+    const handleCloseComment = () => { setAnchorEl(null) };
+    const comments = () => {
+        return (
+
+            <div className={classes.commentContainer}>
+                <List className={classes.listComment}  >
+                    <ListItem alignItems="flex-start">
+                        <ListItemAvatar>
+                            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+                        </ListItemAvatar>
+                        <ListItemText
+                            secondary={
+                                <React.Fragment>
+                                    <Typography
+                                        component="span"
+                                        variant="body2"
+                                        className={classes.listCommentUsername}
+                                    >
+                                        Ali Connors
+                                    </Typography>
+                                    <span  className={classes.listCommentUsername}>
+                                        {" — I'll be in your neighborhood doing errands this…"}
+                                    </span>
+                                </React.Fragment>
+                            }
+                        />
+                    </ListItem>
+                    <Divider style={{backgroundColor: 'white', opacity: '0.5'}} variant="inset" component="li" />
+                    <div className={classes.search}>
+                        <div className={classes.searchIcon}>
+                            <SearchIcon />
+                        </div>
+                        <InputBase
+                            placeholder="Search movies..."
+                            classes={{root: classes.inputRoot, input: classes.inputInput }}
+                            inputProps={{ 'aria-label': 'search' }}
+                            value={commentValue}
+                            onChange={(e) => setCommentValue(e.target.value)}
+                            onKeyDown={handleKeyDownComment}
+                        />
+                    </div>
+                </List>
+            </div>
+
+        )
+    };
+    if (movieDetails) {
+        return (
+            <div>
+                {movieCardContainer()}
+            </div>
+        )
+
     }
     return null
 }

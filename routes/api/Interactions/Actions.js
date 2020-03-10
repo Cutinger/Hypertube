@@ -9,61 +9,65 @@ const axios         = require('axios');
 
 ///////////////////////////////////////////
 // COMMENT GESTION
-const addComment = (req, res) => {
+const addComment = async(req, res) => {
     
-    var currentTimestamp = Math.round((Date.now() / 1000))
+    let currentTimestamp = Math.round((Date.now() / 1000))
 
+    let comment = req.body.comment;
+    let username = '';
     let imdbid = req.params.id;
     let userID = res.locals.id;
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
 
-    if (!userID) { return res.sendStatus(403) }
+    if (!userID) { return res.status(403).json({}) }
 
-    let imdbcode = createInstance(urlID)
-    if (!imdbcode) { return res.sendStatus(404) }
+    let imdbcode = await createInstance(urlID);
+    if (!imdbcode) { return res.status(404).json({}) }
 
+    try {
+        let data = await User.findById(userID)
+        if (!data) throw new Error ('error data');
+        username = data.username;
+    } catch(err) {
+        return res.status(403).json({})
+    }
+    if ( !comment || comment && comment.length < 8 )
+        return res.status(405).json({});
 
-    User.findById(userID, (err, data) => {
-        if (!data || err) { return res.sendStatus(403) }
-        var username = data.username
-    });
-
-    var comment = req.body.comment
-    if ( comment.length < 8  || isEmpty(comment) ) { return res.sendStatus(405) }
-
-    Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
-        let id
-        if (!data || err) { return res.sendStatus(404) }
-        if (!data.comments.id) {
-            id = 1
-        } else {
-            id = Math.max(...data.comments.map(o => o.id), 0) + 1;
+    try {
+        let data = await Movie.findOne({imdb_code: imdbcode});
+        if (!data)
+            throw new Error('err findOne imdbcode');
+        if (data) {
+            let id;
+            if (!data.comments.id) id = 1;
+            else id = Math.max(...data.comments.map(o => o.id), 0) + 1;
+            let newComment = {id: id, user: username, comment: comment, date: currentTimestamp};
+            data.comments.push(newComment);
         }
-        let newComment = {id: id, user: username, comment: comment, date: currentTimestamp }
-        data.comments.push(newComment)
-        data.save( (err) => { if (err) { console.log(err) } })
-    });
-    return res.sendStatus(200)
-}
-
+    } catch(err) {
+        return res.status(404).json({})
+    }
+    return res.status(200).json({})
+};
 const deleteComment = async (req, res) => {
     try {
         let imdbid = req.params.imdbid;
         var id = req.params.comment;
         let userID = res.locals.id;
         var deleted = false
-        if (!userID) { return res.sendStatus(403) }
+        if (!userID) { return res.status(403).json({}) }
 
         let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
         let imdbcode = await createInstance(urlID)
 
         User.findById(userID, (err, data) => {
-            if (!data || err) { return res.sendStatus(403) }
+            if (!data || err) { return res.status(403).json({}) }
             var username = data.username
         });
 
         Movie.findOne({imdb_code: imdbcode}, (err, data) => {
-            if (!data || err) { return res.sendStatus(403) }
+            if (!data || err) { return res.status(403).json({}) }
             for (let index = 0; index < data.comments.length; index++) {
                 if (data.comments[index].user == username && data.comments[index].id == id) {
                     data.comments.splice(index, 1)
@@ -74,10 +78,12 @@ const deleteComment = async (req, res) => {
             }
         });
 
-        if (deleted) { return res.sendStatus(200) }
-        else { return res.sendStatus(404) }
+        if (deleted) { return res.status(200).json({})}
+        else { return res.status(404).json({}) }
 
-    } catch (err) { console.log(err) }
+    } catch (err) {
+        console.log(err)
+    }
 }
 
 const getComments = async (req, res) => {
@@ -87,15 +93,17 @@ const getComments = async (req, res) => {
         let imdbcode = await createInstance(urlID)
         if (imdbcode) {
             Movie.findOne({ imdb_code: imdbcode }, (err, data) => {
-                if (err) { return res.sendStatus(403) }
-                if (!data) { return res.json({}) }
+                if (err) { return res.status(403).json({}) }
+                if (!data) { return res.status(200).json({}) }
                 let commentsList = data.comments.sort( (a, b) => {
                     return b.date - a.date;
                 });
-                return res.json(commentsList)
+                return res.status(200).json({commentsList})
             });
-        } else { return res.sendStatus(404) }
-    } catch (err) { console.log(err) }
+        } else { return res.status(404).json({})}
+    } catch (err) {
+       console.log(err, 'err getComments')
+    }
 }
 ///////////////////////////////////////////
 ///////////////////////////////////////////
@@ -198,10 +206,10 @@ const getWatchlist = (req, res) => {
 const getHistory = (req, res) => {
     let userID = res.locals.id;
     if (!userID)
-        return res.sendStatus(404)
+        return res.status(404).json({})
     User.findById(userID, (err, data) => {
         if (!data)
-            return res.sendStatus(403)
+            return res.status(403).json({})
         return res.json(data.history)
     })
 }

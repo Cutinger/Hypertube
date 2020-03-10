@@ -30,7 +30,7 @@ export default {
         )
     },
     logout: () => {
-        return axios.post(
+        return axios.get(
             `${burl}/users/logout`,
             {
                 withCredentials: 'true',
@@ -77,6 +77,25 @@ export default {
     likeWatchlist: (movieID) => {
         return axios.get(
             `${burl}/movies/${movieID}/watchlist`,
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
+    },
+    getComments: (movieID) => {
+        return axios.get(
+            `${burl}/comments/${movieID}`,
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
+    },
+    addComment: (movieID, comment) => {
+        return axios.post(
+            `${burl}/comment/${movieID}`,
+            {comment},
             {
                 withCredentials: 'true',
                 headers: headers

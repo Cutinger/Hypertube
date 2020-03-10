@@ -34,9 +34,10 @@ export default function App(props) {
   
       <Switch>
         <Route exact path="/movie/:movieId" component={
-          withAuth(
+          // withAuth(
           (matchProps) => <MovieCard {...props} {...matchProps} />
-          )} />
+          // )
+        } />
         <Route exact path="/" component={
           // withAuth(
               (props) => <Home  history={history} {...props} ref={homeRef} setSidebar={handleActiveSidebar} />
