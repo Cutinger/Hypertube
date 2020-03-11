@@ -31,6 +31,7 @@
     "is-empty": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "leetxapi": "^1.1.1",
+    "mongo-sanitize": "^1.1.0",
     "mongoose": "^5.8.10",
     "opensubtitles-api": "^5.1.0",
     "passport": "^0.4.1",
