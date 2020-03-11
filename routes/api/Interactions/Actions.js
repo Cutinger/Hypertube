@@ -175,7 +175,8 @@ const updateInfos = async (req, res) => {
     var errors      = {}
 
     let password        = sanitize(req.body.password)
-    let confirmpass = sanitize(req.body.passwordconfirm)
+    let confirmpass     = sanitize(req.body.passwordconfirm)
+
 
     // check if the entries are valid
     if ( password && !schema.validate(password) ) { errors.password = "Password must contain at least one uppercase, one number and one symbol, and at least 8 characters." }
@@ -207,9 +208,12 @@ const updateInfos = async (req, res) => {
             bcrypt.genSalt(10, function(err, salt) {
                 bcrypt.hash(password, salt, function(err, hash) {
                     updateUsers.password = hash
+                    updateUsers.save()
                 });
             });
         }
+
+        updateUsers = await User.findById(userID)
         if (username) { updateUsers.username = username }
         if (firstname) { updateUsers.firstname = firstname }
         if (lastname) { updateUsers.firstname = lastname }
@@ -220,7 +224,7 @@ const updateInfos = async (req, res) => {
 
         ////////
 
-        return res.status(200).json(req.body)
+        return res.status(200).json()
         
     } catch (err) { console.log(err); res.status(403).json({}) }
 
