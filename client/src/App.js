@@ -11,6 +11,19 @@ import 'react-notifications-component/dist/theme.css'
 
 import ReactNotification from 'react-notifications-component';
 import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
+import {makeStyles} from "@material-ui/core/styles";
+
+const useStyles = makeStyles(theme => ({
+  topBackground: {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    height: '500px',
+    width: '100%',
+    zIndex: -1,
+    background: 'linear-gradient(-180deg, #0d1c37 40%, rgba(0, 0, 0, 0) ) !important'
+  }
+}));
 
 export default function App(props) {
 
@@ -19,6 +32,7 @@ export default function App(props) {
   const homeRef = React.useRef();
   const historicRef = React.useRef();
   const history = useHistory();
+  const classes = useStyles();
 
   const handleActiveSidebar = (bool) => {
     if (history && history.location.pathname === '/'){
@@ -37,6 +51,7 @@ export default function App(props) {
 
   return (
     <div>
+      <div className={classes.topBackground} />
       <Route component={(matchProps) => <Menu {...matchProps} {...props} search={handleSearchMovie} setWatchlist={handleSetWatchlist} setSidebar={handleActiveSidebar}/>}/>
       <div className={"notifications"}>
         <ReactNotification />

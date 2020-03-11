@@ -3,10 +3,14 @@ import {Container, Divider, Grow, Grid, Avatar, TextField, Backdrop, CircularPro
 import {makeStyles} from "@material-ui/core/styles";
 import classnames from 'classnames';
 import CheckIcon from '@material-ui/icons/Check';
-import Cookies from "universal-cookie";
 import API from "../../utils/API";
+import LockIcon from '@material-ui/icons/Lock';
 import AddIcon from '@material-ui/icons/Add';
-
+import AccountCircle from '@material-ui/icons/AccountCircle';
+import MailIcon from '@material-ui/icons/Mail';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import VALIDATION from "../../utils/validation";
+import SendIcon from "@material-ui/core/SvgIcon/SvgIcon";
 const useStyles = makeStyles(theme => ({
     backdrop: {
         zIndex: theme.zIndex.drawer + 1,
@@ -45,8 +49,8 @@ const useStyles = makeStyles(theme => ({
         boxShadow: '6px 12px 22px #bd20857a'
     },
     large: {
-        width: theme.spacing(25),
-        height: theme.spacing(25),
+        width: theme.spacing(26),
+        height: theme.spacing(26),
         boxShadow: '2px 2px 1px #11305f !important',
     },
     textfield: {
@@ -54,7 +58,7 @@ const useStyles = makeStyles(theme => ({
         '& > .MuiFilledInput-root': {
             borderTopRightRadius: '10px',
             borderTopLeftRadius: '10px',
-            backgroundColor: '#11305f !important',
+            backgroundColor: '#202e428c !important;',
             color: '#c5c5c5'
         },
         '&input:placeholder': {
@@ -67,10 +71,20 @@ const useStyles = makeStyles(theme => ({
             color: 'white !important'
         },
         '& .MuiFilledInput-underline:after': {
-            borderColor: 'white !important'
+            borderColor: '#18468a !important',
+            borderRadius: '10px'
+        },
+        '& .MuiFilledInput': {
+           overflow:'hidden'
         },
         '& .MuiFilledInput-underline:before': {
-            borderColor: '1px solid rgb(0, 0, 0) !important'
+            borderColor: '1px solid rgb(0, 0, 0) !important',
+        },
+        '& .MuiFilledInput-underline': {
+            borderColor: '1px solid white !important'
+        },
+        '& .MuiFilledInput-input': {
+            padding: '35px 15px 15px !important'
         }
     },
     textfieldbetween: {
@@ -83,26 +97,55 @@ const useStyles = makeStyles(theme => ({
         ' & >.MuiFilledInput-root': {
             borderTopRightRadius: '0px !important',
             borderTopLeftRadius: '0px !important',
-            borderBottomLeftRadius: '10px !important',
             borderBottomRightRadius: '10px !important',
+            borderBottomLeftRadius: '10px !important',
+
         }
     },
     saveChanges: {
-        background: '#11305f',
+        background: '#18468a',
         color: 'white',
         textAlign: 'center',
-        borderRadius: '10px',
+        borderRadius: '10px !important',
         marginTop: '1.5em',
         '&:hover': {
-            background: '#1c519f',
+            background: '#174282',
         }
+    },
+    addPicture: {
+        background: '#202e42 !important',
+        color: 'white',
+        textAlign: 'center',
+        borderRadius: '10px !important',
+        marginTop: '1.5em',
+        fontSize: '0.8em',
+        '&:hover': {
+            background: '#202e42 !important',
+        }
+    },
+    containerInfos: {
+        width: '100% !important',
+        [theme.breakpoints.down('xs')]: {
+            marginTop: '1.6em'
+        },
+    },
+    commentProgress: {
+        color: 'white',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        marginTop: -12,
+        marginLeft: -12,
     },
 }));
 
 
 export default function Profile(props){
     const classes = useStyles();
-    const [mounted, setMounted] = useState(true);
+    const [mounted, setMounted] = useState(false);
+    const [loader, setLoader] = useState(false);
+    const [defaultImg, setDefaultImg] = useState(true);
+
 
     // Warnings after validation
     const [validationErrors, setValidationErrors] = React.useState({
@@ -120,7 +163,7 @@ export default function Profile(props){
         email: '',
         password: '',
         password_confirm: '',
-        username: ''
+        username: '',
     });
 
     const handleChange = (event) => {
@@ -138,138 +181,246 @@ export default function Profile(props){
         if (event.target.id === "lastname" && err_lastname)
             setValidationErrors({...validationErrors, err_lastname: false});
         setTextFieldsValues({...fieldValue, [event.target.id]: event.target.value });
+    };
+
+    const handleSaveChanges = async() => {
+        setLoader(true);
+        /* VALIDATION */
+        const errors = {
+            firstname: false,
+            lastname: false,
+            email: false,
+            password: false,
+            password_confirm: false,
+            username: false,
+        }
+        if (!VALIDATION.validateEmail(fieldValue.email))
+            errors.email = 'Please use valid email';
+        if (!VALIDATION.validateName(fieldValue.firstname))
+            errors.firstname = 'Please use valid first name';
+        if (!VALIDATION.validateName(fieldValue.lastname))
+            errors.lastname = 'Please use valid last name';
+        if (!fieldValue.password || fieldValue.password && fieldValue.password.length < 1)
+            errors.password = 'Password required';
+        else if (!VALIDATION.validatePassword(fieldValue.password))
+            errors.password = 'Please use strong password';
+        if (fieldValue.password !== fieldValue.password_confirm)
+            errors.password_confirm = 'Passwords must match';
+        if (!VALIDATION.validateUsername(fieldValue.username))
+            errors.username = 'Please use valid username';
+        setValidationErrors({
+            err_password: errors.password,
+            err_password_confirm: errors.password_confirm,
+            err_email: errors.email,
+            err_firstname: errors.firstname,
+            err_lastname: errors.lastname,
+            err_username: errors.username
+        });
+        /* SEND REQUEST */
+        if (!errors.firstname && !errors.lastname && !errors.email && !errors.password && !errors.username && !errors.password_confirm) {
+            await API.updateUserProfil(fieldValue.firstname, fieldValue.lastname, fieldValue.username,fieldValue.email, fieldValue.password, fieldValue.password_confirm, defaultImg)
+                .then(response => {
+                    if (response.status === 200)
+                       console.log(response.data);
+                })
+                .catch(err => {
+                    // if (err.response.data && typeof err.response.data.same_username !== 'undefined'){
+                    //     setValidationErrors({
+                    //         ...validationErrors,
+                    //         err_username: err.response.data.same_username ? 'Username already exist' : false,
+                    //         err_email: err.response.data.same_email ? 'Email already exist' : false
+                    //     })
+                    // }
+                    console.log(err);
+                });
+        }
+        setLoader(false);
     }
 
     useEffect(() => {
-       if (!mounted)
+       async function getUserProfile(){
+           await API.getUserProfile()
+               .then(res => {
+                   if (res.status === 200 && res.data)
+                      setTextFieldsValues({
+                          firstname: res.data.firstname,
+                          lastname: res.data.lastname,
+                          username: res.data.username,
+                          email: res.data.email
+                      })
+               })
+       }
+       if (!mounted) {
+           console.log(1);
+           getUserProfile()
            setMounted(true);
+       }
     }, [mounted]);
 
     return (
         <Grow in={mounted}>
             <Container component="main" maxWidth={"md"} className={classes.containerGridTopMovie}>
-                {/* Loader -> when page load */}
-                <Backdrop className={classes.backdrop} open={mounted ? false : true} >
-                    <CircularProgress color="inherit" />
-                </Backdrop>
-                <div className={classes.topBackground} />
-                <div className={classes.titleContainer}>
-                    <h1 className={classes.title}>My profile</h1>
-                    <Divider className={classes.dividerTitle}/>
-                </div>
-                <div className={classes.profileContainer}>
-                    <Grid style={{marginTop: '1.5em'}} container alignContent={"center"} direction="row" justify="space-evenly" alignItems="center">
-                        <Grid item sm={6}>
-                            <Grid container direction={"column"} alignItems="center" alignContent={'center'}>
-                                <Grid item>
-                                    <Avatar alt="Remy Sharp" src="https://i.ibb.co/hgvJPFb/default-Img-Profile.png" className={classes.large}/>
+                <form noValidate>
+                    {/* Loader -> when page load */}
+                    <Backdrop className={classes.backdrop} open={mounted ? false : true} >
+                        <CircularProgress color="inherit" />
+                    </Backdrop>
+                    <div className={classes.titleContainer}>
+                        <h1 className={classes.title}>My profile</h1>
+                        <Divider className={classes.dividerTitle}/>
+                    </div>
+                    <div className={classes.profileContainer}>
+                        <Grid style={{marginTop: '1.5em'}} container alignContent={"center"} direction="row" justify="space-evenly" alignItems="center">
+                            <Grid item sm={6}>
+                                <Grid container direction={"column"} alignItems="center" alignContent={'center'}>
+                                    <Grid item>
+                                        <Avatar alt="Remy Sharp" src="https://i.ibb.co/hgvJPFb/default-Img-Profile.png" className={classes.large}/>
+                                    </Grid>
+                                    <Grid item>
+                                        <Fab variant="extended" size="small" className={classes.addPicture} >
+                                            <AddIcon />
+                                            Add picture
+                                        </Fab>
+                                    </Grid>
                                 </Grid>
-                                <Grid item style={{marginTop: '10px'}}>
-                                    <Fab variant="extended" size="medium" className={classes.saveChanges} >
-                                        <AddIcon />
-                                        Add picture
-                                    </Fab>
+                            </Grid>
+                            <Grid item sm={6}>
+                                <Grid className={classes.containerInfos} container direction={"column"}  alignItems="stretch" alignContent={'center'}>
+                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                        <TextField
+                                            value={fieldValue.firstname || ''}
+                                            onChange={handleChange}
+                                            helperText={validationErrors.err_firstname}
+                                            error={Boolean(validationErrors.err_firstname)}
+                                            name="firstname"
+                                            variant="filled"
+                                            required
+                                            id="firstname"
+                                            label="First Name"
+                                            className={classes.textfield}
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                        <TextField
+                                            value={fieldValue.lastname || ''}
+                                            onChange={handleChange}
+                                            helperText={validationErrors.err_lastname}
+                                            error={Boolean(validationErrors.err_lastname)}
+                                            name="lastname"
+                                            variant="filled"
+                                            required
+                                            fullWidth
+                                            id="lastname"
+                                            label="Last Name"
+                                            className={classnames(classes.textfield, classes.textfieldbetween)}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                        <TextField
+                                            value={fieldValue.username || ''}
+                                            onChange={handleChange}
+                                            helperText={validationErrors.err_username}
+                                            error={Boolean(validationErrors.err_username)}
+                                            name="username"
+                                            variant="filled"
+                                            required
+                                            fullWidth
+                                            id="username"
+                                            label="Username"
+                                            className={classnames(classes.textfield, classes.textfieldbetween)}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <AccountCircle />
+                                                    </InputAdornment>
+                                                )
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                        <TextField
+                                            value={fieldValue.password || ''}
+                                            helperText={validationErrors.err_password}
+                                            error={Boolean(validationErrors.err_password)}
+                                            onChange={handleChange}
+                                            variant="filled"
+                                            required
+                                            fullWidth
+                                            name="password"
+                                            label="Password"
+                                            type="password"
+                                            id="password"
+                                            autoComplete={"true"}
+                                            className={classnames(classes.textfield, classes.textfieldbetween)}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <LockIcon />
+                                                    </InputAdornment>
+                                                )
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                        <TextField
+                                            value={fieldValue.password_confirm || ''}
+                                            helperText={validationErrors.err_password_confirm}
+                                            error={Boolean(validationErrors.err_password_confirm)}
+                                            onChange={handleChange}
+                                            variant="filled"
+                                            required
+                                            fullWidth
+                                            name="password_confirm"
+                                            label="Password Confirm"
+                                            type="password"
+                                            id="password_confirm"
+                                            autoComplete={"true"}
+                                            className={classnames(classes.textfield, classes.textfieldbetween)}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <LockIcon />
+                                                    </InputAdornment>
+                                                )
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                        <TextField
+                                            value={fieldValue.email || ''}
+                                            helperText={validationErrors.err_email}
+                                            error={Boolean(validationErrors.err_email)}
+                                            onChange={handleChange}
+                                            variant="filled"
+                                            required
+                                            fullWidth
+                                            id="email"
+                                            label="Email Address"
+                                            name="email"
+                                            className={classnames(classes.textfield, classes.textfieldbottom)}
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <MailIcon />
+                                                    </InputAdornment>
+                                                )
+                                            }}
+                                        />
+                                    </Grid>
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid item sm={6}>
-                            <Grid style={{width: '100% !important'}} container direction={"column"}  alignItems="stretch" alignContent={'center'}>
-                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                    <TextField
-                                        value={fieldValue.firstname || ''}
-                                        onChange={handleChange}
-                                        helperText={validationErrors.err_firstname}
-                                        error={Boolean(validationErrors.err_firstname)}
-                                        name="firstname"
-                                        variant="filled"
-                                        required
-                                        id="firstname"
-                                        label="First Name"
-                                        className={classes.textfield}
-                                        fullWidth
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                    <TextField
-                                        value={fieldValue.lastname || ''}
-                                        onChange={handleChange}
-                                        helperText={validationErrors.err_lastname}
-                                        error={Boolean(validationErrors.err_lastname)}
-                                        name="lastname"
-                                        variant="filled"
-                                        required
-                                        fullWidth
-                                        id="lastnamet"
-                                        label="Last Name"
-                                        className={classnames(classes.textfield, classes.textfieldbetween)}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                    <TextField
-                                        value={fieldValue.username || ''}
-                                        onChange={handleChange}
-                                        helperText={validationErrors.err_username}
-                                        error={Boolean(validationErrors.err_username)}
-                                        name="username"
-                                        variant="filled"
-                                        required
-                                        fullWidth
-                                        id="username"
-                                        label="Username"
-                                        className={classnames(classes.textfield, classes.textfieldbetween)}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                    <TextField
-                                        value={fieldValue.password || ''}
-                                        helperText={validationErrors.err_password}
-                                        error={Boolean(validationErrors.err_password)}
-                                        onChange={handleChange}
-                                        variant="filled"
-                                        required
-                                        fullWidth
-                                        name="password"
-                                        label="Password"
-                                        type="password"
-                                        id="password"
-                                        className={classnames(classes.textfield, classes.textfieldbetween)}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                    <TextField
-                                        value={fieldValue.password_confirm || ''}
-                                        helperText={validationErrors.err_password_confirm}
-                                        error={Boolean(validationErrors.err_password_confirm)}
-                                        onChange={handleChange}
-                                        variant="filled"
-                                        required
-                                        fullWidth
-                                        name="password_confirm"
-                                        label="Password Confirm"
-                                        type="password"
-                                        id="password_confirm"
-                                        className={classnames(classes.textfield, classes.textfieldbetween)}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                    <TextField
-                                        value={fieldValue.email || ''}
-                                        helperText={validationErrors.err_email}
-                                        error={Boolean(validationErrors.err_email)}
-                                        onChange={handleChange}
-                                        variant="filled"
-                                        required
-                                        fullWidth
-                                        id="email"
-                                        label="Email Address"
-                                        name="email"
-                                        className={classnames(classes.textfield, classes.textfieldbottom)}
-                                    />
-                                </Grid>
+                        <Grid style={{marginTop: '3em'}}container alignContent={'center'} justify={'center'} alignItems={'center'}>
+                            <Grid item>
+                                <Fab  onClick={handleSaveChanges} variant="extended" size="large" className={classes.saveChanges} >
+                                    {loader ? <CircularProgress size={24} className={classes.commentProgress} /> : <CheckIcon /> }
+                                    {loader ? null : 'Save changes'}
+                                </Fab>
                             </Grid>
                         </Grid>
-                    </Grid>
-                </div>
+                    </div>
+                </form>
             </Container>
         </Grow>
     )

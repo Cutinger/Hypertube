@@ -161,7 +161,7 @@ const getUserProfilePublic = async (req, res) => {
 
 const updateInfos = async (req, res) => {
 
-    let userID      = res.locals.id
+    let userID      = res.locals.id;
 
     if (!userID) { return res.status(403).json({}) }
 
@@ -187,13 +187,15 @@ const updateInfos = async (req, res) => {
 
     try {
         // Check if entries already exists in the database
+        let getExistingUsernameFromId = await User.findOne({_id: userID})
         let getExistingUsername = await User.findOne({username: username})
-        if (getExistingUsername) {
+
+        if (getExistingUsername && getExistingUsername.username !== getExistingUsernameFromId.username) {
             errors.username = "Username already taken by another user"
             return res.status(400).json(errors)
         }
-        let getExistingEmail    = await User.findOne({email: email})
-        if (getExistingEmail) {
+        let getExistingEmail = await User.findOne({email: email})
+        if (getExistingEmail && email !== getExistingUsernameFromId.email){
             errors.email = "Email address already taken by another user"
             return res.status(400).json(errors)
         }
@@ -216,7 +218,7 @@ const updateInfos = async (req, res) => {
         updateUsers = await User.findById(userID)
         if (username) { updateUsers.username = username }
         if (firstname) { updateUsers.firstname = firstname }
-        if (lastname) { updateUsers.firstname = lastname }
+        if (lastname) { updateUsers.lastname = lastname }
         if (email) { updateUsers.email = email }
         if (!img) { updateUsers.img = 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png' }
 
