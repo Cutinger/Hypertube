@@ -3,6 +3,7 @@ import Login from './components/Login/Login';
 import Signup from './components/Signup/Signup';
 import Forgot from './components/ForgotPassword/ForgotPassword';
 import Menu from './components/Menu/Menu';
+import Profile from './components/Profile/Profile';
 import Home from './containers/Home/Home';
 import MovieCard from './containers/MovieCard/MovieCard';
 import withAuth from './utils/withAuth';
@@ -54,6 +55,11 @@ export default function App(props) {
         <Route exact path="/historic" component={
           // withAuth(
               (props) => <Home  history={history} ref={historicRef} {...props} />
+          // )
+        } />
+        <Route exact path="/profile" component={
+          // withAuth(
+          (props) => <Profile history={history} {...props} />
           // )
         } />
         <Route exact path="/login" component={Login}/>

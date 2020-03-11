@@ -176,8 +176,7 @@ export default function PrimarySearchAppBar(props) {
             open={isMenuOpen}
             onClose={handleMenuClose}
             >
-            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-            <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+            <MenuItem onClick={(e) => { handleMenuClose(); e.preventDefault(); props.history.push('/profile')} } >Profile</MenuItem>
             <MenuItem onClick={handleLogout}>Log out</MenuItem>
         </Menu>
     );
