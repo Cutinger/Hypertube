@@ -1,12 +1,24 @@
-const mongoose      = require('mongoose');
-const db            = mongoose.connection;
-const jwt           = require('jsonwebtoken');
-const key           = require('../../../config/keys.js');
-const Watchlist        = require('../../../models/WatchList.js');
-const User        = require('../../../models/User.js');
-const Movie        = require('../../../models/MovieSchema.js');
-const axios         = require('axios');
-const sanitize  = require('mongo-sanitize');
+const mongoose          = require('mongoose');
+const db                = mongoose.connection;
+const jwt               = require('jsonwebtoken');
+const key               = require('../../../config/keys.js');
+const bcrypt            = require("bcryptjs");
+const Watchlist         = require('../../../models/WatchList.js');
+const User              = require('../../../models/User.js');
+const Movie             = require('../../../models/MovieSchema.js');
+const axios             = require('axios');
+const sanitize          = require('mongo-sanitize');
+const Validator         = require("validator");
+const passwordValidator = require('password-validator');
+
+var schema = new passwordValidator();
+schema
+.is().min(8)
+.is().max(30)
+.has().uppercase()
+.has().lowercase()
+.has().digits()
+.has().symbols()
 
 ///////////////////////////////////////////
 // COMMENT GESTION
@@ -147,6 +159,74 @@ const getUserProfilePublic = async (req, res) => {
     } catch (err) { console.log(err); res.status(403).json({}) }
 }
 
+const updateInfos = async (req, res) => {
+
+    let userID      = res.locals.id
+
+    if (!userID) { return res.status(403).json({}) }
+
+    // we sanitize everything so we avoid NoSQL injections
+    let email       = sanitize(req.body.email)
+    let username    = sanitize(req.body.username)
+    let firstname   = sanitize(req.body.firstname)
+    let lastname    = sanitize(req.body.lastname)
+    let img         = req.body.defaultImg
+
+    var errors      = {}
+
+    let password        = sanitize(req.body.password)
+    let confirmpass = sanitize(req.body.passwordconfirm)
+
+    // check if the entries are valid
+    if ( password && !schema.validate(password) ) { errors.password = "Password must contain at least one uppercase, one number and one symbol, and at least 8 characters." }
+    if ( password && confirmpass && !Validator.equals(password, confirmpass) ) { errors.password_confirm = "Passwords must match" }
+    if ( email && !Validator.isEmail(email) ) { errors.email = "Email is invalid" }
+
+    if (errors.length > 0) { return res.status(405).json(errors) }
+
+    try {
+        // Check if entries already exists in the database
+        let getExistingUsername = await User.findOne({username: username})
+        if (getExistingUsername) {
+            errors.username = "Username already taken by another user"
+            return res.status(400).json(errors)
+        }
+        let getExistingEmail    = await User.findOne({email: email})
+        if (getExistingEmail) {
+            errors.email = "Email address already taken by another user"
+            return res.status(400).json(errors)
+        }
+
+        // Now we can update the entries!
+
+        let updateUsers = await User.findById(userID)
+        if (!updateUsers) { return res.status(404).json({}) }
+
+        // update infos here
+        if (password && confirmpass) {
+            bcrypt.genSalt(10, function(err, salt) {
+                bcrypt.hash(password, salt, function(err, hash) {
+                    updateUsers.password = hash
+                });
+            });
+        }
+        if (username) { updateUsers.username = username }
+        if (firstname) { updateUsers.firstname = firstname }
+        if (lastname) { updateUsers.firstname = lastname }
+        if (email) { updateUsers.email = email }
+        if (!img) { updateUsers.img = 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png' }
+
+        updateUsers.save((err) => { if (err) return res.status(403).json({})})
+
+        ////////
+
+        return res.status(200).json(req.body)
+        
+    } catch (err) { console.log(err); res.status(403).json({}) }
+
+}
+
+
 const createInstance = async (baseUrl) => {
     try {
         let instance = axios.create({
@@ -259,4 +339,4 @@ const Actions = (req, res) => {
     return res.status(400).json({})
 };
 
-module.exports = { Actions, getWatchlist, getHistory, addComment, getInfos, deleteComment, getUserProfile, getUserProfilePublic };
+module.exports = { Actions, getWatchlist, getHistory, addComment, getInfos, deleteComment, getUserProfile, getUserProfilePublic, updateInfos };

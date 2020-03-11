@@ -64,6 +64,8 @@ app.get('/api/users/:username', withAuth, interact.getUserProfilePublic);
 app.get('/api/delete/comment/:imdbid/:id', withAuth, interact.deleteComment);
 
 app.post('/api/comment/:id', withAuth, interact.addComment)
+app.post('/api/user/update', withAuth, interact.updateInfos);
+
 
 // Connect to server
 const port = process.env.PORT || 5000;
