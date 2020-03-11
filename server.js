@@ -55,7 +55,11 @@ app.get('/api/watchlist', withAuth, interact.getWatchlist);
 // Get history
 app.get('/api/history', withAuth, interact.getHistory);
 // Get comment
-app.get('/api/comments/:id', withAuth, interact.getComments);
+app.get('/api/infos/:id', withAuth, interact.getInfos);
+// Get user infos
+app.get('/api/users', withAuth, interact.getUserProfile);
+// Get user public infos
+app.get('/api/users/:username', withAuth, interact.getUserProfilePublic);
 // Delete comment
 app.get('/api/delete/comment/:imdbid/:id', withAuth, interact.deleteComment);
 

@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema({
     },
     img:{
         type: String,
+        default: 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png'
     },
     history: {
         type: Array,

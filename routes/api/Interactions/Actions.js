@@ -6,14 +6,15 @@ const Watchlist        = require('../../../models/WatchList.js');
 const User        = require('../../../models/User.js');
 const Movie        = require('../../../models/MovieSchema.js');
 const axios         = require('axios');
+const sanitize  = require('mongo-sanitize');
 
 ///////////////////////////////////////////
 // COMMENT GESTION
 const addComment = async(req, res) => {
     let currentTimestamp = Math.round((Date.now() / 1000))
-    let comment = req.body.comment
+    let comment = sanitize(req.body.comment)
     let username = '';
-    let imdbid = req.params.id;
+    let imdbid = sanitize(req.params.id);
     let userID = res.locals.id;
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
 
@@ -59,8 +60,8 @@ const addComment = async(req, res) => {
 
 const deleteComment = async (req, res) => {
 
-    let imdbid = req.params.imdbid;
-    var id = req.params.id;
+    let imdbid = sanitize(req.params.imdbid);
+    var id = sanitize(req.params.id);
     let userID = res.locals.id;
     var deleted = false;
     if (!userID) { return res.status(403).json({}) }
@@ -95,9 +96,9 @@ const deleteComment = async (req, res) => {
 
 };
 
-const getComments = async (req, res) => {
+const getInfos = async (req, res) => {
     let commentsList = [];
-    let imdbid = req.params.id;
+    let imdbid = sanitize(req.params.id);
     var userID = res.locals.id;
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
     let imdbcode = await createInstance(urlID)
@@ -115,11 +116,36 @@ const getComments = async (req, res) => {
             commentsList = dataMovies.comments.sort( (a, b) => {
                 return b.date - a.date;
             });
-        return res.status(200).json({userID: userID, commentsList: commentsList})
+        dataMovies.views = dataMovies.views + 1
+        dataMovies.save( (err) => { console.log(err) })
+        return res.status(200).json({userID: userID, commentsList: commentsList, views: dataMovies.views})
     } catch (err) { console.log(err); res.status(403).json({}) }
 }
 ///////////////////////////////////////////
 ///////////////////////////////////////////
+
+const getUserProfile = async (req, res) => {
+    let userID = res.locals.id;
+    if (!userID) { return res.status(403).json({}) }
+    try {
+        var infoUsers = await User.findById(userID)
+        if (!infoUsers) { return res.status(404).json({}) }
+        var infos = { username: infoUsers.username, firstname: infoUsers.firstname, lastname: infoUsers.lastname, img: infoUsers.img, email: infoUsers.email }
+        return res.status(200).json(infos)
+    } catch (err) { console.log(err); res.status(403).json({}) }
+}
+
+const getUserProfilePublic = async (req, res) => {
+    let username = sanitize(req.params.username)
+    try {
+        var infoUsers = await User.findOne({username: username})
+        if (!infoUsers) { return res.status(404).json({}) }
+        var GetWatchListUser = await Watchlist.findOne({user_id: infoUsers._id})
+        let watchListUser = GetWatchListUser.movies
+        var infos = { username: infoUsers.username, firstname: infoUsers.firstname, lastname: infoUsers.lastname, img: infoUsers.img, history: infoUsers.history, watchlist: watchListUser }
+        return res.status(200).json(infos)
+    } catch (err) { console.log(err); res.status(403).json({}) }
+}
 
 const createInstance = async (baseUrl) => {
     try {
@@ -140,7 +166,7 @@ const createInstance = async (baseUrl) => {
 
 // Valeur à mettre: imdbid
 const likeInteraction = async (req, res) => {
-    let imdbid = req.params.id;
+    let imdbid = sanitize(req.params.id);
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
 
     let userID = res.locals.id;
@@ -164,7 +190,7 @@ const likeInteraction = async (req, res) => {
 
 // Valeur à mettre = imdbid
 const watchList = async(req, res) => {
-    let imdbid = req.params.id;
+    let imdbid = sanitize(req.params.id);
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
 
     let userID = res.locals.id;
@@ -233,4 +259,4 @@ const Actions = (req, res) => {
     return res.status(400).json({})
 };
 
-module.exports = { Actions, getWatchlist, getHistory, addComment, getComments, deleteComment };
+module.exports = { Actions, getWatchlist, getHistory, addComment, getInfos, deleteComment, getUserProfile, getUserProfilePublic };
