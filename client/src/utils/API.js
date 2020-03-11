@@ -85,7 +85,7 @@ export default {
     },
     getComments: (movieID) => {
         return axios.get(
-            `${burl}/comments/${movieID}`,
+            `${burl}/infos/${movieID}`,
             {
                 withCredentials: 'true',
                 headers: headers
@@ -105,6 +105,25 @@ export default {
     deleteComment: (movieID, commentID) => {
         return axios.get(
             `${burl}/delete/comment/${movieID}/${commentID}`,
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
+    },
+    getUserProfile: () => {
+        return axios.get(
+            `${burl}/users`,
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
+    },
+    updateUserProfil: (firstname, lastname, username, email, password, passwordconfirm, defaultImg) => {
+        return axios.post(
+            `${burl}/user/update`,
+            {firstname, lastname, username, email, password, passwordconfirm, defaultImg},
             {
                 withCredentials: 'true',
                 headers: headers

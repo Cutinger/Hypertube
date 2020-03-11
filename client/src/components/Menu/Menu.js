@@ -22,6 +22,7 @@ const useStyles = makeStyles(theme => ({
   grow: {
     '& .MuiAppBar-colorPrimary': {
         background: 'linear-gradient(-317deg, rgba(32, 122, 244, 0.5) -25%, #0b1123, #0b1123 70%, rgba(240, 38, 120, 1) 160% ) !important',
+        boxShadow: '1px 4px 29px rgba(0,0,0,0.2) !important'
     },
     flexGrow: 1,
   },
