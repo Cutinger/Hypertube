@@ -60,9 +60,9 @@ const addComment = async(req, res) => {
 const deleteComment = async (req, res) => {
 
     let imdbid = req.params.imdbid;
-    var id = req.params.comment;
+    var id = req.params.id;
     let userID = res.locals.id;
-    var deleted = false
+    var deleted = false;
     if (!userID) { return res.status(403).json({}) }
 
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
@@ -79,9 +79,11 @@ const deleteComment = async (req, res) => {
         let dataMovies = await Movie.findOne({imdb_code: imdbcode})
         if (!dataMovies) { throw new Error ('No movie found with this imdbcode: ', imdbcode); }
         for (let index = 0; index < dataMovies.comments.length; index++) {
+            console.log(dataMovies.comments[index]);
+            console.log(id)
             if (dataMovies.comments[index].user == username && dataMovies.comments[index].id == id) {
                 dataMovies.comments.splice(index, 1)
-                deleted = true
+                deleted = true;
                 dataMovies.save( (err) => { if (err) { console.log(err) } })
                 break ;
             }
@@ -91,7 +93,7 @@ const deleteComment = async (req, res) => {
     if (deleted) { return res.status(200).json({})}
     else { return res.status(404).json({}) }
 
-}
+};
 
 const getComments = async (req, res) => {
     let commentsList = [];

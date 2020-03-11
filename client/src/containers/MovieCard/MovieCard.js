@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {fade, makeStyles} from '@material-ui/core/styles';
-import {Container, Popover, Divider, Typography, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText} from '@material-ui/core';
+import {Container, Badge,  Popover, Divider, Typography, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText} from '@material-ui/core';
 import StarRatings from 'react-star-ratings';
 import InputBase from '@material-ui/core/InputBase';
 import axios from 'axios';
@@ -12,8 +12,10 @@ import ReactPlayer from "react-player";
 import API from './../../utils/API';
 import CommentIcon from '@material-ui/icons/Sms';
 import SendIcon from '@material-ui/icons/Send';
-const burl = 'http://localhost:5000/api'
+import DeleteIcon from '@material-ui/icons/Delete';
 
+const burl = 'http://localhost:5000/api';
+const moment = require('moment');
 const Aux = (props) => props.children;
 
 const useStyles = makeStyles(theme => ({
@@ -160,7 +162,9 @@ const useStyles = makeStyles(theme => ({
         fontWeight: 'bold',
     },
     listCommentText: {
-        color: 'white'
+        color: 'white',
+        maxWidth: '150px',
+        wordBreak: 'break-word'
     },
     inputCommentContainer: {
         margin: 0,
@@ -196,6 +200,36 @@ const useStyles = makeStyles(theme => ({
         [theme.breakpoints.up('md')]: {
             width: 200,
         },
+    },
+    bottomCommentInfos: {
+        display: 'flex',
+        alignContent: 'center',
+        color: 'white',
+        justifyContent: 'flex-end',
+        alignItems: 'center'
+    },
+    bottomItemDelete: {
+        fontSize: '0.8em',
+        marginRight: '5px',
+        opacity: '0.7',
+        '&:hover': {
+            color: '#f7c12d',
+            opacity: '1'
+        }
+    },
+    bottomItemDate: {
+        fontSize: '0.8em',
+        marginRight: '5px',
+        fontStyle: 'italic',
+        opacity: '0.7'
+    },
+    commentProgress: {
+        color: 'white',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        marginTop: -12,
+        marginLeft: -12,
     },
 }));
 
@@ -262,27 +296,47 @@ export default function MovieCard(props){
     const [anchorEl, setAnchorEl] = React.useState(null);
     const [getComments, setComments] = React.useState([]);
     const [commentValue, setCommentValue] = React.useState([]);
+    const [userID, setUserID] = React.useState(false);
+    const [loadingComment, setLoadingComment] = React.useState(true);
 
-
-
-    const handleGetComments = (movieID) => {
-        API.getComments(movieID)
+    const handleGetComments = async(movieID) => {
+        await API.getComments(movieID)
             .then(res => {
                 if (res.status === 200 && res.data.commentsList) {
-                    console.log(res.data);
                     setComments(res.data.commentsList)
+                    if (res.data.userID)
+                        setUserID(res.data.userID);
                 }
-            })
+            });
+        setLoadingComment(false);
     };
-    const handleKeyDownComment = (e) => {
+
+    const handleKeyDownComment = async(e) => {
         if (e.keyCode === 13 && commentValue) {
-            API.addComment(props.match.params.movieId, commentValue)
+            setLoadingComment(true);
+            await API.addComment(props.match.params.movieId, commentValue)
                 .then(res => {
-                    if (res.status === 200)
-                        console.log(res.data);
-                })
+                    if (res.status === 200 && res.data.newComment){
+                        getComments.push(res.data.newComment);
+                        setComments(getComments)
+                    }
+
+                });
             setCommentValue('');
         }
+        setLoadingComment(false);
+    };
+
+    const handleDeleteComment = async(commentID, key) => {
+        setLoadingComment(true);
+        await API.deleteComment(props.match.params.movieId, commentID)
+            .then(res => {
+                if (res.status === 200)
+                    getComments.splice(key, 1)
+                    setComments(getComments);
+
+            });
+        setLoadingComment(false);
     };
 
     // On mount (when props are received or when the page with /movie/:id is loaded
@@ -365,7 +419,7 @@ export default function MovieCard(props){
         }
         if (selectedValue)
             streamMovie();
-    }, [selectedValue, movieDetails])
+    }, [selectedValue, movieDetails]);
 
     // Movies genres generator
     const genMovieGenres = (obj) => {
@@ -416,10 +470,12 @@ export default function MovieCard(props){
                                 <AddCircle fontSize="large" id="addCircle"/>
                             </Grid>
                         </Grid>
-                        <Grid style={{marginBottom: '1.5em'}} container justify={'space-between'}
-                              alignItems={'flex-end'} justify={"flex-end"}alignContent={'flex-end'}>
+                        <Grid style={{marginBottom: '1.5em'}} container
+                              alignItems={'flex-end'} justify={"flex-end"} alignContent={'flex-end'}>
                             <Grid item xs={'auto'} className={classes.commentIcon}>
-                                <CommentIcon onClick={handleClickComment} aria-describedby={id} fontSize="large" id="commentIcon"/>
+                                <Badge badgeContent={getComments ? getComments.length : ''}  color="primary">
+                                    <CommentIcon onClick={handleClickComment} aria-describedby={id} fontSize="large" id="commentIcon"/>
+                                </Badge>
                                 <Popover
                                     id={id}
                                     open={openComment}
@@ -440,7 +496,7 @@ export default function MovieCard(props){
                                             {comments()}
                                             <div className={classes.inputCommentContainer}>
                                                 <div className={classes.sendIcon}>
-                                                    <SendIcon />
+                                                    {loadingComment ? <CircularProgress size={24} className={classes.commentProgress} /> : <SendIcon /> }
                                                 </div>
                                                 <InputBase
                                                     placeholder="Press enter to send"
@@ -566,12 +622,12 @@ export default function MovieCard(props){
             return getComments.map((obj, key) => {
                 return (
                     <Aux key={key}>
-                        <ListItem alignItems="flex-start">
+                        <ListItem alignItems="flex-start" style={{paddingBottom: '0'}}>
                             <ListItemAvatar>
                                 <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
                             </ListItemAvatar>
                             <ListItemText
-                                secondary={
+                                primary={
                                     <React.Fragment>
                                         <Typography
                                             component="span"
@@ -580,13 +636,26 @@ export default function MovieCard(props){
                                         >
                                             {obj.user}
                                         </Typography>
-                                        <span  className={classes.listCommentUsername}>
-                                            {" — "}{obj.comment}
-                                    </span>
+                                    </React.Fragment>
+                                }
+                                secondary={
+                                    <React.Fragment>
+                                        <span  className={classes.listCommentText}>
+                                            {obj.comment}
+                                        </span>
                                     </React.Fragment>
                                 }
                             />
                         </ListItem>
+                        <div className={classes.bottomCommentInfos}>
+                            <span className={classes.bottomItemDate}>
+                                {moment(new Date(obj.date * 1000)).fromNow()}
+                            </span>
+                            {userID === obj.userID ?
+                                <span className={classes.bottomItemDelete}>
+                                    <DeleteIcon  onClick={ () => handleDeleteComment(obj.id, key)}/>
+                                </span> : null }
+                        </div>
                         {key < getComments.length - 1 ?
                             <Divider style={{backgroundColor: '#f7c12d', opacity: '0.5'}} variant="inset" component="li" />
                             : null}
@@ -597,7 +666,7 @@ export default function MovieCard(props){
         else
             return (
                 <div className={classes.commentContainer}>
-                    <p style={{ color : 'white', paddingLeft: '10px'}}>No Comments </p>
+                    <p style={{ color : 'white', paddingLeft: '10px', opacity: '0.7', fontSize: '0.8em'}}>No Comments </p>
                 </div>
             )
     };

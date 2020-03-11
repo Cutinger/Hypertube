@@ -259,7 +259,7 @@ export default function HomeMoviesCards(props) {
         if (props && props.watchlist) {
             setWatchlist(props.watchlist);
         }
-    }, [props.watchlist])
+    }, [props])
 
     const handleClickAddWatchlist = (id) => {
         API.likeWatchlist(id)

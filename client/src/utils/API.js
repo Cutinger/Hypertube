@@ -101,5 +101,14 @@ export default {
                 headers: headers
             }
         )
+    },
+    deleteComment: (movieID, commentID) => {
+        return axios.get(
+            `${burl}/delete/comment/${movieID}/${commentID}`,
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
     }
 }

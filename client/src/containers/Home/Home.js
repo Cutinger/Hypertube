@@ -15,7 +15,6 @@ import {
     useScrollTrigger,
     Zoom, Divider
 } from '@material-ui/core'
-import API from "../../utils/API";
 
 const key = 'f29f2233f1aa782b0f0dc8d6d9493c64';
 const useStyles = makeStyles(theme => ({
