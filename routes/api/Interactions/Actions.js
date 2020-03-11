@@ -119,10 +119,12 @@ const getInfos = async (req, res) => {
         var dataMovies = await Movie.findOne({ imdb_code: imdbcode })
         if (!dataMovies) {
             let addMovie = new Movie({
-                imdb_code:   imdbcode
+                imdb_code:   imdbcode,
+                views: 1
             })
             addMovie.save( (err) => { console.log(err) })
             dataMovies = await Movie.findOne({imdb_code: imdbcode});
+            return res.status(200).json({userID: userID, commentsList: [], views: 1})
         }
         if (dataMovies && dataMovies.comments)
             commentsList = dataMovies.comments.sort( (a, b) => {
