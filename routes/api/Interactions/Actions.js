@@ -114,6 +114,15 @@ const getInfos = async (req, res) => {
     var userID = res.locals.id;
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
     let imdbcode = await createInstance(urlID)
+
+    if (userID) {
+        var getUsername = await User.findById(userID)
+        if (!getUsername) { var username = '' }
+        else { var username = getUsername.username }
+    } else {
+        var username = ''
+    }
+
     if (!imdbcode) { return res.status(404).json({}) }
     try {
         var dataMovies = await Movie.findOne({ imdb_code: imdbcode })
@@ -124,7 +133,7 @@ const getInfos = async (req, res) => {
             })
             addMovie.save( (err) => { console.log(err) })
             dataMovies = await Movie.findOne({imdb_code: imdbcode});
-            return res.status(200).json({userID: userID, commentsList: [], views: 1})
+            return res.status(200).json({userID: userID, username: username, commentsList: [], views: 1})
         }
         if (dataMovies && dataMovies.comments)
             commentsList = dataMovies.comments.sort( (a, b) => {
@@ -132,7 +141,7 @@ const getInfos = async (req, res) => {
             });
         dataMovies.views = dataMovies.views + 1
         dataMovies.save( (err) => { console.log(err) })
-        return res.status(200).json({userID: userID, commentsList: commentsList, views: dataMovies.views})
+        return res.status(200).json({userID: userID, username: username, commentsList: commentsList, views: dataMovies.views})
     } catch (err) { console.log(err); res.status(403).json({}) }
 }
 ///////////////////////////////////////////
