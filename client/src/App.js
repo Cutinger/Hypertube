@@ -52,7 +52,7 @@ export default function App(props) {
   return (
     <div>
       <div className={classes.topBackground} />
-      <Route component={(matchProps) => <Menu {...matchProps} {...props} search={handleSearchMovie} setWatchlist={handleSetWatchlist} setSidebar={handleActiveSidebar}/>}/>
+      <Route component={(props) => <Menu {...props} search={handleSearchMovie} setWatchlist={handleSetWatchlist} setSidebar={handleActiveSidebar}/>}/>
       <div className={"notifications"}>
         <ReactNotification />
     </div>
@@ -64,21 +64,21 @@ export default function App(props) {
         } />
         <Route exact path="/" component={
           // withAuth(
-              (props) => <Home  history={history} {...props} ref={homeRef} setSidebar={handleActiveSidebar} />
+              (props) => <Home {...props} ref={homeRef} setSidebar={handleActiveSidebar} />
                // )
         } />
         <Route exact path="/historic" component={
           // withAuth(
-              (props) => <Home  history={history} ref={historicRef} {...props} />
+              (props) => <Home ref={historicRef} {...props} />
           // )
         } />
         <Route exact path="/profile" component={
           // withAuth(
-          (props) => <Profile history={history} {...props} />
+          (props) => <Profile {...props} />
           // )
         } />
         <Route exact path="/login" component={Login}/>
-        <Route exact path="/signup" render={() => <Signup {...props} history={history} />}/>
+        <Route exact path="/signup" render={(props) => <Signup {...props} />}/>
         <Route exact path="/forgot" component={Forgot}/>
         <Redirect from="*" to=""/>
       </Switch>

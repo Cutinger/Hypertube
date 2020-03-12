@@ -107,9 +107,9 @@ const App = (forwardRef((props, ref) => {
         }
     };
     useEffect(() => {
-        function loadMore() {
+        async function loadMore() {
             let selectQuery = sidebarQuery ? sidebarQuery : query;
-            axios.get(`${selectQuery}${loadPage}`)
+            await axios.get(`${selectQuery}${loadPage}`)
                 .then(res => {
                     if (res.data && res.data.results && res.data.results.length)
                         setTopMoviesList([].concat(topMoviesList, res.data.results));
@@ -267,7 +267,7 @@ const App = (forwardRef((props, ref) => {
                 {/* Movies card map */}
                 <Historic
                     topMoviesList={watchlist}
-                    pushHistory={(link) => props.history.push(link)}
+                    pushHistory={(link, e) => { e.preventDefault(); props.history.push(link) }}
                 />
                 {/* Scroll to top */}
                 <Zoom in={trigger}>

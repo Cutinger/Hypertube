@@ -21,7 +21,7 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import MailIcon from '@material-ui/icons/Mail';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import VALIDATION from "../../utils/validation";
-import SendIcon from "@material-ui/core/SvgIcon/SvgIcon";
+
 const useStyles = makeStyles(theme => ({
     backdrop: {
         zIndex: theme.zIndex.drawer + 1,
@@ -232,7 +232,7 @@ export default function Profile(props){
             errors.firstname = 'Please use valid first name';
         if (!VALIDATION.validateName(fieldValue.lastname))
             errors.lastname = 'Please use valid last name';
-        if (editPassword && (!fieldValue.password || fieldValue.password && fieldValue.password.length < 1))
+        if (editPassword && (!fieldValue.password || !fieldValue.password.length))
             errors.password = 'Password required';
         else if (editPassword && !VALIDATION.validatePassword(fieldValue.password))
             errors.password = 'Please use strong password';
@@ -283,7 +283,6 @@ export default function Profile(props){
                })
        }
        if (!mounted) {
-           console.log(1);
            getUserProfile()
            setMounted(true);
        }
@@ -400,8 +399,7 @@ export default function Profile(props){
                                             helperText={validationErrors.err_password_confirm}
                                             error={Boolean(validationErrors.err_password_confirm)}
                                             onChange={handleChange}
-                                            variant="filled"
-                                            required
+                                            variant="filled"s
                                             fullWidth
                                             name="password_confirm"
                                             label="Password Confirm"

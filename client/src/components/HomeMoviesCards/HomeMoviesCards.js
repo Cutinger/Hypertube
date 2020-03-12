@@ -270,7 +270,12 @@ export default function HomeMoviesCards(props) {
         let find = false;
         let indexFind = null;
         if (watchlist && watchlist.length){
-           watchlist.map((obj, index) => { if (obj.id === id) { indexFind = index; find = true} } );
+           for(var i = 0; i < watchlist.length; i++) {
+               if (watchlist[i].id === id) {
+                   indexFind = i;
+                   find = true;
+               }
+           }
            if (find)
                return <Grid item xs={'auto'} className={classes.movieRemoveList}>
                    <HighlightOffIcon onClick={() =>{
@@ -291,6 +296,7 @@ export default function HomeMoviesCards(props) {
                    }} id="removeCircle"/>
                </Grid>
         }
+        else
         return (
             <Grid item xs={'auto'} className={classes.movieAddList}>
                 <AddCircle onClick={() => {
@@ -371,7 +377,7 @@ export default function HomeMoviesCards(props) {
                                                 <a href={'#  '}>
                                                     <PlayCircleFilled
                                                         className={classes.buttonWatch}
-                                                        onClick={(e) => { e.preventDefault(); props.pushHistory(`/movie/${obj.id}`) }}
+                                                        onClick={(e) => { e.preventDefault(); props.pushHistory(`/movie/${obj.id}`, e) }}
                                                     />
                                                 </a>
                                             </Grid>

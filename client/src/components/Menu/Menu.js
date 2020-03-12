@@ -136,24 +136,22 @@ export default function PrimarySearchAppBar(props) {
 
 
     useEffect(() => {
-        let _mounted = true;
         function getWatchlist() {
             API.getWatchlist()
                 .then(res => {
-                    if (res.status === 200 && res.data.watchlist && res.data.watchlist.length) {
-                        _mounted && setCounterList(res.data.watchlist.length);
-                        _mounted && setConnected(true);
-                        _mounted && props.setWatchlist(res.data.watchlist)
+                    if (res.status === 200 && res.data.watchlist) {
+                        setCounterList(res.data.watchlist.length);
+                        setConnected(true);
+                        props.setWatchlist(res.data.watchlist)
                     }
                 })
                 .catch(err => console.log(err));
         }
 
-        if (_mounted && cookies.get('token')) {
+        if (cookies.get('token') && !isConnected) {
             getWatchlist()
         }
-        return (() => _mounted = false)
-    }, [props]);
+    }, [props, isConnected]);
 
     const handleKeyDown = (e) => {
         if (e.keyCode === 13 && searchValue) {
