@@ -212,26 +212,26 @@ const updateInfos = async (req, res) => {
         let updateUsers = await User.findById(userID)
         if (!updateUsers) { return res.status(404).json({}) }
 
+
         // update infos here
         if (editPassword && password && confirmpass) {
-            bcrypt.genSalt(10, function(err, salt) {
-                bcrypt.hash(password, salt, function(err, hash) {
-                    updateUsers.password = hash
-                    updateUsers.save()
+           await bcrypt.genSalt(10, async(err, salt) => {
+                await bcrypt.hash(password, salt, async(err, hash) => {
+                    updateUsers.password = hash;
+                    await updateUsers.save().then(res => console.log(res))
                 });
             });
         }
-
-        updateUsers = await User.findById(userID)
         if (username) { updateUsers.username = username }
         if (firstname) { updateUsers.firstname = firstname }
         if (lastname) { updateUsers.lastname = lastname }
         if (email) { updateUsers.email = email }
         if (!img) { updateUsers.img = 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png' }
 
-        updateUsers.save((err) => { if (err) return res.status(403).json({})})
+        await updateUsers.save((err) => { if (err) return res.status(403).json({})})
 
         ////////
+        await User.findById(userID).then(obj => console.log(obj.password))
 
         return res.status(200).json({})
         

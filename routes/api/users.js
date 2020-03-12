@@ -67,39 +67,40 @@ router.post("/register", (req, res) => {
 // LOGIN
 // @route POST api/users/login
 // @desc Login user and return JWT token
-router.post("/login", (req, res) => {
+
+router.post("/login", async(req, res) => {
   // Form validation
 
   const { errors, isValid } = validateLoginInput(req.body);
   const username = req.body.username;
-  const password = req.body.password;
+  let password = req.body.password;
 
   // Check validation
   if (!isValid)
     return res.status(400).json(errors);
 
-  User.findOne({ username }).then(user => {
-    if (!user)
-      return res.status(400).json({});
-    // Check password
-    bcrypt.compare(password, user.password).then(isMatch => {
-      // User matched
-      if (isMatch) {
-        const payload = { id: user.id };
-        // Sign token
-        jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 },
-          (err, token) => {
-            if (!err){
-              res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
-              return res.status(200).json({});
-            }
-           return res.status(400).json({});
-          }
-        )
-      } 
-      else
+  User.findOne({ username }).then(async(user) => {
+      if (!user)
         return res.status(400).json({});
-    });
+      // Check password
+      bcrypt.compare(password, user.password).then(isMatch => {
+        // User matched
+        if (isMatch) {
+          const payload = { id: user.id };
+          // Sign token
+          jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 },
+            (err, token) => {
+              if (!err){
+                res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
+                return res.status(200).json({});
+              }
+             return res.status(400).json({});
+            }
+          )
+        }
+        else
+          return res.status(400).json({});
+      });
   });
 });
 

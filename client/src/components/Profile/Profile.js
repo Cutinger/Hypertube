@@ -399,7 +399,7 @@ export default function Profile(props){
                                             helperText={validationErrors.err_password_confirm}
                                             error={Boolean(validationErrors.err_password_confirm)}
                                             onChange={handleChange}
-                                            variant="filled"s
+                                            variant="filled"
                                             fullWidth
                                             name="password_confirm"
                                             label="Password Confirm"
