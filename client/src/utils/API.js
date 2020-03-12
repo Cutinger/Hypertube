@@ -120,10 +120,10 @@ export default {
             }
         )
     },
-    updateUserProfil: (firstname, lastname, username, email, password, passwordconfirm, defaultImg) => {
+    updateUserProfil: (firstname, lastname, username, email, password, passwordconfirm, defaultImg, editPassword) => {
         return axios.post(
             `${burl}/user/update`,
-            {firstname, lastname, username, email, password, passwordconfirm, defaultImg},
+            {firstname, lastname, username, email, password, passwordconfirm, defaultImg, editPassword},
             {
                 withCredentials: 'true',
                 headers: headers

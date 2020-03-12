@@ -1,5 +1,16 @@
 import React, {useState, useEffect} from 'react';
-import {Container, Divider, Grow, Grid, Avatar, TextField, Backdrop, CircularProgress, Fab} from "@material-ui/core";
+import {
+    Container,
+    Divider,
+    Grow,
+    Grid,
+    Avatar,
+    TextField,
+    Backdrop,
+    CircularProgress,
+    Fab,
+    Checkbox, FormControlLabel
+} from "@material-ui/core";
 import {makeStyles} from "@material-ui/core/styles";
 import classnames from 'classnames';
 import CheckIcon from '@material-ui/icons/Check';
@@ -51,7 +62,7 @@ const useStyles = makeStyles(theme => ({
     large: {
         width: theme.spacing(26),
         height: theme.spacing(26),
-        boxShadow: '2px 2px 1px #11305f !important',
+        boxShadow: '3px 3px 1px #202e428c !important',
     },
     textfield: {
         width: '100% !important',
@@ -137,6 +148,18 @@ const useStyles = makeStyles(theme => ({
         marginTop: -12,
         marginLeft: -12,
     },
+    FormControlLabel: {
+        ' & >.MuiTypography-root': {
+            fontSize: '0.875rem !important',
+            fontWeight: '500 !important'
+        },
+        '& > .MuiCheckbox-colorPrimary.Mui-checked': {
+            color: 'white'
+        },
+        '.MuiSvgIcon-root': {
+            color: 'white !important'
+        }
+    }
 }));
 
 
@@ -145,6 +168,7 @@ export default function Profile(props){
     const [mounted, setMounted] = useState(false);
     const [loader, setLoader] = useState(false);
     const [defaultImg, setDefaultImg] = useState(true);
+    const [editPassword, setEditPassword] = useState(false)
 
 
     // Warnings after validation
@@ -165,6 +189,14 @@ export default function Profile(props){
         password_confirm: '',
         username: '',
     });
+
+    const handleEditPassword = () => {
+        setEditPassword(!editPassword);
+        setValidationErrors({
+            err_password_confirm: false,
+            err_password: false
+        })
+    }
 
     const handleChange = (event) => {
         const { err_email, err_password, err_firstname, err_lastname, err_username, err_password_confirm } = validationErrors;
@@ -200,11 +232,11 @@ export default function Profile(props){
             errors.firstname = 'Please use valid first name';
         if (!VALIDATION.validateName(fieldValue.lastname))
             errors.lastname = 'Please use valid last name';
-        if (!fieldValue.password || fieldValue.password && fieldValue.password.length < 1)
+        if (editPassword && (!fieldValue.password || fieldValue.password && fieldValue.password.length < 1))
             errors.password = 'Password required';
-        else if (!VALIDATION.validatePassword(fieldValue.password))
+        else if (editPassword && !VALIDATION.validatePassword(fieldValue.password))
             errors.password = 'Please use strong password';
-        if (fieldValue.password !== fieldValue.password_confirm)
+        if (editPassword && fieldValue.password !== fieldValue.password_confirm)
             errors.password_confirm = 'Passwords must match';
         if (!VALIDATION.validateUsername(fieldValue.username))
             errors.username = 'Please use valid username';
@@ -218,7 +250,7 @@ export default function Profile(props){
         });
         /* SEND REQUEST */
         if (!errors.firstname && !errors.lastname && !errors.email && !errors.password && !errors.username && !errors.password_confirm) {
-            await API.updateUserProfil(fieldValue.firstname, fieldValue.lastname, fieldValue.username,fieldValue.email, fieldValue.password, fieldValue.password_confirm, defaultImg)
+            await API.updateUserProfil(fieldValue.firstname, fieldValue.lastname, fieldValue.username,fieldValue.email, fieldValue.password, fieldValue.password_confirm, defaultImg, editPassword)
                 .then(response => {
                     if (response.status === 200)
                        console.log(response.data);
@@ -309,7 +341,6 @@ export default function Profile(props){
                                             error={Boolean(validationErrors.err_lastname)}
                                             name="lastname"
                                             variant="filled"
-                                            required
                                             fullWidth
                                             id="lastname"
                                             label="Last Name"
@@ -345,12 +376,13 @@ export default function Profile(props){
                                             error={Boolean(validationErrors.err_password)}
                                             onChange={handleChange}
                                             variant="filled"
-                                            required
                                             fullWidth
                                             name="password"
                                             label="Password"
                                             type="password"
                                             id="password"
+                                            required={editPassword}
+                                            disabled={!editPassword}
                                             autoComplete={"true"}
                                             className={classnames(classes.textfield, classes.textfieldbetween)}
                                             InputProps={{
@@ -376,6 +408,8 @@ export default function Profile(props){
                                             type="password"
                                             id="password_confirm"
                                             autoComplete={"true"}
+                                            disabled={!editPassword}
+                                            required={editPassword}
                                             className={classnames(classes.textfield, classes.textfieldbetween)}
                                             InputProps={{
                                                 startAdornment: (
@@ -413,10 +447,23 @@ export default function Profile(props){
                         </Grid>
                         <Grid style={{marginTop: '3em'}}container alignContent={'center'} justify={'center'} alignItems={'center'}>
                             <Grid item>
-                                <Fab  onClick={handleSaveChanges} variant="extended" size="large" className={classes.saveChanges} >
-                                    {loader ? <CircularProgress size={24} className={classes.commentProgress} /> : <CheckIcon /> }
-                                    {loader ? null : 'Save changes'}
-                                </Fab>
+                                <div className={classes.containerBottomButtons}>
+                                    <Fab onClick={handleSaveChanges} variant="extended" size="large" className={classes.saveChanges} style={{marginRight: '10px'}} >
+                                        {loader ? <CircularProgress size={24} className={classes.commentProgress} /> : <CheckIcon /> }
+                                        {loader ? null : 'Save changes'}
+                                    </Fab>
+                                    <Fab onClick={handleEditPassword} variant="extended" size="large" className={classes.saveChanges} >
+                                        <FormControlLabel
+                                            className={classes.FormControlLabel}
+                                            checked={editPassword}
+                                            onClick={handleEditPassword}
+                                            value="Edit password"
+                                            control={<Checkbox color="primary" />}
+                                            label="Edit password"
+                                            labelPlacement="start"
+                                        />
+                                    </Fab>
+                                </div>
                             </Grid>
                         </Grid>
                     </div>

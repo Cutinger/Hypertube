@@ -172,7 +172,8 @@ const updateInfos = async (req, res) => {
     let username    = sanitize(req.body.username)
     let firstname   = sanitize(req.body.firstname)
     let lastname    = sanitize(req.body.lastname)
-    let img         = req.body.defaultImg
+    let img         = req.body.defaultImg;
+    let editPassword = req.body.editPassword;
 
     var errors      = {}
 
@@ -181,8 +182,12 @@ const updateInfos = async (req, res) => {
 
 
     // check if the entries are valid
-    if ( password && !schema.validate(password) ) { errors.password = "Password must contain at least one uppercase, one number and one symbol, and at least 8 characters." }
-    if ( password && confirmpass && !Validator.equals(password, confirmpass) ) { errors.password_confirm = "Passwords must match" }
+    if (editPassword) {
+        if (password && !schema.validate(password)) errors.password = "Password must contain at least one uppercase, one number and one symbol, and at least 8 characters."
+        if (password && confirmpass && !Validator.equals(password, confirmpass)) errors.password_confirm = "Passwords must match"
+    };
+
+
     if ( email && !Validator.isEmail(email) ) { errors.email = "Email is invalid" }
 
     if (errors.length > 0) { return res.status(405).json(errors) }
@@ -208,7 +213,7 @@ const updateInfos = async (req, res) => {
         if (!updateUsers) { return res.status(404).json({}) }
 
         // update infos here
-        if (password && confirmpass) {
+        if (editPassword && password && confirmpass) {
             bcrypt.genSalt(10, function(err, salt) {
                 bcrypt.hash(password, salt, function(err, hash) {
                     updateUsers.password = hash
@@ -228,7 +233,7 @@ const updateInfos = async (req, res) => {
 
         ////////
 
-        return res.status(200).json({pass: updateUsers.password})
+        return res.status(200).json({})
         
     } catch (err) { console.log(err); res.status(403).json({}) }
 
