@@ -4,11 +4,22 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 const User = require("../../models/User");
+const sanitize          = require('mongo-sanitize');
 const withAuth = require('./../../utils/middleware');
 // Load input validation
 const validateRegisterInput = require("../../validation/register");
 const validateLoginInput = require("../../validation/login");
+const Validator         = require("validator");
+const passwordValidator = require('password-validator');
 
+var schema = new passwordValidator();
+schema
+    .is().min(8)
+    .is().max(30)
+    .has().uppercase()
+    .has().lowercase()
+    .has().digits()
+    .has().symbols()
 
 
 router.get('/checkToken', withAuth, (req, res) => { res.sendStatus(200) });
@@ -38,18 +49,36 @@ router.get('/active/:token', async(req, res) => {
 router.get('/reset/:token', async(req, res) => {
     try {
         const token = req.params.token;
+        let errors = {};
         const user = await User.findOne({tokenReset: token});
         if (user){
-            user.active = 1;
-            user.tokenReset = '';
-            user.save();
-            return res.status(200).json({});
+            // check if the entries are valid
+            let password = sanitize(req.body.password);
+            let password_confirm = sanitize(req.body.password_confirm);
+            if (password && !schema.validate(password))
+                errors.password = "Password must contain at least one uppercase, one number and one symbol, and at least 8 characters."
+            if (password && password_confirm && !Validator.equals(password, password_confirm))
+                errors.password_confirm = "Passwords must match"
+            if (Object.keys(errors).length === 0 && errors.constructor === Object){
+                bcrypt.genSalt(10, (err, salt) => {
+                    bcrypt.hash(password, salt, (err, hash) => {
+                        if (err)
+                            throw new Error(err);
+                        user.tokenReset = '';
+                        user.password = hash;
+                        user.save();
+                        return res.status(200).json({});
+                    })
+                });
+            }
+            else throw new Error(errors);
         } else throw new Error('Token not find');
     } catch(err){
         console.log(err);
         return res.status(400).json({});
     }
 });
+
 
 router.post("/register", (req, res) => {
   const { errors, isValid } = validateRegisterInput(req.body);

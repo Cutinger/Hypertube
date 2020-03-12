@@ -149,9 +149,10 @@ export default {
             { headers: headers }
         )
     },
-    resetPassword: (token) => {
+    resetPassword: (token, password, password_confirm) => {
         return axios.post(
             `${burl}/users/reset/${token}`,
+            {password, password_confirm},
             { headers: headers }
         )
     },

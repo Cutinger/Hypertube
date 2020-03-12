@@ -78,6 +78,8 @@ export default function App(props) {
           // )
         } />
         <Route exact path="/login" component={Login}/>
+        {/*<Route exact path="/users/reset/:token" component={(props) => <ResetPassword {...props} />*/}
+        {/*<Route exact path="/users/active/:token" component={(props) => <ActiveAccount {...props} />*/}
         <Route exact path="/signup" render={(props) => <Signup {...props} />}/>
         <Route exact path="/forgot" component={Forgot}/>
         <Redirect from="*" to=""/>
