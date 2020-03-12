@@ -130,10 +130,10 @@ export default {
             }
         )
     },
-    updatePicture: (formData, action) => {
+    updatePicture: (formData) => {
         return axios.post(
-            `${burl}/picture/${action}`,
-            {formData},
+            `${burl}/picture/add`,
+            formData,
             {
                 withCredentials: 'true',
                 headers: headers

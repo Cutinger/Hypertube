@@ -48,7 +48,7 @@ app.use ("/api/auth", auth);
 
 
 // Pictures
-app.post('/api/picture/:action', withAuth, picture.upload.single('file'), picture.uploadPhoto);
+app.post('/api/picture/add',  withAuth, picture.upload.single('file'), picture.uploadPhoto);
 
 // Stream routes
 app.get('/api/movies/:stream/:quality/:imdbcode', withAuth, stream.getDataMovie )

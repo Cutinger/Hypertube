@@ -1,6 +1,10 @@
 const multer = require('multer');
-const DIR = '/public/';
+const DIR = './public/';
 const uuid = require('uuid/v4');
+const mongoose          = require('mongoose').connection
+const db                = mongoose.connection;
+const User              = require('../../../models/User.js');
+
 require('dotenv').config();
 
 
@@ -15,7 +19,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-    storage: storage,
     fileFilter: (req, file, cb) => {
         if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
             cb(null, true);
@@ -23,28 +26,28 @@ const upload = multer({
             cb(null, false);
             return false;
         }
-    }
+    },
+    storage: storage
 });
 
 async function uploadPhoto(req, res) {
-    const user_id = res.locals.id;
+    const userID = res.locals.id;
+    const pathImg = `http://localhost:5000/${req.file.path}`;
+    const fsize = req.file.size;
 
-    try {
-        const pathImg = req.file.path;
-        console.log(pathImg);
-        const fsize = req.file.size;
-        const file = Math.round((fsize / 1024));
-        if (file >= 4096) {
-            return res.status(400).json({
-                warnings: ["File is too big. Max limit is 4Mb"]
-            });
+    const file = Math.round((fsize / 1024));
+    if (file >= 2048) {
+        return res.status(400).json({});
+    } else {
+        try {
+            let data = await User.findOne({_id: userID});
+            i
+
+
+        } catch (err){
+            console.log(err);
+            return res.status(400).json({})
         }
-        return res.status(200).json({});
-
-    } catch (error) {
-        return res.status(400).json({
-            warnings: ["Error during file upload"]
-        });
     }
 }
 

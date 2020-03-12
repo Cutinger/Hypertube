@@ -9,6 +9,7 @@ import {
     Backdrop,
     CircularProgress,
     Fab,
+    Fade,
     Checkbox, FormControlLabel
 } from "@material-ui/core";
 import {makeStyles} from "@material-ui/core/styles";
@@ -170,6 +171,15 @@ const useStyles = makeStyles(theme => ({
         outline: 'none',
         opacity: '0',
         cursor: 'pointer'
+    },
+    imageUploadWrap: {
+        overflow: 'hidden',
+        position: 'relative',
+        cursor: 'pointer',
+        borderRadius: '10px'
+    },
+    containerBottomButtons: {
+        textAlign: 'center'
     }
 }));
 
@@ -182,7 +192,7 @@ export default function Profile(props){
     const [editPassword, setEditPassword] = useState(false)
     const [file, setFile] = useState(null);
     const [imgPreview, setImgPreview] = useState(false);
-
+    const [imgErrors, setImgErrors] = useState(false);
     // Warnings after validation
     const [validationErrors, setValidationErrors] = React.useState({
         err_firstname: false,
@@ -300,27 +310,28 @@ export default function Profile(props){
        }
     }, [mounted]);
 
-    const onFileChange = (e) => {
-        setFile(e.target.files[0]);
-        setImgPreview(URL.createObjectURL(e.target.files[0]))
-        // imagesFilesUpload(file);
-    };
-
-    const imagesFilesUpload = async (file) => {
-        const fileSize = Math.round((file.size / 1024));
-        if (fileSize >= 4096)
-            this.props.setWarnings(["File is too big. Max limit is 4Mb"]);
-        else {
-            const formData = new FormData();
-            formData.append('file', file);
-            await API.updatePicture(formData, 'add')
-                .then(res => {
-                    if (res.status === 200)
-                        console.log(res.data);
-                })
-                .catch(err => {
-                    console.log(err);
-                })
+    const imagesFilesUpload = async (e) => {
+        setImgErrors(false);
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const fileSize = Math.round((file.size / 1024));
+            if ((fileSize >= 4096) || (file.type !== 'image/png' && file.type !== 'image/jpg' && file.type !== 'image/jpeg'))
+                setImgErrors(true);
+            else {
+                const formData = new FormData();
+                formData.append('file', file);
+                await API.updatePicture(formData)
+                    .then(res => {
+                        if (res.status === 200) {
+                            setDefaultImg(false);
+                            setImgPreview(URL.createObjectURL(file));
+                            console.log(1)
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+            }
         }
     };
     return (
@@ -346,17 +357,27 @@ export default function Profile(props){
                                             className={classes.large}/>
                                     </Grid>
                                     <Grid item>
-                                        <Fab variant="extended" size="small" className={classes.addPicture} >
-                                            <AddIcon />
-                                            Add picture
-                                        </Fab>
-                                        <input
-                                            className={classes.fileUploadInput}
-                                            type="file"
-                                            onChange={onFileChange}
-                                            accept="image/png, image/jpg, image/jpeg"
-                                        />
+                                        <div className={classes.imageUploadWrap}>
+                                            <Fab variant="extended" size="small" className={classes.addPicture} >
+                                                <AddIcon />
+                                                Add picture
+                                            </Fab>
+                                            <input
+                                                className={classes.fileUploadInput}
+                                                type="file"
+                                                onChange={imagesFilesUpload}
+                                                accept="image/png, image/jpg, image/jpeg"
+                                            />
+                                        </div>
                                     </Grid>
+                                    {
+                                        imgErrors ?
+                                            <Grid item>
+                                                <Fade in={imgErrors} unmountOnExit>
+                                                    <p style={{color: 'white', fontSize: '0.7em'}}>Sorry, we only accept <strong>jpg, jpeg, png</strong> and file size of <strong>2mb max</strong></p>
+                                                </Fade>
+                                            </Grid> : null
+                                    }
                                 </Grid>
                             </Grid>
                             <Grid item sm={6}>
@@ -490,11 +511,7 @@ export default function Profile(props){
                         <Grid style={{marginTop: '3em'}}container alignContent={'center'} justify={'center'} alignItems={'center'}>
                             <Grid item>
                                 <div className={classes.containerBottomButtons}>
-                                    <Fab onClick={handleSaveChanges} variant="extended" size="large" className={classes.saveChanges} style={{marginRight: '10px'}} >
-                                        {loader ? <CircularProgress size={24} className={classes.commentProgress} /> : <CheckIcon /> }
-                                        {loader ? null : 'Save changes'}
-                                    </Fab>
-                                    <Fab onClick={handleEditPassword} variant="extended" size="large" className={classes.saveChanges} >
+                                    <Fab onClick={handleEditPassword} variant="extended" size="medium" className={classes.saveChanges} style={{marginRight: '10px'}}>
                                         <FormControlLabel
                                             className={classes.FormControlLabel}
                                             checked={editPassword}
@@ -504,6 +521,10 @@ export default function Profile(props){
                                             label="Edit password"
                                             labelPlacement="start"
                                         />
+                                    </Fab>
+                                    <Fab onClick={handleSaveChanges} variant="extended" size="medium" className={classes.saveChanges} >
+                                        {loader ? <CircularProgress size={24} className={classes.commentProgress} /> : <CheckIcon /> }
+                                        {loader ? null : 'Save changes'}
                                     </Fab>
                                 </div>
                             </Grid>
