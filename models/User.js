@@ -38,6 +38,21 @@ const userSchema = new mongoose.Schema({
         required: false,
         timestamps: true
     },
+    active: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    tokenMail: {
+        type: String,
+        required: true,
+        default: ''
+    },
+    tokenReset:{
+        type: String,
+        required: true,
+        default: ''
+    },
     oauthID:String,
     facebook: JSON,
     github: JSON,

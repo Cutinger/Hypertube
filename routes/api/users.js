@@ -17,7 +17,40 @@ router.get('/logout', withAuth, (req, res) => {
   res.clearCookie('token');
   res.sendStatus(200);
 });
-// REGISTER
+
+
+router.get('/active/:token', async(req, res) => {
+    try {
+        const token = req.params.token;
+        const user = await User.findOne({tokenMail: token});
+        if (user){
+            user.active = 1;
+            user.tokenMail = '';
+            user.save();
+            return res.status(200).json({});
+        } else throw new Error('Token not find');
+    } catch(err){
+        console.log(err);
+        return res.status(400).json({});
+    }
+});
+
+router.get('/reset/:token', async(req, res) => {
+    try {
+        const token = req.params.token;
+        const user = await User.findOne({tokenReset: token});
+        if (user){
+            user.active = 1;
+            user.tokenReset = '';
+            user.save();
+            return res.status(200).json({});
+        } else throw new Error('Token not find');
+    } catch(err){
+        console.log(err);
+        return res.status(400).json({});
+    }
+});
+
 router.post("/register", (req, res) => {
   const { errors, isValid } = validateRegisterInput(req.body);
 
@@ -76,10 +109,8 @@ router.post("/register", (req, res) => {
       }
   });
 });
-// LOGIN
-// @route POST api/users/login
-// @desc Login user and return JWT token
 
+// @route POST api/users/login
 router.post("/login", async(req, res) => {
   // Form validation
 

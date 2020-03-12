@@ -9,7 +9,6 @@ import {
     Backdrop,
     CircularProgress,
     Fab,
-    Fade,
     Checkbox, FormControlLabel
 } from "@material-ui/core";
 import ImageIcon from '@material-ui/icons/Image';
@@ -306,13 +305,12 @@ export default function Profile(props){
                            email: res.data.email
                        })
                        setDefaultImg(res.data.img);
+                       setMounted(true);
                    }
-
                })
        }
        if (!mounted) {
            getUserProfile()
-           setMounted(true);
        }
     }, [mounted]);
 
@@ -356,202 +354,200 @@ export default function Profile(props){
         setDefaultImg(defaultSrc);
     };
     return (
-        <Grow in={mounted}>
-            <Container component="main" maxWidth={"md"} className={classes.containerGridTopMovie}>
-                <form noValidate>
-                    {/* Loader -> when page load */}
-                    <Backdrop className={classes.backdrop} open={mounted ? false : true} >
-                        <CircularProgress color="inherit" />
-                    </Backdrop>
-                    <div className={classes.titleContainer}>
-                        <h1 className={classes.title}>My profile</h1>
-                        <Divider className={classes.dividerTitle}/>
-                    </div>
-                    <div className={classes.profileContainer}>
-                        <Grid style={{marginTop: '1.5em'}} container alignContent={"center"} direction="row" justify="space-evenly" alignItems="center">
-                            <Grid item sm={6}>
-                                <Grid container direction={"column"} alignItems="center" alignContent={'center'}>
-                                    <Grid item>
-                                        <Avatar
-                                            alt="Remy Sharp"
-                                            src={defaultImg}
-                                            className={classes.large}
-                                        />
-                                    </Grid>
-                                    <Grid item>
-                                        <div className={classes.imageUploadWrap}>
-                                            <Fab variant="extended" size="small" className={classes.addPicture} >
-                                                <AddIcon />
-                                                Add picture
-                                            </Fab>
-                                            <input
-                                                className={classes.fileUploadInput}
-                                                type="file"
-                                                onChange={imagesFilesUpload}
-                                                accept="image/png, image/jpg, image/jpeg"
-                                            />
-                                        </div>
-                                    </Grid>
-                                    <Grid item>
-                                        <Fab onClick={handleCheckboxImg} variant="extended" size="small" className={classes.addPicture} >
-                                            <ImageIcon />
-                                            Use default image
+        <Container component="main" maxWidth={"md"} className={classes.containerGridTopMovie}>
+            <form noValidate>
+                {/* Loader -> when page load */}
+                <Backdrop className={classes.backdrop} open={!mounted} >
+                    <CircularProgress color="inherit" />
+                </Backdrop>
+                <div className={classes.titleContainer}>
+                    <h1 className={classes.title}>My profile</h1>
+                    <Divider className={classes.dividerTitle}/>
+                </div>
+                <div className={classes.profileContainer}>
+                    <Grid style={{marginTop: '1.5em'}} container alignContent={"center"} direction="row" justify="space-evenly" alignItems="center">
+                        <Grid item sm={6}>
+                            <Grid container direction={"column"} alignItems="center" alignContent={'center'}>
+                                <Grid item>
+                                    <Avatar
+                                        alt="Remy Sharp"
+                                        src={defaultImg}
+                                        className={classes.large}
+                                    />
+                                </Grid>
+                                <Grid item>
+                                    <div className={classes.imageUploadWrap}>
+                                        <Fab variant="extended" size="small" className={classes.addPicture} >
+                                            <AddIcon />
+                                            Add picture
                                         </Fab>
-                                    </Grid>
+                                        <input
+                                            className={classes.fileUploadInput}
+                                            type="file"
+                                            onChange={imagesFilesUpload}
+                                            accept="image/png, image/jpg, image/jpeg"
+                                        />
+                                    </div>
                                 </Grid>
-                            </Grid>
-                            <Grid item sm={6}>
-                                <Grid className={classes.containerInfos} container direction={"column"}  alignItems="stretch" alignContent={'center'}>
-                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                        <TextField
-                                            value={fieldValue.firstname || ''}
-                                            onChange={handleChange}
-                                            helperText={validationErrors.err_firstname}
-                                            error={Boolean(validationErrors.err_firstname)}
-                                            name="firstname"
-                                            variant="filled"
-                                            required
-                                            id="firstname"
-                                            label="First Name"
-                                            className={classes.textfield}
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                        <TextField
-                                            value={fieldValue.lastname || ''}
-                                            onChange={handleChange}
-                                            helperText={validationErrors.err_lastname}
-                                            error={Boolean(validationErrors.err_lastname)}
-                                            name="lastname"
-                                            variant="filled"
-                                            fullWidth
-                                            id="lastname"
-                                            label="Last Name"
-                                            className={classnames(classes.textfield, classes.textfieldbetween)}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                        <TextField
-                                            value={fieldValue.username || ''}
-                                            onChange={handleChange}
-                                            helperText={validationErrors.err_username}
-                                            error={Boolean(validationErrors.err_username)}
-                                            name="username"
-                                            variant="filled"
-                                            required
-                                            fullWidth
-                                            id="username"
-                                            label="Username"
-                                            className={classnames(classes.textfield, classes.textfieldbetween)}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <AccountCircle />
-                                                    </InputAdornment>
-                                                )
-                                            }}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                        <TextField
-                                            value={fieldValue.password || ''}
-                                            helperText={validationErrors.err_password}
-                                            error={Boolean(validationErrors.err_password)}
-                                            onChange={handleChange}
-                                            variant="filled"
-                                            fullWidth
-                                            name="password"
-                                            label="Password"
-                                            type="password"
-                                            id="password"
-                                            required={editPassword}
-                                            disabled={!editPassword}
-                                            autoComplete={"true"}
-                                            className={classnames(classes.textfield, classes.textfieldbetween)}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <LockIcon />
-                                                    </InputAdornment>
-                                                )
-                                            }}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                        <TextField
-                                            value={fieldValue.password_confirm || ''}
-                                            helperText={validationErrors.err_password_confirm}
-                                            error={Boolean(validationErrors.err_password_confirm)}
-                                            onChange={handleChange}
-                                            variant="filled"
-                                            fullWidth
-                                            name="password_confirm"
-                                            label="Password Confirm"
-                                            type="password"
-                                            id="password_confirm"
-                                            autoComplete={"true"}
-                                            disabled={!editPassword}
-                                            required={editPassword}
-                                            className={classnames(classes.textfield, classes.textfieldbetween)}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <LockIcon />
-                                                    </InputAdornment>
-                                                )
-                                            }}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={8} style={{width: '100%'}}>
-                                        <TextField
-                                            value={fieldValue.email || ''}
-                                            helperText={validationErrors.err_email}
-                                            error={Boolean(validationErrors.err_email)}
-                                            onChange={handleChange}
-                                            variant="filled"
-                                            required
-                                            fullWidth
-                                            id="email"
-                                            label="Email Address"
-                                            name="email"
-                                            className={classnames(classes.textfield, classes.textfieldbottom)}
-                                            InputProps={{
-                                                startAdornment: (
-                                                    <InputAdornment position="start">
-                                                        <MailIcon />
-                                                    </InputAdornment>
-                                                )
-                                            }}
-                                        />
-                                    </Grid>
+                                <Grid item>
+                                    <Fab onClick={handleCheckboxImg} variant="extended" size="small" className={classes.addPicture} >
+                                        <ImageIcon />
+                                        Use default image
+                                    </Fab>
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid style={{marginTop: '3em'}}container alignContent={'center'} justify={'center'} alignItems={'center'}>
-                            <Grid item>
-                                <div className={classes.containerBottomButtons}>
-                                    <Fab onClick={handleEditPassword} variant="extended" size="medium" className={classes.saveChanges} style={{marginRight: '10px'}}>
-                                        <FormControlLabel
-                                            className={classes.FormControlLabel}
-                                            checked={editPassword}
-                                            onClick={handleEditPassword}
-                                            value="Edit password"
-                                            control={<Checkbox color="primary" />}
-                                            label="Edit password"
-                                            labelPlacement="start"
-                                        />
-                                    </Fab>
-                                    <Fab onClick={handleSaveChanges} variant="extended" size="medium" className={classes.saveChanges} >
-                                        {loader ? <CircularProgress size={24} className={classes.commentProgress} /> : <CheckIcon /> }
-                                        {loader ? null : 'Save changes'}
-                                    </Fab>
-                                </div>
+                        <Grid item sm={6}>
+                            <Grid className={classes.containerInfos} container direction={"column"}  alignItems="stretch" alignContent={'center'}>
+                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                    <TextField
+                                        value={fieldValue.firstname || ''}
+                                        onChange={handleChange}
+                                        helperText={validationErrors.err_firstname}
+                                        error={Boolean(validationErrors.err_firstname)}
+                                        name="firstname"
+                                        variant="filled"
+                                        required
+                                        id="firstname"
+                                        label="First Name"
+                                        className={classes.textfield}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                    <TextField
+                                        value={fieldValue.lastname || ''}
+                                        onChange={handleChange}
+                                        helperText={validationErrors.err_lastname}
+                                        error={Boolean(validationErrors.err_lastname)}
+                                        name="lastname"
+                                        variant="filled"
+                                        fullWidth
+                                        id="lastname"
+                                        label="Last Name"
+                                        className={classnames(classes.textfield, classes.textfieldbetween)}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                    <TextField
+                                        value={fieldValue.username || ''}
+                                        onChange={handleChange}
+                                        helperText={validationErrors.err_username}
+                                        error={Boolean(validationErrors.err_username)}
+                                        name="username"
+                                        variant="filled"
+                                        required
+                                        fullWidth
+                                        id="username"
+                                        label="Username"
+                                        className={classnames(classes.textfield, classes.textfieldbetween)}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <AccountCircle />
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                    <TextField
+                                        value={fieldValue.password || ''}
+                                        helperText={validationErrors.err_password}
+                                        error={Boolean(validationErrors.err_password)}
+                                        onChange={handleChange}
+                                        variant="filled"
+                                        fullWidth
+                                        name="password"
+                                        label="Password"
+                                        type="password"
+                                        id="password"
+                                        required={editPassword}
+                                        disabled={!editPassword}
+                                        autoComplete={"true"}
+                                        className={classnames(classes.textfield, classes.textfieldbetween)}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <LockIcon />
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                    <TextField
+                                        value={fieldValue.password_confirm || ''}
+                                        helperText={validationErrors.err_password_confirm}
+                                        error={Boolean(validationErrors.err_password_confirm)}
+                                        onChange={handleChange}
+                                        variant="filled"
+                                        fullWidth
+                                        name="password_confirm"
+                                        label="Password Confirm"
+                                        type="password"
+                                        id="password_confirm"
+                                        autoComplete={"true"}
+                                        disabled={!editPassword}
+                                        required={editPassword}
+                                        className={classnames(classes.textfield, classes.textfieldbetween)}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <LockIcon />
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={8} style={{width: '100%'}}>
+                                    <TextField
+                                        value={fieldValue.email || ''}
+                                        helperText={validationErrors.err_email}
+                                        error={Boolean(validationErrors.err_email)}
+                                        onChange={handleChange}
+                                        variant="filled"
+                                        required
+                                        fullWidth
+                                        id="email"
+                                        label="Email Address"
+                                        name="email"
+                                        className={classnames(classes.textfield, classes.textfieldbottom)}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <MailIcon />
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                </Grid>
                             </Grid>
                         </Grid>
-                    </div>
-                </form>
-            </Container>
-        </Grow>
+                    </Grid>
+                    <Grid style={{marginTop: '3em'}}container alignContent={'center'} justify={'center'} alignItems={'center'}>
+                        <Grid item>
+                            <div className={classes.containerBottomButtons}>
+                                <Fab onClick={handleEditPassword} variant="extended" size="medium" className={classes.saveChanges} style={{marginRight: '10px'}}>
+                                    <FormControlLabel
+                                        className={classes.FormControlLabel}
+                                        checked={editPassword}
+                                        onClick={handleEditPassword}
+                                        value="Edit password"
+                                        control={<Checkbox color="primary" />}
+                                        label="Edit password"
+                                        labelPlacement="start"
+                                    />
+                                </Fab>
+                                <Fab onClick={handleSaveChanges} variant="extended" size="medium" className={classes.saveChanges} >
+                                    {loader ? <CircularProgress size={24} className={classes.commentProgress} /> : <CheckIcon /> }
+                                    {loader ? null : 'Save changes'}
+                                </Fab>
+                            </div>
+                        </Grid>
+                    </Grid>
+                </div>
+            </form>
+        </Container>
     )
 }

@@ -3,7 +3,6 @@ import {
     Grow,
     ButtonGroup,
     Fab,
-    Paper,
     Typography,
     TextField,
     Button,
@@ -144,7 +143,6 @@ const useStyles = makeStyles(theme => ({
         width: '8em',
         height: '8em',
         margin: '0 auto',
-        boxShadow: '3px 3px 1px #202e428c !important',
     },
     
   }));
@@ -254,6 +252,18 @@ const handleSignupClicked = async(e) => {
         .then(async(response) => {
             if (response.status === 200)
                 await imagesFilesUpload();
+                store.addNotification({
+                    message: "A mail confirmation was send. Please active your account.",
+                    insert: "top",
+                    type: 'success',
+                    container: "top-right",
+                    animationIn: ["animated", "fadeIn"],
+                    animationOut: ["animated", "fadeOut"],
+                    dismiss: {
+                        duration: 5000,
+                        onScreen: true
+                    }
+                });
                 props.history.push('/');
         })
         .catch(err => {

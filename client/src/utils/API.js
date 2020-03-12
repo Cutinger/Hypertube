@@ -142,5 +142,17 @@ export default {
                 headers: headers
             }
         )
-    }
+    },
+    activeAccount: (token) => {
+        return axios.post(
+            `${burl}/users/active/${token}`,
+            { headers: headers }
+        )
+    },
+    resetPassword: (token) => {
+        return axios.post(
+            `${burl}/users/reset/${token}`,
+            { headers: headers }
+        )
+    },
 }
