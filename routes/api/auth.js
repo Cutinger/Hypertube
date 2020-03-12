@@ -1,14 +1,25 @@
-const facebookStrategy = require("passport-facebook");
+// const facebookStrategy = require("passport-facebook");
 const fbconfig = require("../../config/Oauthfacebook");
 const User = require("../../models/User");
 const genToken = require("../../utils/lib");
-const passport = require('passport');
+const passport = require('passport')
+, facebookStrategy = require('passport-facebook').Strategy;
 const FortyTwoStrategy = require('passport-42').Strategy;
 const gitconfig = require("../../config/Oauthgithub");
 const GitHubStrategy = require('passport-github').Strategy;
 const express = require("express");
 const fortytwoconfig = require('../../config/Oauth42');
 const router = express.Router();
+const dotenv = require("dotenv");
+
+dotenv.config();
+passport.serializeUser(function(user, done) {
+    done(null, user);
+  });
+  
+  passport.deserializeUser(function(obj, done) {
+    done(null, obj);
+  });
 
 // Facebook
 // Connect to facebook app id
@@ -18,11 +29,11 @@ passport.use(new facebookStrategy({
     callbackURL: fbconfig.facebook.callbackURL,
     profileFields: [ 'id', 'emails', 'name', 'picture.type(large)' ]
 },
-function(profile, done) {
+function(accessToken, refreshToken, profile, done) {
     // Check if facebook's email is already registered on an account
     User.findOne({ oauthID: profile.email }).then(user => {
         if (user)
-            return done(null, false, { message: 'Mail already used' });
+            return done(null, user);
         else {
             // Create user if email is free
             user = new User({
@@ -46,12 +57,11 @@ function(profile, done) {
     })
 }
 ));
-router.get('/facebook', passport.authenticate('facebook', { scope : [ 'email' ]}));
+router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
-router.get('/facebook/callback', passport.authenticate('facebook', (res) => {
-    return res.status(404).json({})
-}));
-
+router.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: 'http://localhost:3000/login' }), (req, res) => {
+  res.redirect('http://localhost:3000/');
+})
 // Github
 // Connect to Github app id
 passport.use(new GitHubStrategy({
