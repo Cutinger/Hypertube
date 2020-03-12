@@ -375,7 +375,8 @@ export default function Profile(props){
                                         <Avatar
                                             alt="Remy Sharp"
                                             src={defaultImg}
-                                            className={classes.large}/>
+                                            className={classes.large}
+                                        />
                                     </Grid>
                                     <Grid item>
                                         <div className={classes.imageUploadWrap}>

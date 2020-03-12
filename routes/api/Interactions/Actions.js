@@ -225,7 +225,7 @@ const updateInfos = async (req, res) => {
            await bcrypt.genSalt(10, async(err, salt) => {
                 await bcrypt.hash(password, salt, async(err, hash) => {
                     updateUsers.password = hash;
-                    await updateUsers.save().then(res => console.log(res))
+                    await updateUsers.save()
                 });
             });
         }
@@ -238,8 +238,6 @@ const updateInfos = async (req, res) => {
         await updateUsers.save((err) => { if (err) return res.status(403).json({})})
 
         ////////
-        await User.findById(userID).then(obj => console.log(obj.password))
-
         return res.status(200).json({})
         
     } catch (err) { console.log(err); res.status(403).json({}) }

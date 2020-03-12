@@ -52,13 +52,25 @@ router.post("/register", (req, res) => {
             newUser.password = hash;
             newUser
               .save()
-              .then(user => { 
-                return res.status(200).json({}) 
+              .then(async(user) => {
+                try {
+                  const userFind = await User.findOne({_id: user.id});
+                  if (userFind) {
+                    jwt.sign({id: userFind._id}, keys.secretOrKey, {expiresIn: 31556926},
+                        (err, token) => {
+                          if (!err) {
+                            res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, domain: 'localhost'});
+                            return res.status(200).json({});
+                          }
+                          if (err) throw new Error(err)
+                        })
+                  }
+                } catch (err) {
+                  console.log(err);
+                  return res.status(400).json({})
+                }
               })
-              .catch(err => {
-                console.log(err);
-                return res.status(400).json({});
-              });
+              .catch(err => { return res.status(400).json({}) });
           });
         });
       }

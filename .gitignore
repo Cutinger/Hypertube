@@ -2,4 +2,5 @@ node_modules
 .idea
 client/node_modules
 files
+public/
 **/.DS_Store

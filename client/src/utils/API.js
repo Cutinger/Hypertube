@@ -16,7 +16,10 @@ export default {
         return axios.post(
             `${burl}/users/register`,
             {firstname, lastname, email, username, password, password_confirm},
-            { headers: headers }
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
         )
     },
     login: (username, password) => {
