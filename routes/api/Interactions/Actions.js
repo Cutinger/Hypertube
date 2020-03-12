@@ -114,13 +114,11 @@ const getInfos = async (req, res) => {
     var userID = res.locals.id;
     let urlID = `https://api.themoviedb.org/3/movie/${imdbid}?api_key=${key.apiIMDB}`
     let imdbcode = await createInstance(urlID)
+    var username = ''
 
     if (userID) {
         var getUsername = await User.findById(userID)
-        if (!getUsername) { var username = '' }
-        else { var username = getUsername.username }
-    } else {
-        var username = ''
+        if (getUsername) { username = getUsername.username }
     }
 
     if (!imdbcode) { return res.status(404).json({}) }
