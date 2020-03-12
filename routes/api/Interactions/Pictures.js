@@ -40,12 +40,15 @@ async function uploadPhoto(req, res) {
         return res.status(400).json({});
     } else {
         try {
-            let data = await User.findOne({_id: userID});
-            i
+            let user = await User.findOne({_id: userID});
+            if (user){
+                user.img = pathImg;
+                user.save();
+                return res.status(200).json({img: pathImg})
+            } else if (!user) throw new Error('User not find')
 
 
         } catch (err){
-            console.log(err);
             return res.status(400).json({})
         }
     }

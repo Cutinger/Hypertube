@@ -39,6 +39,8 @@ app.use(passport.initialize());
 
 // Use static files for subtitles
 app.use('/api/subtitles', express.static('files/subtitles'));
+app.use('/public', express.static('public'));
+
 
 
 // UsersRoute

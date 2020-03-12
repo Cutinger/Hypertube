@@ -233,7 +233,7 @@ const updateInfos = async (req, res) => {
         if (firstname) { updateUsers.firstname = firstname }
         if (lastname) { updateUsers.lastname = lastname }
         if (email) { updateUsers.email = email }
-        if (!img) { updateUsers.img = 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png' }
+        if (img) { updateUsers.img = 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png' }
 
         await updateUsers.save((err) => { if (err) return res.status(403).json({})})
 

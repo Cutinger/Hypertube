@@ -12,6 +12,7 @@ import {
     Fade,
     Checkbox, FormControlLabel
 } from "@material-ui/core";
+import ImageIcon from '@material-ui/icons/Image';
 import {makeStyles} from "@material-ui/core/styles";
 import classnames from 'classnames';
 import CheckIcon from '@material-ui/icons/Check';
@@ -21,6 +22,7 @@ import AddIcon from '@material-ui/icons/Add';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MailIcon from '@material-ui/icons/Mail';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import { store } from 'react-notifications-component';
 import VALIDATION from "../../utils/validation";
 
 const useStyles = makeStyles(theme => ({
@@ -183,16 +185,14 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+const defaultSrc = "https://i.ibb.co/hgvJPFb/default-Img-Profile.png";
 
 export default function Profile(props){
     const classes = useStyles();
     const [mounted, setMounted] = useState(false);
     const [loader, setLoader] = useState(false);
-    const [defaultImg, setDefaultImg] = useState(true);
+    const [defaultImg, setDefaultImg] = useState(defaultSrc);
     const [editPassword, setEditPassword] = useState(false)
-    const [file, setFile] = useState(null);
-    const [imgPreview, setImgPreview] = useState(false);
-    const [imgErrors, setImgErrors] = useState(false);
     // Warnings after validation
     const [validationErrors, setValidationErrors] = React.useState({
         err_firstname: false,
@@ -272,7 +272,10 @@ export default function Profile(props){
         });
         /* SEND REQUEST */
         if (!errors.firstname && !errors.lastname && !errors.email && !errors.password && !errors.username && !errors.password_confirm) {
-            await API.updateUserProfil(fieldValue.firstname, fieldValue.lastname, fieldValue.username,fieldValue.email, fieldValue.password, fieldValue.password_confirm, defaultImg, editPassword)
+            let img;
+            if (defaultSrc === defaultImg) img = true;
+            else img = !Boolean(defaultImg);
+            await API.updateUserProfil(fieldValue.firstname, fieldValue.lastname, fieldValue.username,fieldValue.email, fieldValue.password, fieldValue.password_confirm, img, editPassword)
                 .then(response => {
                     if (response.status === 200)
                        console.log(response.data);
@@ -295,13 +298,16 @@ export default function Profile(props){
        async function getUserProfile(){
            await API.getUserProfile()
                .then(res => {
-                   if (res.status === 200 && res.data)
-                      setTextFieldsValues({
-                          firstname: res.data.firstname,
-                          lastname: res.data.lastname,
-                          username: res.data.username,
-                          email: res.data.email
-                      })
+                   if (res.status === 200 && res.data) {
+                       setTextFieldsValues({
+                           firstname: res.data.firstname,
+                           lastname: res.data.lastname,
+                           username: res.data.username,
+                           email: res.data.email
+                       })
+                       setDefaultImg(res.data.img);
+                   }
+
                })
        }
        if (!mounted) {
@@ -310,29 +316,44 @@ export default function Profile(props){
        }
     }, [mounted]);
 
+    const handleNotifFile = () => {
+        store.addNotification({
+            message: "Sorry, we only accept jpg, jpeg, png and max file size of 2mb ",
+            insert: "top",
+            type: 'success',
+            container: "top-right",
+            animationIn: ["animated", "fadeIn"],
+            animationOut: ["animated", "fadeOut"],
+            dismiss: {
+                duration: 5000,
+                onScreen: true
+            }
+        });
+    }
+
     const imagesFilesUpload = async (e) => {
-        setImgErrors(false);
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             const fileSize = Math.round((file.size / 1024));
             if ((fileSize >= 4096) || (file.type !== 'image/png' && file.type !== 'image/jpg' && file.type !== 'image/jpeg'))
-                setImgErrors(true);
+                handleNotifFile();
             else {
                 const formData = new FormData();
                 formData.append('file', file);
                 await API.updatePicture(formData)
                     .then(res => {
-                        if (res.status === 200) {
-                            setDefaultImg(false);
-                            setImgPreview(URL.createObjectURL(file));
-                            console.log(1)
-                        }
+                        if (res.status === 200 && res.data.img)
+                            setDefaultImg(res.data.img);
                     })
                     .catch(err => {
-                        console.log(err);
+                       handleNotifFile();
                     });
             }
         }
+    };
+
+    const handleCheckboxImg = () => {
+        setDefaultImg(defaultSrc);
     };
     return (
         <Grow in={mounted}>
@@ -353,7 +374,7 @@ export default function Profile(props){
                                     <Grid item>
                                         <Avatar
                                             alt="Remy Sharp"
-                                            src={defaultImg ? "https://i.ibb.co/hgvJPFb/default-Img-Profile.png" : imgPreview}
+                                            src={defaultImg}
                                             className={classes.large}/>
                                     </Grid>
                                     <Grid item>
@@ -370,14 +391,12 @@ export default function Profile(props){
                                             />
                                         </div>
                                     </Grid>
-                                    {
-                                        imgErrors ?
-                                            <Grid item>
-                                                <Fade in={imgErrors} unmountOnExit>
-                                                    <p style={{color: 'white', fontSize: '0.7em'}}>Sorry, we only accept <strong>jpg, jpeg, png</strong> and file size of <strong>2mb max</strong></p>
-                                                </Fade>
-                                            </Grid> : null
-                                    }
+                                    <Grid item>
+                                        <Fab onClick={handleCheckboxImg} variant="extended" size="small" className={classes.addPicture} >
+                                            <ImageIcon />
+                                            Use default image
+                                        </Fab>
+                                    </Grid>
                                 </Grid>
                             </Grid>
                             <Grid item sm={6}>
