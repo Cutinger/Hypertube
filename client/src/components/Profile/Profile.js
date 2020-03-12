@@ -159,6 +159,17 @@ const useStyles = makeStyles(theme => ({
         '.MuiSvgIcon-root': {
             color: 'white !important'
         }
+    },
+    fileUploadInput: {
+        position: 'absolute',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        margin: '0',
+        padding: '0',
+        outline: 'none',
+        opacity: '0',
+        cursor: 'pointer'
     }
 }));
 
@@ -169,7 +180,8 @@ export default function Profile(props){
     const [loader, setLoader] = useState(false);
     const [defaultImg, setDefaultImg] = useState(true);
     const [editPassword, setEditPassword] = useState(false)
-
+    const [file, setFile] = useState(null);
+    const [imgPreview, setImgPreview] = useState(false);
 
     // Warnings after validation
     const [validationErrors, setValidationErrors] = React.useState({
@@ -288,6 +300,29 @@ export default function Profile(props){
        }
     }, [mounted]);
 
+    const onFileChange = (e) => {
+        setFile(e.target.files[0]);
+        setImgPreview(URL.createObjectURL(e.target.files[0]))
+        // imagesFilesUpload(file);
+    };
+
+    const imagesFilesUpload = async (file) => {
+        const fileSize = Math.round((file.size / 1024));
+        if (fileSize >= 4096)
+            this.props.setWarnings(["File is too big. Max limit is 4Mb"]);
+        else {
+            const formData = new FormData();
+            formData.append('file', file);
+            await API.updatePicture(formData, 'add')
+                .then(res => {
+                    if (res.status === 200)
+                        console.log(res.data);
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+        }
+    };
     return (
         <Grow in={mounted}>
             <Container component="main" maxWidth={"md"} className={classes.containerGridTopMovie}>
@@ -305,13 +340,22 @@ export default function Profile(props){
                             <Grid item sm={6}>
                                 <Grid container direction={"column"} alignItems="center" alignContent={'center'}>
                                     <Grid item>
-                                        <Avatar alt="Remy Sharp" src="https://i.ibb.co/hgvJPFb/default-Img-Profile.png" className={classes.large}/>
+                                        <Avatar
+                                            alt="Remy Sharp"
+                                            src={defaultImg ? "https://i.ibb.co/hgvJPFb/default-Img-Profile.png" : imgPreview}
+                                            className={classes.large}/>
                                     </Grid>
                                     <Grid item>
                                         <Fab variant="extended" size="small" className={classes.addPicture} >
                                             <AddIcon />
                                             Add picture
                                         </Fab>
+                                        <input
+                                            className={classes.fileUploadInput}
+                                            type="file"
+                                            onChange={onFileChange}
+                                            accept="image/png, image/jpg, image/jpeg"
+                                        />
                                     </Grid>
                                 </Grid>
                             </Grid>

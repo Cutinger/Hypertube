@@ -8,6 +8,7 @@ const app = express();
 const stream = require('./routes/api/Stream/DownloadTorrent.js');
 const moviesData = require('./routes/api/MovieInfos/MoviesInfos.js');
 const interact = require('./routes/api/Interactions/Actions.js');
+const picture = require('./routes/api/Interactions/Pictures.js');
 
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
@@ -44,6 +45,11 @@ app.use('/api/subtitles', express.static('files/subtitles'));
 app.use ("/api/users", users);
 // OauthRoute
 app.use ("/api/auth", auth);
+
+
+// Pictures
+app.post('/api/picture/:action', withAuth, picture.upload.single('file'), picture.uploadPhoto);
+
 // Stream routes
 app.get('/api/movies/:stream/:quality/:imdbcode', withAuth, stream.getDataMovie )
 // Catch Movies route

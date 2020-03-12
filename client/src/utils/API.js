@@ -129,5 +129,15 @@ export default {
                 headers: headers
             }
         )
+    },
+    updatePicture: (formData, action) => {
+        return axios.post(
+            `${burl}/picture/${action}`,
+            {formData},
+            {
+                withCredentials: 'true',
+                headers: headers
+            }
+        )
     }
 }
