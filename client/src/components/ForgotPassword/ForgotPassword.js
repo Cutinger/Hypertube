@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import {Grow, Typography, TextField, Button, Container, Grid, Link } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Logo from '../../assets/img/hypairtube-logov2.png'
+import VALIDATION from './../../utils/validation';
+import API from './../../utils/API';
+import {store} from "react-notifications-component";
 
 const useStyles = makeStyles(theme => ({
     loginContainer: {
@@ -54,11 +57,48 @@ const useStyles = makeStyles(theme => ({
   export default function ForgotPassword(props) {
     const classes = useStyles();
     const [mounted, setMounted] = useState(true);
+    const [validationErrors, setValidationErrors] = useState({err_email: false});
+    const [value, setValue] = useState(false);
 
     const handleRedirectSignup = (e) => {
         setMounted(!mounted);
         e.preventDefault();
         props.history.push('/signup'); 
+    };
+
+      const handleChange = (event) => {
+          const { err_email } = validationErrors;
+          if (event.target.id === "email" && err_email)
+              setValidationErrors({err_email: false});
+          setValue({[event.target.id]: event.target.value });
+      };
+
+    const handleMailSend = () => {
+        if (value && value.email && value.email.length){
+            if (!VALIDATION.validateEmail(value.email))
+                setValidationErrors({err_mail: 'Please use valid email'});
+            if (!validationErrors.err_email){
+                API.sendResetMail(value.email)
+                    .then(res => {
+                        if (res.status === 200)
+                            store.addNotification({
+                                message: "A mail confirmation was send.",
+                                insert: "top",
+                                type: 'success',
+                                container: "top-right",
+                                animationIn: ["animated", "fadeIn"],
+                                animationOut: ["animated", "fadeOut"],
+                                dismiss: {
+                                    duration: 5000,
+                                    onScreen: true
+                                }
+                            });
+                        props.history.push('/login');
+                    })
+            }
+        }
+        else
+            setValidationErrors({err_mail: 'Please use valid email'});
     };
     return (
         <div className={classes.loginContainer}>
@@ -88,6 +128,10 @@ const useStyles = makeStyles(theme => ({
                                         name="email"
                                         autoComplete="email"
                                         className={classes.textfield}
+                                        value={value.email || ''}
+                                        helperText={validationErrors.err_email}
+                                        error={Boolean(validationErrors.err_email)}
+                                        onChange={handleChange}
                                     />
                                 </Grid>
                             </Grid>
@@ -97,6 +141,7 @@ const useStyles = makeStyles(theme => ({
                                 variant="contained"
                                 color="primary"
                                 className={classes.signupButton}
+                                onClick={handleMailSend}
                             >
                                 Send reset mail
                             </Button>

@@ -8,7 +8,8 @@ import Home from './containers/Home/Home';
 import MovieCard from './containers/MovieCard/MovieCard';
 import withAuth from './utils/withAuth';
 import 'react-notifications-component/dist/theme.css'
-
+import ActiveAccount from './components/ActiveAccount/ActiveAccount';
+import ResetPassword from './components/ResetPassword/ResetPassword';
 import ReactNotification from 'react-notifications-component';
 import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
 import {makeStyles} from "@material-ui/core/styles";
@@ -78,8 +79,8 @@ export default function App(props) {
           // )
         } />
         <Route exact path="/login" component={Login}/>
-        {/*<Route exact path="/users/reset/:token" component={(props) => <ResetPassword {...props} />*/}
-        {/*<Route exact path="/users/active/:token" component={(props) => <ActiveAccount {...props} />*/}
+        <Route exact path="/users/reset/:token" component={(props) => <ResetPassword {...props} />}/>
+        <Route exact path="/users/active/:token" component={(props) => <ActiveAccount {...props} />}/>
         <Route exact path="/signup" render={(props) => <Signup {...props} />}/>
         <Route exact path="/forgot" component={Forgot}/>
         <Redirect from="*" to=""/>

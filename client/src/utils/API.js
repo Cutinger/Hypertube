@@ -144,15 +144,22 @@ export default {
         )
     },
     activeAccount: (token) => {
-        return axios.post(
+        return axios.get(
             `${burl}/users/active/${token}`,
             { headers: headers }
         )
     },
-    resetPassword: (token, password, password_confirm) => {
+    resetPassword: (token, password, password_confirm, username) => {
         return axios.post(
             `${burl}/users/reset/${token}`,
-            {password, password_confirm},
+            {token, password, password_confirm, username},
+            { headers: headers }
+        )
+    },
+    sendResetMail: (email) => {
+        return axios.post(
+            `${burl}/users/reset/send`,
+            {email},
             { headers: headers }
         )
     },

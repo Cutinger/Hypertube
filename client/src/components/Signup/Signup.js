@@ -328,13 +328,16 @@ const handleFacebookConnection = () => {
     };
 
     const handleChangeImg = (e) => {
+        console.log(e.target.files);
         if (e.target.files && e.target.files[0]){
+            console.log(1);
             setFile(e.target.files[0]);
             setDefaultImg(URL.createObjectURL(e.target.files[0]));
         }
     }
     const handleCheckboxImg = () => {
       setDefaultImg(defaultSrc);
+      setFile('');
     };
 return (
     <div className={classes.loginContainer}>

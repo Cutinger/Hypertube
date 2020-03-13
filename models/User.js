@@ -45,12 +45,10 @@ const userSchema = new mongoose.Schema({
     },
     tokenMail: {
         type: String,
-        required: true,
         default: ''
     },
     tokenReset:{
         type: String,
-        required: true,
         default: ''
     },
     oauthID:String,
