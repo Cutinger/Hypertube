@@ -51,12 +51,12 @@ app.use('/public', express.static('public'));
 
 // Sockets (construct userslist tab)
     let userslist = [];
-    // For debug, console.log every seconds
+/*     // For debug, console.log every seconds
         let CronJob = require('cron').CronJob;
         let job = new CronJob('* * * * * *', function() {
             console.log(userslist);
         });
-        job.start();
+        job.start(); */
     io.sockets.on('connection', async(socket) => {
         if (userslist){
             if (socket.handshake.headers.cookie) {
@@ -80,7 +80,9 @@ app.use ("/api/auth", auth);
 // Pictures
 app.post('/api/picture/add/:token',  withAuth, picture.upload.single('file'), picture.uploadPhoto);
 // Stream routes
-app.get('/api/movies/:stream/:quality/:imdbcode', withAuth, stream.getDataMovie )
+app.get('/api/movies/:stream/:quality/:imdbcode', (req, res) => {
+    withAuth, stream.getDataMovie(req, res, userslist) 
+})
 // Catch Movies route
 app.get('/api/movies/:id', moviesData.parseData);
 // Actions to a video

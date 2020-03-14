@@ -55,7 +55,7 @@ const checkQuality1377 = (leetinfos, quality) => {
     return false
 }
 
-const printLeet = async (req, res, quality, imdbcode) => {
+const printLeet = async (req, res, quality, imdbcode, userslist) => {
     try {
         var urlID = `https://api.themoviedb.org/3/find/${imdbcode}?api_key=${key.apiIMDB}&external_source=imdb_id`
         var imdbID = await axiosQuery(urlID, 'imdb_id')
@@ -66,12 +66,16 @@ const printLeet = async (req, res, quality, imdbcode) => {
         if ( !restReq || quality === false)
             return res.sendStatus(404)
         var magnetLink = restReq.leetInfo[quality].magnet
-        stream.initStreaming(req, res, magnetLink, restReq, res.locals.id)
+        stream.initStreaming(req, res, magnetLink, restReq, res.locals.id, imdbID, userslist)
     } catch (err) { return res.sendStatus(203) }
 }
 
-const printYTS = async (baseURL, req, res, quality) => {
+const printYTS = async (baseURL, req, res, quality, userslist) => {
     try {
+        var urlID = `https://api.themoviedb.org/3/find/${imdbcode}?api_key=${key.apiIMDB}&external_source=imdb_id`
+        var imdbID = await axiosQuery(urlID, 'imdb_id')
+        if ( !imdbID )
+            return res.sendStatus(404)
         var movie = await axiosQuery(baseURL, 'yts');
         if (movie != null) {
             var correctQuality = false
@@ -84,22 +88,22 @@ const printYTS = async (baseURL, req, res, quality) => {
             if (correctQuality == false)
                res.sendStatus(404);
             var magnet = URLmagnetYTS(movie.torrents[index].hash, movie.title_long)
-            stream.initStreaming(req, res, magnet, movie, res.locals.id)
+            stream.initStreaming(req, res, magnet, movie, res.locals.id, imdbID, userslist)
         }
         else
             return res.sendStatus(404)
     } catch (error) { return res.sendStatus(203) }
 }
 
-const getDataMovie = (req, res) => {
+const getDataMovie = (req, res, userslist) => {
     const paramStream = req.params.stream
     const quality     = req.params.quality + 'p'
     var imdbcode      = req.params.imdbcode
 
     if (paramStream == 'yts') {
-        printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbcode}`, req, res, quality)
+        printYTS(`https://cors-anywhere.herokuapp.com/yts.mx/api/v2/list_movies.json?query_term=${req.params.imdbcode}`, req, res, quality, userslist)
     } else if (paramStream == '1377') {
-        printLeet(req, res, quality, imdbcode)
+        printLeet(req, res, quality, imdbcode, userslist)
     } else {
         return res.sendStatus(404)
     }

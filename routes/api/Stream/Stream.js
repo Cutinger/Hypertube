@@ -125,7 +125,7 @@ const streamVIDEO = (res, file, range, filexists = false, contentType) => {
     videoStream.pipe(res)
 }
 
-const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID) => {
+const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID, userslist, imdbID) => {
     var moviePath
     var filexists = false
     const engine = torrent(magnet, options)
@@ -165,16 +165,26 @@ const downloadTorrent = (req, res, magnet, movieInfos, movieDB, inDB, userID) =>
     })
     
     engine.on('download', () => {
+        var inUserlist = false
+        for (let i = 0; i < userslist.length; i++) {
+            if (userslist[i].movieID == imdbID) {
+                inUserlist = true;
+                break ;
+            }
+        }
+        if (!inUserlist) {
+            engine.remove(true, () => { console.log('Nobody is streaming [' + imdbID + '], destroying the engine') } )
+            engine.destroy()
+            return ;
+        }
         if (moviePath)
             checkTorrentStatus(engine, magnet, moviePath, movieInfos, req)
     })
 }
 
-const initStreaming = async (req, res, magnet, movieInfos, userID) => {
+const initStreaming = async (req, res, magnet, movieInfos, userID, imdbID, userslist) => {
     var imdb = req.params.imdbcode
     var streaming = false
-    var emptyDownloaded = false
-    var dbIndex
     
     console.log('== init streaming ==')
     console.log('== ========================  ==')
@@ -207,7 +217,7 @@ const initStreaming = async (req, res, magnet, movieInfos, userID) => {
                     break ;
                 } else if (dbIndex === notDownloaded && !streaming) {
                     console.log('- Movie is in DB, but download is not over yet. Download is starting -')
-                    downloadTorrent(req, res, magnet, movieInfos, data, true, userID)
+                    downloadTorrent(req, res, magnet, movieInfos, data, true, userID, userslist, imdbID)
                     streaming = true
                     break ;
                 }
@@ -216,18 +226,18 @@ const initStreaming = async (req, res, magnet, movieInfos, userID) => {
                 console.log('- Movie is in the DB, but have no entries for this quality / stream provenance -')
                 data.downloaded.push(JSON.parse(notDownloaded))
                 data.save( (err) => { console.log(err) })
-                downloadTorrent(req, res, magnet, movieInfos, data, true, userID)
+                downloadTorrent(req, res, magnet, movieInfos, data, true, userID, userslist, imdbID)
                 return ;
             }  else if (data && data.downloaded.length == 0) {
                 console.log('- Movie is in DB, but without any informations -')
                 data.downloaded.push(JSON.parse(notDownloaded))
                 data.save( (err) => { console.log(err) })
-                downloadTorrent(req, res, magnet, movieInfos, data, true, userID)
+                downloadTorrent(req, res, magnet, movieInfos, data, true, userID, userslist, imdbID)
                 return ;
             }
         } else {
             console.log('Movie not found in the DB. Download is starting')
-            downloadTorrent(req, res, magnet, movieInfos, data, false, userID)
+            downloadTorrent(req, res, magnet, movieInfos, data, false, userID, userslist,imdbID)
         }
         if (err) { console.log(err) }
     })
