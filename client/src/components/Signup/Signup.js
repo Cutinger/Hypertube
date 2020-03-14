@@ -251,7 +251,7 @@ const handleSignupClicked = async(e) => {
         await API.register(fieldValue.firstname, fieldValue.lastname, fieldValue.email, fieldValue.username, fieldValue.password, fieldValue.password_confirm)
         .then(async(response) => {
             if (response.status === 200)
-                await imagesFilesUpload();
+                await imagesFilesUpload(response.data.token);
                 store.addNotification({
                     message: "A mail confirmation was send. Please active your account.",
                     insert: "top",
@@ -264,10 +264,10 @@ const handleSignupClicked = async(e) => {
                         onScreen: true
                     }
                 });
-                props.history.push('/');
+                props.history.push('/login');
         })
         .catch(err => {
-            if (err.response.data && typeof err.response.data.same_username !== 'undefined'){
+            if (err.response && err.response.data && typeof err.response.data.same_username !== 'undefined'){
                 setValidationErrors({
                     ...validationErrors,
                     err_username: err.response.data.same_username ? 'Username already exist' : false,
@@ -307,7 +307,7 @@ const handleFacebookConnection = () => {
       });
   }
 
-    const imagesFilesUpload = async() => {
+    const imagesFilesUpload = async(token) => {
       if (file) {
           const fileSize = Math.round((file.size / 1024));
           if ((fileSize >= 2048) || (file.type !== 'image/png' && file.type !== 'image/jpg' && file.type !== 'image/jpeg'))
@@ -315,7 +315,7 @@ const handleFacebookConnection = () => {
           else {
               const formData = new FormData();
               formData.append('file', file);
-              await API.updatePicture(formData)
+              await API.updatePicture(formData, token)
                   .then(res => {
                       if (res.status === 200 && res.data.img)
                           setDefaultImg(res.data.img);
@@ -328,9 +328,7 @@ const handleFacebookConnection = () => {
     };
 
     const handleChangeImg = (e) => {
-        console.log(e.target.files);
         if (e.target.files && e.target.files[0]){
-            console.log(1);
             setFile(e.target.files[0]);
             setDefaultImg(URL.createObjectURL(e.target.files[0]));
         }

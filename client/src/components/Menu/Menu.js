@@ -15,8 +15,10 @@ import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import API from '../../utils/API';
+import {store} from "react-notifications-component";
 import Cookies from 'universal-cookie';
 const cookies = new Cookies();
+
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -136,7 +138,7 @@ export default function PrimarySearchAppBar(props) {
 
 
     useEffect(() => {
-        function getWatchlist() {
+        async function getWatchlist() {
             API.getWatchlist()
                 .then(res => {
                     if (res.status === 200 && res.data.watchlist) {
@@ -145,7 +147,6 @@ export default function PrimarySearchAppBar(props) {
                         props.setWatchlist(res.data.watchlist)
                     }
                 })
-                .catch(err => console.log(err));
         }
 
         if (cookies.get('token') && !isConnected) {

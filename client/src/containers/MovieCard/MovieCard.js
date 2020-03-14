@@ -13,10 +13,11 @@ import API from './../../utils/API';
 import CommentIcon from '@material-ui/icons/Sms';
 import SendIcon from '@material-ui/icons/Send';
 import DeleteIcon from '@material-ui/icons/Delete';
-
 const burl = 'http://localhost:5000/api';
 const moment = require('moment');
 const Aux = (props) => props.children;
+const io = require('socket.io-client');
+const socket = io('http://localhost:8000');
 
 const useStyles = makeStyles(theme => ({
     containerMovieDetails: {
@@ -235,14 +236,16 @@ const useStyles = makeStyles(theme => ({
 
 function SimpleDialog(props) {
     const classes = useStyles();
-    const { onClose, selectedValue, open, movieSources } = props;
+    const { onClose, selectedValue, open, movieSources, movieID } = props;
 
     const handleClose = () => {
         onClose(selectedValue)
     };
 
     const handleListItemClick = value => {
-        onClose(value)
+        onClose(value);
+        console.log(movieID);
+        socket.emit("stream:play", movieID);
     };
 
     return (
@@ -298,7 +301,7 @@ export default function MovieCard(props){
     const [commentValue, setCommentValue] = React.useState([]);
     const [userID, setUserID] = React.useState(false);
     const [loadingComment, setLoadingComment] = React.useState(true);
-
+    // Sockets
     const handleGetComments = async(movieID) => {
         await API.getComments(movieID)
             .then(res => {
@@ -393,7 +396,10 @@ export default function MovieCard(props){
             getMovieSources();
             handleGetComments(props.match.params.movieId);
         }
-        return () => { _mounted = false }
+        return () => {
+            socket.emit("stream:unmount");
+            _mounted = false
+        }
     }, [props.match.params.movieId]);
 
 
@@ -574,7 +580,7 @@ export default function MovieCard(props){
                                             {sourceMessage()}
                                         </Button>
                                         <SimpleDialog movieSources={movieSources} selectedValue={selectedValue}
-                                                      open={open} onClose={handleClose}/>
+                                                      open={open} onClose={handleClose} movieID={props.match.params.movieId}/>
                                     </Grid>
 
                                 </Grid>

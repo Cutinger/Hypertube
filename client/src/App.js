@@ -59,24 +59,24 @@ export default function App(props) {
     </div>
       <Switch>
         <Route exact path="/movie/:movieId" component={
-          // withAuth(
+          withAuth(
           (matchProps) => <MovieCard {...props} {...matchProps} />
-          // )
+          )
         } />
         <Route exact path="/" component={
-          // withAuth(
+          withAuth(
               (props) => <Home {...props} ref={homeRef} setSidebar={handleActiveSidebar} />
-               // )
+               )
         } />
         <Route exact path="/historic" component={
-          // withAuth(
+          withAuth(
               (props) => <Home ref={historicRef} {...props} />
-          // )
+          )
         } />
         <Route exact path="/profile" component={
-          // withAuth(
+          withAuth(
           (props) => <Profile {...props} />
-          // )
+          )
         } />
         <Route exact path="/login" component={Login}/>
         <Route exact path="/users/reset/:token" component={(props) => <ResetPassword {...props} />}/>

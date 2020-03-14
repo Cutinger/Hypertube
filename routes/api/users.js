@@ -60,6 +60,35 @@ router.get('/active/:token', async(req, res) => {
     }
 });
 
+
+router.post('/active/resend', async(req, res) => {
+    try {
+        const username = sanitize(req.body.username);
+        const user = await User.findOne({username: username});
+        if (user){
+            // Token for mail
+            let token = ((+new Date) + Math.random()* 100).toString(32);
+            let hashtoken = crypto.createHash('md5').update(token).digest("hex");
+            user.tokenMail = hashtoken;
+            user.save();
+            const message = {
+                from: 'matcha@app.com',
+                to: user.email,
+                subject: 'Activate your account',
+                text: `Hello ${user.username}!\nHere is the link for activate your account\nhttp://localhost:3000/users/active/${hashtoken}`,
+            };
+            transport.sendMail(message, function(err, info) {
+                if (err) console.log(err)
+                else console.log(info);
+            });
+        }
+        return res.status(200).json({});
+    } catch(err){
+        return res.status(200).json({});
+    }
+});
+
+
 router.post('/reset/send', async(req, res) => {
     const { errors, isValid } = validateResetSend(req.body);
     // Check validation
@@ -180,8 +209,6 @@ router.post("/register", (req, res) => {
                     jwt.sign({id: userFind._id}, keys.secretOrKey, {expiresIn: 31556926},
                         (err, token) => {
                           if (!err) {
-                            // Send cookies
-                            res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, domain: 'localhost'});
                             // Send mail activation
                             const message = {
                               from: 'matcha@app.com',
@@ -193,7 +220,7 @@ router.post("/register", (req, res) => {
                               if (err) console.log(err)
                               else console.log(info);
                             });
-                            return res.status(200).json({});
+                            return res.status(200).json({token: token});
                           }
                           if (err) throw new Error(err)
                         })
@@ -230,6 +257,8 @@ router.post("/login", async(req, res) => {
         // User matched
         if (isMatch) {
           const payload = { id: user.id };
+          if (user.active === 0)
+              return res.status(400).json({active: true});
           // Sign token
           jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 },
             (err, token) => {

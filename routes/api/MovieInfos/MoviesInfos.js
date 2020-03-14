@@ -89,7 +89,7 @@ const getLeetMagnet = async(link) => {
             return data
         })
         .catch(err => {
-            console.log(err)
+            // console.log(err)
         })
 }
 
@@ -128,7 +128,7 @@ const leetSearch = async (movieTitle) => {
             return arr
         })
         .catch(err => {
-            console.log(err)
+            // console.log(err)
         })
 }
 
@@ -154,7 +154,9 @@ const parseData = async (req, res) => {
         if (sub.en || sub.fr)
             dataMovie.subtitles = sub
         res.json(dataMovie);
-    } catch (err) { console.log(err) }
+    } catch (err) {
+        // console.log(err)
+    }
 }
 
 module.exports = { parseData, checkYTSquality }

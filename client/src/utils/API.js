@@ -133,12 +133,11 @@ export default {
             }
         )
     },
-    updatePicture: (formData) => {
+    updatePicture: (formData, token) => {
         return axios.post(
-            `${burl}/picture/add`,
+            `${burl}/picture/add/${token}`,
             formData,
             {
-                withCredentials: 'true',
                 headers: headers
             }
         )
@@ -160,6 +159,13 @@ export default {
         return axios.post(
             `${burl}/users/reset/send`,
             {email},
+            { headers: headers }
+        )
+    },
+    resendMail: (username) => {
+        return axios.post(
+            `${burl}/users/active/resend`,
+            {username},
             { headers: headers }
         )
     },

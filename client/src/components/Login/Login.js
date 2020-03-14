@@ -8,8 +8,7 @@ import Logo from './../../assets/img/hypairtube-logov2.png'
 import VALIDATION from './../../utils/validation';
 import API from './../../utils/API';
 import Cookies from 'universal-cookie';
-
-
+import {store} from "react-notifications-component";
 
 // Style
 const useStyles = makeStyles(theme => ({
@@ -83,6 +82,7 @@ const useStyles = makeStyles(theme => ({
   export default function Login(props) {
     const classes = useStyles();
     const [mounted, setMounted] = useState(true);
+    const [displayResend, setDisplayResend] = useState(false);
 
     useEffect(() => {
        async function fetchAPI() {
@@ -160,7 +160,66 @@ const useStyles = makeStyles(theme => ({
                     props.history.push('/')
                 }
             })
-            .catch(err => setValidationErrors({...validationErrors, err_username: 'Incorrect username or password' }));
+            .catch(err => {
+                if (err && err.response && err.response.data && err.response.data.active) {
+                    store.addNotification({
+                        message: "Please active your account",
+                        insert: "top",
+                        type: 'success',
+                        container: "top-right",
+                        animationIn: ["animated", "fadeIn"],
+                        animationOut: ["animated", "fadeOut"],
+                        dismiss: {
+                            duration: 5000,
+                            onScreen: true
+                        }
+                    });
+                    setDisplayResend(true);
+                }
+                else
+                    setValidationErrors({...validationErrors, err_username: 'Incorrect username or password' })
+            });
+        }
+    }
+
+    const handleClickResend = async(e) => {
+        e.preventDefault();
+        const errors = { username: false }
+        if (!VALIDATION.validateUsername(fieldValue.username))
+            errors.username = 'Please use valid username';
+        setValidationErrors({ err_username: errors.username });
+        if (!errors.username) {
+            await API.resendMail(fieldValue.username)
+                .then(response => {
+                    if (response.status === 200){
+                        store.addNotification({
+                            message: "Mail confirmation was succesfully sent",
+                            insert: "top",
+                            type: 'success',
+                            container: "top-right",
+                            animationIn: ["animated", "fadeIn"],
+                            animationOut: ["animated", "fadeOut"],
+                            dismiss: {
+                                duration: 5000,
+                                onScreen: true
+                            }
+                        });
+                    }
+                })
+                .catch(err => {
+                    store.addNotification({
+                        message: "Error when try to send mail confirmation",
+                        insert: "top",
+                        type: 'success',
+                        container: "top-right",
+                        animationIn: ["animated", "fadeIn"],
+                        animationOut: ["animated", "fadeOut"],
+                        dismiss: {
+                            duration: 5000,
+                            onScreen: true
+                        }
+                    });
+                });
         }
     }
     return (
@@ -222,6 +281,17 @@ const useStyles = makeStyles(theme => ({
                             >
                                 Sign in
                             </Button>
+                            {displayResend ?<Button
+                                fullWidth
+                                size="large"
+                                type="submit"
+                                variant="contained"
+                                color="primary"
+                                className={classes.signupButton}
+                                onClick={handleClickResend}
+                            >
+                                Resend activation link
+                            </Button> : null}
                             <ButtonGroup 
                                     fullWidth 
                                     size="large"

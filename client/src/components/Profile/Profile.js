@@ -22,6 +22,7 @@ import MailIcon from '@material-ui/icons/Mail';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import { store } from 'react-notifications-component';
 import VALIDATION from "../../utils/validation";
+import Cookies from "universal-cookie";
 
 const useStyles = makeStyles(theme => ({
     backdrop: {
@@ -329,6 +330,7 @@ export default function Profile(props){
     }
 
     const imagesFilesUpload = async (e) => {
+        const cookies = new Cookies();
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             const fileSize = Math.round((file.size / 1024));
@@ -337,7 +339,7 @@ export default function Profile(props){
             else {
                 const formData = new FormData();
                 formData.append('file', file);
-                await API.updatePicture(formData)
+                await API.updatePicture(formData, cookies.get('token'))
                     .then(res => {
                         if (res.status === 200 && res.data.img)
                             setDefaultImg(res.data.img);

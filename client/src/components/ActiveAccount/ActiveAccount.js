@@ -42,7 +42,6 @@ export default function ForgotPassword(props) {
             props.history.push('/')
         }
         if (!mounted && props && props.match.params && props.match.params.token){
-            console.log(props.match.params.token)
             activeAccount();
             setMounted(true);
         }
