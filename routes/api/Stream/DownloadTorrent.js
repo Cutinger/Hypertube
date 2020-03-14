@@ -57,6 +57,7 @@ const checkQuality1377 = (leetinfos, quality) => {
 
 const printLeet = async (req, res, quality, imdbcode, userslist) => {
     try {
+        console.log('Source: 1377')
         var urlID = `https://api.themoviedb.org/3/find/${imdbcode}?api_key=${key.apiIMDB}&external_source=imdb_id`
         var imdbID = await axiosQuery(urlID, 'imdb_id')
         if ( !imdbID )
@@ -72,7 +73,8 @@ const printLeet = async (req, res, quality, imdbcode, userslist) => {
 
 const printYTS = async (baseURL, req, res, quality, userslist) => {
     try {
-        var urlID = `https://api.themoviedb.org/3/find/${imdbcode}?api_key=${key.apiIMDB}&external_source=imdb_id`
+        console.log('Source: YTS')
+        var urlID = `https://api.themoviedb.org/3/find/${req.params.imdbcode}?api_key=${key.apiIMDB}&external_source=imdb_id`
         var imdbID = await axiosQuery(urlID, 'imdb_id')
         if ( !imdbID )
             return res.sendStatus(404)
