@@ -35,6 +35,7 @@ export default function App(props) {
   const movieRef = React.useRef();
   const loginRef = React.useRef();
   const historicRef = React.useRef();
+  const profileRef = React.useRef();
   const history = useHistory();
   const classes = useStyles();
   const [language, setLanguage] = React.useState('us');
@@ -67,6 +68,7 @@ export default function App(props) {
       loginRef.current && loginRef.current.setLanguageHandle(language);
       homeRef.current && homeRef.current.setLanguageHandle(language);
       movieRef.current && movieRef.current.setLanguageHandle(language);
+      profileRef.current && profileRef.current.setLanguageHandle(language);
       cookies.set('lg', language, {path: '/'})
     }
   };
@@ -83,7 +85,7 @@ export default function App(props) {
         <Route exact path="/movie/:movieId" component={withAuth((matchProps) => <MovieCard {...props} ref={movieRef} {...matchProps} /> )} />
         <Route exact path="/" component={withAuth((props) => <Home {...props} ref={homeRef} setSidebar={handleActiveSidebar} /> )} />
         <Route exact path="/historic" component={withAuth((props) => <Home ref={historicRef} {...props} /> )} />
-        <Route exact path="/profile" component={withAuth((props) => <Profile {...props} /> )} />
+        <Route exact path="/profile" component={withAuth((props) => <Profile {...props} ref={profileRef} /> )} />
         <Route exact path="/login" component={(props) => <Login {...props} ref={loginRef} />}/>
         <Route exact path="/users/reset/:token" component={(props) => <ResetPassword {...props} />}/>
         <Route exact path="/users/active/:token" component={(props) => <ActiveAccount {...props} />}/>
