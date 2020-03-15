@@ -149,28 +149,31 @@ const Home = (forwardRef((props, ref) => {
     // First load (top movies)
         useEffect(() => {
             let isCancelled = false;
-            const getTopMoviesList = () => {
-                const lg = language === 'us' ? 'language=en-US' : 'language=fr-FR';
+            const cookies = new Cookies();
+            let lang = cookies.get('lg');
+            const getTopMoviesList = (lang) => {
+                const lg = lang === 'us' ? 'language=en-US' : 'language=fr-FR';
                 axios.get(`${query}${1}&${lg}`)
                     .then(res => {
                         if (res.data && res.data.results && res.data.results.length)
                             !isCancelled && setTopMoviesList(res.data.results);
                     })
             };
-            const getMoviesGenres = async() =>{
-                const lg = language === 'us' ? 'language=en-US' : 'language=fr-FR';
+            const getMoviesGenres = async(lang) =>{
+                const lg = lang === 'us' ? 'language=en-US' : 'language=fr-FR';
                 axios.get(`https://api.themoviedb.org/3/genre/movie/list?${lg}&api_key=${key}`)
                     .then(res => {
                         if (res.data && res.data.genres && res.data.genres.length)
                             !isCancelled && setMoviesGenres(res.data.genres)
                     })
             };
-            getMoviesGenres();
+
+            getMoviesGenres(lang);
             if (props.history.location.pathname === '/') {
-                getTopMoviesList();
+                getTopMoviesList(lang);
             }
             return () => { isCancelled = true }
-        }, [props.history.location.pathname, language]);
+        }, [props.history.location.pathname]);
 
     // Sidebar
     const [open, setOpen] = React.useState(false);
