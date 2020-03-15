@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useImperativeHandle, forwardRef} from 'react';
 import {ButtonGroup, Grow, Typography, TextField, Button, Container, Grid, Link } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import FacebookIcon from '@material-ui/icons/Facebook';
@@ -79,10 +79,64 @@ const useStyles = makeStyles(theme => ({
   }));
 
 
-  export default function Login(props) {
+const Login = (forwardRef((props, ref) => {
     const classes = useStyles();
     const [mounted, setMounted] = useState(true);
     const [displayResend, setDisplayResend] = useState(false);
+    const [language, setLanguage] = React.useState('us');
+
+      const translate = {
+          fr: {
+              mailConfirmError: "Erreur pendant la géneration du token",
+              dontHaveAccount: "Pas de compte ? S'inscrire",
+              forgotPassword: "Mot de passe oublié ?",
+              resendActivation: "Renvoyer un mail de confirmation",
+              incorrectUsernamePassword: "Nom d'utilisateur ou mot de passe incorrect",
+              mailConfirm : "Un mail de confirmation à été envoyé",
+              activeAccount: "Merci d'activer votre compte",
+              SignIn: 'Se connecter',
+              password: 'Mot de passe',
+              username: 'Nom d\'utilisateur',
+              errors: {
+                  password_strong: 'Mot de passe trop faible',
+                  password_required: 'Mot de passe requis',
+                  username: 'Nom d\'utilisateur invalide',
+              }
+          },
+          us: {
+              mailConfirmError: "Error when trying to generate token",
+              dontHaveAccount: "Don't have an account? Sign up",
+              forgotPassword : "Forgot password ?",
+              resendActivation: "Resend activation link",
+              incorrectUsernamePassword: 'Incorrect username or password',
+              mailConfirm: "Mail confirmation was succesfully sent",
+              activeAccount: 'Please active your account',
+              SignIn: 'Sign in',
+              password: 'Password',
+              username: 'Username',
+              errors: {
+                  password_strong: 'Password must be strong',
+                  password_required: 'Password required',
+                  username: 'Please use valid username',
+              }
+          }
+      };
+      // Ref accessible by App.js
+      useImperativeHandle(ref, () => ({
+          setLanguageHandle(language) {
+              setLanguage(language);
+          }
+      }));
+
+
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
+
 
     useEffect(() => {
        async function fetchAPI() {
@@ -146,11 +200,11 @@ const useStyles = makeStyles(theme => ({
         /* VALIDATION */
         const errors = { username: false, password: false }
         if (!VALIDATION.validateUsername(fieldValue.username))
-            errors.username = 'Please use valid username';
+            errors.username = translate[language].errors.username
         if (!fieldValue.password.length)
-            errors.password = 'Password required';
+            errors.password = translate[language].errors.password_required;
         else if (!VALIDATION.validatePassword(fieldValue.password))
-            errors.password = 'Please use strong password';
+            errors.password = translate[language].errors.password_strong;
         setValidationErrors({ err_password: errors.password, err_username: errors.username });
         /* SEND REQUEST */
         if (!errors.username && !errors.password) {
@@ -163,7 +217,7 @@ const useStyles = makeStyles(theme => ({
             .catch(err => {
                 if (err && err.response && err.response.data && err.response.data.active) {
                     store.addNotification({
-                        message: "Please active your account",
+                        message: translate[language].activeAccount,
                         insert: "top",
                         type: 'success',
                         container: "top-right",
@@ -177,7 +231,7 @@ const useStyles = makeStyles(theme => ({
                     setDisplayResend(true);
                 }
                 else
-                    setValidationErrors({...validationErrors, err_username: 'Incorrect username or password' })
+                    setValidationErrors({...validationErrors, err_username: translate[language].errors.incorrectUsernamePassword })
             });
         }
     }
@@ -193,7 +247,7 @@ const useStyles = makeStyles(theme => ({
                 .then(response => {
                     if (response.status === 200){
                         store.addNotification({
-                            message: "Mail confirmation was succesfully sent",
+                            message: translate[language].mailConfirm,
                             insert: "top",
                             type: 'success',
                             container: "top-right",
@@ -208,7 +262,7 @@ const useStyles = makeStyles(theme => ({
                 })
                 .catch(err => {
                     store.addNotification({
-                        message: "Error when try to send mail confirmation",
+                        message: translate[language].mailConfirmError,
                         insert: "top",
                         type: 'success',
                         container: "top-right",
@@ -236,7 +290,7 @@ const useStyles = makeStyles(theme => ({
                     {/* <CssBaseline /> */}
                     <div className={classes.paper}>
                         <Typography component="h1" variant="h5">
-                            Sign in
+                            {translate[language].SignIn}
                         </Typography>
                         <form className={classes.form} onSubmit={handleSignInClicked} noValidate>
                             <Grid alignContent="center" alignItems="center" container spacing={2}>
@@ -249,7 +303,7 @@ const useStyles = makeStyles(theme => ({
                                         required
                                         fullWidth
                                         id="username"
-                                        label="Username"
+                                        label={translate[language].username}
                                         name="username"
                                         autoComplete="username"
                                     />
@@ -263,7 +317,7 @@ const useStyles = makeStyles(theme => ({
                                         required
                                         fullWidth
                                         name="password"
-                                        label="Password"
+                                        label={translate[language].password}
                                         type="password"
                                         id="password"
                                         autoComplete="current-password"
@@ -279,7 +333,7 @@ const useStyles = makeStyles(theme => ({
                                 className={classes.signupButton}
                                 onClick={handleSignInClicked}
                             >
-                                Sign in
+                                {translate[language].SignIn}
                             </Button>
                             {displayResend ?<Button
                                 fullWidth
@@ -290,7 +344,7 @@ const useStyles = makeStyles(theme => ({
                                 className={classes.signupButton}
                                 onClick={handleClickResend}
                             >
-                                Resend activation link
+                                {translate[language].resendActivation}
                             </Button> : null}
                             <ButtonGroup 
                                     fullWidth 
@@ -311,14 +365,14 @@ const useStyles = makeStyles(theme => ({
                                 </Button>
                             </ButtonGroup>
                             <Grid container justify="center">
-                                <Grid item xs={4}>
+                                <Grid item xs={5}>
                                     <Link onClick={handleRedirectForgot} href="#" variant="body2">
-                                        Forgot password ?
+                                        {translate[language].forgotPassword}
                                     </Link>
                                 </Grid>
-                                <Grid className={classes.signupItem} item xs={8}>
+                                <Grid className={classes.signupItem} item xs={7}>
                                     <Link onClick={handleRedirectSignup} href="#" variant="body2">
-                                        Don't have an account? Sign up
+                                        {translate[language].dontHaveAccount}
                                     </Link>
                                 </Grid>
                             </Grid>
@@ -329,3 +383,5 @@ const useStyles = makeStyles(theme => ({
         </div>
         );
     }
+));
+export default Login;

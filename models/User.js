@@ -51,6 +51,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    language: {
+      type: String,
+      default: 'us'
+    },
     oauthID:String,
     facebook: JSON,
     github: JSON,

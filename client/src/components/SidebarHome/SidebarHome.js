@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useState} from 'react';
 import { 
     Drawer, 
     Button, 
@@ -13,6 +13,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import { makeStyles, withStyles, useTheme } from '@material-ui/core/styles';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import Cookies from 'universal-cookie';
 
 const useStyles = makeStyles(() => ({
     drawerPaper:{
@@ -83,7 +84,8 @@ const PrettoSlider = withStyles({
     },
 })(Slider);
 
-function SidebarHome(props) {
+
+const SidebarHome = (forwardRef((props, ref) => {
     const classes = useStyles();
     const theme = useTheme();
     const [open, setOpen] = useState(false);
@@ -91,9 +93,43 @@ function SidebarHome(props) {
     const [yearValue, setYearValue] = useState(2019);
     const [voteValue, setVoteValue] = useState(5);
     const [genreValues, setGenresValue] = useState([])
+    const [language, setLanguage] = useState('us');
+    const [translate] = useState({
+        fr: {
+            Searchfilters: 'Filtre',
+            year: 'Année',
+            Vote: 'Note',
+            Genres: 'Genre(s)',
+            GenresAdd: 'Ajouter genre(s)',
+            Search: 'Rechercher'
+        },
+        us: {
+            Searchfilters: 'Search filters',
+            year: 'Year',
+            Vote: 'Vote',
+            Genres: 'Genre(s)',
+            GenresAdd: 'Add genre(s)',
+            Search: 'Search'
+        }});
+    // Ref accessible by App.js
+    useImperativeHandle(ref, () => ({
+        setLanguageHandle(language) {
+            if(language)
+                setLanguage(language);
+        }
+    }));
 
-    
-    // Receive active (bool) from Parent (Menu --> App --> Home)
+
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
+
+
+        // Receive active (bool) from Parent (Menu --> App --> Home)
     useEffect(() => {
         function setSidebar() {
             setOpen(props.sidebarActive)
@@ -101,6 +137,7 @@ function SidebarHome(props) {
         setSidebar();
         
     }, [props.sidebarActive]);
+
 
     // Receive genres list from Parent (Home)
         useEffect(() => {
@@ -124,17 +161,21 @@ function SidebarHome(props) {
             let genresTab = '';
             const baseURL= 'https://api.themoviedb.org/3/discover/movie?';
             const apiKey = 'api_key=f29f2233f1aa782b0f0dc8d6d9493c64';
-            const language = 'language=en-US';
+            const lg = language === 'us' ? 'language=en-US' : 'language=fr';
             const voteFilter = 'vote_average.gte=';
             const voteAverage = voteValue * 2;
             const year = `primary_release_year=${yearValue}`
             const includeAdult = 'include_adult=false';
             if (genreValues && genreValues.length)
                 genresTab = genreValues.map((obj) => { return obj.id }).join(',');
-            const query = `${baseURL}${apiKey}&${language}&${year}&${voteFilter}${voteAverage}&${includeAdult}&with_genres=${genresTab}&page=`;
+            const query = `${baseURL}${apiKey}&${lg}&${year}&${voteFilter}${voteAverage}&${includeAdult}&with_genres=${genresTab}&page=`;
             props.pushQuery(query);
           
         };
+        useEffect(() => {
+            if (props && props.lg && props.lg !== language)
+                setLanguage(props.lg);
+        }, [props, language])
     return (
         <Drawer
             variant="persistent"
@@ -146,7 +187,7 @@ function SidebarHome(props) {
             <div className={classes.drawerHeader}>
                 <Grid container direction="row" alignContent="flex-end" justify="space-between" alignItems={"center"}>
                     <Grid item xs={6} style={{padding: '12px'}}>
-                        <Typography style={{color: 'white', fontSize: '1.2em', fontWeight: 'bold', verticalAlign: 'middle'}}>Search filters</Typography>
+                        <Typography style={{color: 'white', fontSize: '1.2em', fontWeight: 'bold', verticalAlign: 'middle'}}> {translate[language].Search}</Typography>
                     </Grid>
                     <Grid item xs={6} style={{textAlign: 'right'}}>
                         <IconButton onClick={props.sidebarClose}>
@@ -157,22 +198,24 @@ function SidebarHome(props) {
             </div>
             <Divider style={{background: 'linear-gradient(90deg, #3f51b5, rgba(255,255,255,0))'}}/>
             <div className={classes.sidebarHomeContainer}>
-                <Typography gutterBottom style={{color: 'white'}}>Year</Typography>
-                <PrettoSlider 
-                    valueLabelDisplay="auto" 
-                    min={1910} max={2020} 
+                <Typography gutterBottom style={{color: 'white'}}>
+                    {translate[language].year}
+                </Typography>
+                <PrettoSlider
+                    valueLabelDisplay="auto"
+                    min={1910} max={2020}
                     defaultValue={2019}
                     onChange={handleYearChange}
                 />
-                <Typography  gutterBottom style={{color: 'white'}}>Vote</Typography>
-                <PrettoSlider 
+                <Typography  gutterBottom style={{color: 'white'}}>{translate[language].Vote}</Typography>
+                <PrettoSlider
                     onChange={handleVoteChange}
                     valueLabelDisplay="auto"
-                    min={0} max={5} 
+                    min={0} max={5}
                     defaultValue={5}
-                    step={1} 
+                    step={1}
                 />
-                <Typography gutterBottom style={{color: 'white'}}>Genre(s)</Typography>
+                <Typography gutterBottom style={{color: 'white'}}>{translate[language].Genres}</Typography>
                 <Autocomplete
                     style={{color: 'white'}}
                     multiple
@@ -185,7 +228,7 @@ function SidebarHome(props) {
                         {...params}
                         className={classes.actorResearch}
                         variant="outlined"
-                        placeholder="Add genre(s)"
+                        placeholder={translate[language].GenresAdd}
                     />
                     )}
                 />
@@ -199,7 +242,7 @@ function SidebarHome(props) {
                                 onClick={handleSubmitSearch}
                                 className={classes.buttonSearch}
                             >
-                                Search
+                                {translate[language].Search}
                             </Button>
                         </Grid>
                     </Grid>
@@ -208,5 +251,6 @@ function SidebarHome(props) {
         </Drawer>
     )
 }
+));
 
 export default SidebarHome;

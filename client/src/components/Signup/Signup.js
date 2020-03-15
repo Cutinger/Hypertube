@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useState} from 'react';
 import {
     Grow,
     ButtonGroup,
@@ -146,12 +146,69 @@ const useStyles = makeStyles(theme => ({
     },
     
   }));
-
 const defaultSrc = "https://i.ibb.co/hgvJPFb/default-Img-Profile.png";
 
-export default function Signup(props) {
+
+
+
+const Signup = (forwardRef((props, ref) => {
 const classes = useStyles();
+const [language, setLanguage] = React.useState('us');
+
 const [file, setFile] = React.useState('');
+
+    const translate = {
+        fr: {
+            fileWarning: "Désoleé, nous acceptons uniquement jpg, jpeg, png / taille limite 2mb",
+            mailConfirmation : "Un mail de confirmation vient d'être envoyé.",
+            SignUp: "S'inscrire",
+            firstname: 'Prénom',
+            lastname: 'Nom',
+            email: 'Adresse e-mail',
+            password: 'Mot de passe',
+            password_confirm: 'Confirmation',
+            username: "Nom d'utilisateur",
+            HaveAccount: "Vous possédez déja un compte? Connectez-vous",
+            errors: {
+                email: "Merci d'utiliser une adresse e-mail valide",
+                firstname: "Merci d'utiliser un prénom valide",
+                lastname: "Merci d'utiliser un nom valide",
+                password_strong: 'Mot de passe trop faible',
+                password_required: 'Mot de passe requis',
+                username: "Merci d'utiliser un nom d'utilisateur valide",
+                password_confirm: 'Les mots de passe ne correspondent pas',
+                usernameExist: "Nom d'utilisateur déjà pris",
+                emailExist: "E-mail déjà pris"
+            },
+            useDefault: 'Image par défaut',
+            addPicture: 'Ajouter une image'
+        },
+        us: {
+            fileWarning: "Sorry, we only accept jpg, jpeg, png and max file size of 2mb",
+            mailConfirmation: "A mail confirmation was send. Please active your account.",
+            SignUp: 'Sign up',
+            firstname: 'First name',
+            lastname: 'Last name',
+            email: 'Email Address',
+            password: 'Password',
+            password_confirm: 'Confirm password',
+            username: 'Username',
+            HaveAccount: "Already have an account? Sign in",
+            errors: {
+                email: 'Please use valid email',
+                firstname: 'Please use valid first name',
+                lastname: 'Please use valid last name',
+                password_strong: 'Password must be strong',
+                password_required: 'Password required',
+                username: 'Please use valid username',
+                password_confirm: 'Passwords must match',
+                usernameExist: 'Username already exist',
+                emailExist: 'Email already exist'
+            },
+            useDefault: 'Use default image',
+            addPicture: 'Add picture'
+        }
+    };
 // Warnings after validation
 const [validationErrors, setValidationErrors] = React.useState({
     err_firstname: false,
@@ -179,6 +236,15 @@ const [mounted, setMounted] = useState(true);
     e.preventDefault();
     props.history.push('/login');
 };
+
+
+useEffect(() => {
+    const cookies = new Cookies();
+    const getLg = cookies.get('lg');
+    if (getLg && getLg !== language) {
+        setLanguage(getLg);
+    }
+},[language] );
 
   useEffect(() => {
       async function fetchAPI() {
@@ -224,20 +290,21 @@ const handleSignupClicked = async(e) => {
         password_confirm: false,
         username: false,
     }
+
     if (!VALIDATION.validateEmail(fieldValue.email))
-        errors.email = 'Please use valid email';
+        errors.email = translate[language].errors.email;
     if (!VALIDATION.validateName(fieldValue.firstname))
-        errors.firstname = 'Please use valid first name';
+        errors.firstname = translate[language].errors.firstname;
     if (!VALIDATION.validateName(fieldValue.lastname))
-        errors.lastname = 'Please use valid last name';
+        errors.lastname = translate[language].errors.lastname;
     if (!fieldValue.password.length)
-        errors.password = 'Password required';
+        errors.password = translate[language].errors.password_required
     else if (!VALIDATION.validatePassword(fieldValue.password))
-        errors.password = 'Please use strong password';
+        errors.password = translate[language].errors.password_strong
     if (fieldValue.password !== fieldValue.password_confirm)
-        errors.password_confirm = 'Passwords must match';
+        errors.password_confirm = translate[language].errors.password_confirm;
     if (!VALIDATION.validateUsername(fieldValue.username))
-        errors.username = 'Please use valid username';
+        errors.username = translate[language].errors.lastname;
     setValidationErrors({
         err_password: errors.password,
         err_password_confirm: errors.password_confirm,
@@ -253,7 +320,7 @@ const handleSignupClicked = async(e) => {
             if (response.status === 200)
                 await imagesFilesUpload(response.data.token);
                 store.addNotification({
-                    message: "A mail confirmation was send. Please active your account.",
+                    message: translate[language].mailConfirmation,
                     insert: "top",
                     type: 'success',
                     container: "top-right",
@@ -270,8 +337,8 @@ const handleSignupClicked = async(e) => {
             if (err.response && err.response.data && typeof err.response.data.same_username !== 'undefined'){
                 setValidationErrors({
                     ...validationErrors,
-                    err_username: err.response.data.same_username ? 'Username already exist' : false,
-                    err_email: err.response.data.same_email ? 'Email already exist' : false
+                    err_username: err.response.data.same_username ? translate[language].errors.usernameExist : false,
+                    err_email: err.response.data.same_email ? translate[language].errors.emailExist : false
                 })
             }
         });
@@ -294,7 +361,7 @@ const handleFacebookConnection = () => {
 
   const handleNotifFile = () => {
       store.addNotification({
-          message: "Sorry, we only accept jpg, jpeg, png and max file size of 2mb ",
+          message: translate[language].fileWarning,
           insert: "top",
           type: 'success',
           container: "top-right",
@@ -337,6 +404,13 @@ const handleFacebookConnection = () => {
       setDefaultImg(defaultSrc);
       setFile('');
     };
+
+    // Ref accessible by App.js
+    useImperativeHandle(ref, () => ({
+        setLanguageHandle(language) {
+            setLanguage(language);
+        }
+    }));
 return (
     <div className={classes.loginContainer}>
         <Grow in={mounted}>
@@ -351,7 +425,7 @@ return (
                 {/* <CssBaseline /> */}
                 <div className={classes.paper}>
                     <Typography component="h1" variant="h5">
-                        Sign up
+                        {translate[language].SignUp}
                     </Typography>
                     <form className={classes.form} onSubmit={handleSignupClicked} noValidate>
                         <Grid alignContent="center" justify={"center"} alignItems="center" container spacing={2}>
@@ -359,7 +433,7 @@ return (
                                 <div className={classes.imageUploadWrap}>
                                     <Fab variant="extended" size="small" className={classes.addPicture} >
                                         <AddIcon />
-                                        Add picture
+                                        {translate[language].addPicture}
                                     </Fab>
                                     <input
                                         className={classes.fileUploadInput}
@@ -370,7 +444,7 @@ return (
                                 </div>
                                 <Fab onClick={handleCheckboxImg} variant="extended" size="small" className={classes.addPicture} >
                                     <ImageIcon />
-                                    Use default image
+                                    {translate[language].useDefault}
                                 </Fab>
                             </Grid>
                             <Grid item xs={4} sm={6}>
@@ -392,7 +466,7 @@ return (
                                     required
                                     fullWidth
                                     id="firstname"
-                                    label="First Name"
+                                    label={translate[language].firstname}
                                     autoFocus
                                     className={classes.textfield}
                                 />
@@ -407,7 +481,7 @@ return (
                                     required
                                     fullWidth
                                     id="lastname"
-                                    label="Last Name"
+                                    label={translate[language].lastname}
                                     name="lastname"
                                     autoComplete="lname"
                                     className={classes.textfield}
@@ -423,7 +497,7 @@ return (
                                     required
                                     fullWidth
                                     id="email"
-                                    label="Email Address"
+                                    label={translate[language].email}
                                     name="email"
                                     autoComplete="email"
                                     className={classes.textfield}
@@ -439,8 +513,8 @@ return (
                                     required
                                     fullWidth
                                     id="username"
-                                    label="Username"
                                     name="username"
+                                    label={translate[language].username}
                                     autoComplete="username"
                                     className={classes.textfield}
                                 />
@@ -455,7 +529,7 @@ return (
                                     required
                                     fullWidth
                                     name="password"
-                                    label="Password"
+                                    label={translate[language].password}
                                     type="password"
                                     id="password"
                                     autoComplete="current-password"
@@ -472,7 +546,7 @@ return (
                                     required
                                     fullWidth
                                     name="password_confirm"
-                                    label="Password Confirm"
+                                    label={translate[language].password_confirm}
                                     type="password"
                                     id="password_confirm"
                                     autoComplete="current-password"
@@ -489,7 +563,7 @@ return (
                             className={classes.signupButton}
                             onClick={handleSignupClicked}
                         >
-                            Sign Up
+                           {translate[language].SignUp}
                         </Button>
                         <ButtonGroup
                                 fullWidth
@@ -512,7 +586,7 @@ return (
                         <Grid container justify="flex-end">
                             <Grid item>
                                 <Link onClick={handleRedirectLogin} href="#" variant="body2">
-                                    Already have an account? Sign in
+                                    {translate[language].HaveAccount}
                                 </Link>
                             </Grid>
                         </Grid>
@@ -520,6 +594,6 @@ return (
                 </div>
             </Container>
         </Grow>
-    </div>
-    );
-}
+    </div>)
+}));
+export default Signup;

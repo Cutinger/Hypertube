@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react'
+import React, {useState, useEffect, useImperativeHandle, forwardRef} from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp'
 import SidebarHome from '../../components/SidebarHome/SidebarHome'
 import HomeMovieCards from '../../components/HomeMoviesCards/HomeMoviesCards'
 import Historic from '../../components/HomeMoviesCards/Historic'
 import InfiniteScroll from "react-infinite-scroll-component";
-
 import axios from 'axios'
 import {
     Container,
@@ -15,6 +14,7 @@ import {
     useScrollTrigger,
     Zoom, Divider
 } from '@material-ui/core'
+import Cookies from "universal-cookie";
 
 const key = 'f29f2233f1aa782b0f0dc8d6d9493c64';
 const useStyles = makeStyles(theme => ({
@@ -68,16 +68,13 @@ const useStyles = makeStyles(theme => ({
         borderRadius: '10px',
         opacity: '0.25',
         boxShadow: '6px 12px 22px #bd20857a'
-
-
-
     }
 }));
 
 const query = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${key}&page=`
 
 
-const App = (forwardRef((props, ref) => {
+const Home = (forwardRef((props, ref) => {
     const classes = useStyles();
     const [topMoviesList, setTopMoviesList] = useState(false);
     const [moviesGenres, setMoviesGenres] = useState(false);
@@ -86,6 +83,33 @@ const App = (forwardRef((props, ref) => {
     const [searchValue, setSearchValue] = useState(false)
     const [loadPage, setLoadPage] = useState(1);
     const [load, setLoad] = useState(false);
+    const [language, setLanguage] = React.useState('us');
+    const sidebarRef = React.useRef();
+    const moviesCardsRef = React.useRef();
+
+    const translate = {
+        fr: {
+            TopMovies: 'Top Films',
+            searchTitle: 'Recherche pour '
+        },
+        us: {
+            TopMovies: 'Top Movies',
+            searchTitle: 'Search for '
+        }
+    }
+    // Ref accessible by App.js
+    useImperativeHandle(ref, () => ({
+        setLanguageHandle(language) {
+            setLanguage(language);
+        }
+    }));
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
 
     // ScrollToTop
         const trigger = useScrollTrigger({
@@ -109,7 +133,8 @@ const App = (forwardRef((props, ref) => {
     useEffect(() => {
         async function loadMore() {
             let selectQuery = sidebarQuery ? sidebarQuery : query;
-            await axios.get(`${selectQuery}${loadPage}`)
+            const lg = language === 'us' ? 'language=en-US' : 'language=fr-FR';
+            await axios.get(`${selectQuery}${loadPage}&${lg}`)
                 .then(res => {
                     if (res.data && res.data.results && res.data.results.length)
                         setTopMoviesList([].concat(topMoviesList, res.data.results));
@@ -119,30 +144,33 @@ const App = (forwardRef((props, ref) => {
             loadMore();
             setLoad(false);
         }
-    }, [load, topMoviesList, loadPage, sidebarQuery]);
+    }, [load, topMoviesList, loadPage, sidebarQuery, language]);
 
     // First load (top movies)
         useEffect(() => {
             let isCancelled = false;
             const getTopMoviesList = () => {
-                axios.get(`${query}${1}`)
+                const lg = language === 'us' ? 'language=en-US' : 'language=fr-FR';
+                axios.get(`${query}${1}&${lg}`)
                     .then(res => {
                         if (res.data && res.data.results && res.data.results.length)
                             !isCancelled && setTopMoviesList(res.data.results);
                     })
             };
             const getMoviesGenres = async() =>{
-                axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${key}`)
+                const lg = language === 'us' ? 'language=en-US' : 'language=fr-FR';
+                axios.get(`https://api.themoviedb.org/3/genre/movie/list?${lg}&api_key=${key}`)
                     .then(res => {
                         if (res.data && res.data.genres && res.data.genres.length)
                             !isCancelled && setMoviesGenres(res.data.genres)
                     })
             };
             getMoviesGenres();
-            if (props.history.location.pathname === '/')
+            if (props.history.location.pathname === '/') {
                 getTopMoviesList();
+            }
             return () => { isCancelled = true }
-        }, [props.history.location.pathname]);
+        }, [props.history.location.pathname, language]);
 
     // Sidebar
     const [open, setOpen] = React.useState(false);
@@ -153,7 +181,8 @@ const App = (forwardRef((props, ref) => {
         let watchlistTab = [];
         if (watchlist && watchlist.length){
             for(let i = 0; i < watchlist.length; i++){
-                await axios.get(`https://api.themoviedb.org/3/movie/${watchlist[i]}?api_key=c91b62254304ec5dbb322351b0dc1094`)
+                const lg = language === 'us' ? 'language=en-US' : 'language=fr-FR';
+                await axios.get(`https://api.themoviedb.org/3/movie/${watchlist[i]}?${lg}&api_key=c91b62254304ec5dbb322351b0dc1094`)
                     .then(res => {
                         if (res.status === 200 && res.data) {
                             watchlistTab.push(res.data);
@@ -173,8 +202,24 @@ const App = (forwardRef((props, ref) => {
         async getWatchlist(watchlist){
             setWatchlist(watchlist);
             await transormWatchlist(watchlist);
+        },
+        setLanguageHandle(language) {
+            if (language){
+                setLanguage(language);
+                sidebarRef.current && sidebarRef.current.setLanguageHandle(language);
+                moviesCardsRef.current && moviesCardsRef.current.setLanguageHandle(language);
+            }
         }
     }));
+
+
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
 
     // Receive query from SidebarHome
     const handlePushQuery = (query) => {
@@ -200,8 +245,6 @@ const App = (forwardRef((props, ref) => {
         return () => { isCancelled = true }
     }, [sidebarQuery, loadPage]);
 
-
-
     return (
         props.history.location.pathname === "/" ?
             <Container component="main" className={classes.containerGridTopMovie}>
@@ -215,15 +258,18 @@ const App = (forwardRef((props, ref) => {
                     sidebarClose={handleDrawerClose}
                     sidebarActive={open}
                     genres={moviesGenres}
+                    ref={sidebarRef}
+                    lg={language}
                     pushQuery={handlePushQuery}
                 />
                 <div className={classes.titleContainer}>
-                    <h1 className={classes.title}>{searchValue ? `Search for ${searchValue}` : 'Top Movies'}</h1>
+                    <h1 className={classes.title}>{searchValue ? `${translate[language].searchTitle} ${searchValue}` : translate[language].TopMovies}</h1>
                     <Divider className={classes.dividerTitle}/>
                 </div>
                 <InfiniteScroll next={handleSetLoadMovies} hasMore={true} dataLength={topMoviesList ? topMoviesList.length : 0} ></InfiniteScroll>
                 {/* Movies card map */}
                 <HomeMovieCards
+                    ref={moviesCardsRef}
                     watchlist={watchlist}
                     topMoviesList={topMoviesList}
                     moviesGenres={moviesGenres}
@@ -256,6 +302,7 @@ const App = (forwardRef((props, ref) => {
                 </div>
                 {/* Movies card map */}
                 <Historic
+                    ref={moviesCardsRef}
                     topMoviesList={watchlist}
                     moviesGenres={moviesGenres}
                     pushHistory={(link) => props.history.push(link)}
@@ -282,4 +329,4 @@ const App = (forwardRef((props, ref) => {
     )
 }));
 
-export default App;
+export default Home;

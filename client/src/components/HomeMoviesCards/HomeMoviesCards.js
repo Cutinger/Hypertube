@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback, useImperativeHandle, forwardRef} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
 import AddCircle from '@material-ui/icons/AddCircle';
@@ -7,6 +7,7 @@ import { Grow, Grid } from '@material-ui/core';
 import API from './../../utils/API';
 import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import { store } from 'react-notifications-component';
+import Cookies from "universal-cookie";
 
 const useStyles = makeStyles(theme => ({
     movieCover: {
@@ -200,14 +201,42 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+const translate = {
+    fr: {
+        messageRemoved: "Le film a bien été retiré de votre liste",
+        messageAdd: "Le film a bien été ajouté à votre liste",
+    },
+    us:{
+        messageRemoved: "Movie was successfully removed from watch list",
+        messageAdd: "Movie was successfully added from watch list",
+    }
+}
 
-export default function HomeMoviesCards(props) {
+
+const HomeMoviesCards = (forwardRef((props, ref) => {
     const classes = useStyles();
     const [movieFocus, setMovieFocus] = useState(false);
     const [topMoviesList, setTopMoviesList] = useState(false);
     const [moviesGenres, setMoviesGenres] = useState(false);
     const [activeTextAutoScroll, setActiveTextAutoScroll] = useState(false);
     const [watchlist, setWatchlist] = useState([]);
+    const [language, setLanguage] = React.useState('us');
+
+    // Ref accessible by App.js
+    useImperativeHandle(ref, () => ({
+        setLanguageHandle(language) {
+            if(language)
+                setLanguage(language);
+        }
+    }));
+    // Load cookies for language
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
 
     // Get props on load (moviesGenres && topMoviesList)
     useEffect(() => {
@@ -281,7 +310,7 @@ export default function HomeMoviesCards(props) {
                    <HighlightOffIcon onClick={() =>{
                        handleClickAddWatchlist(id);
                        store.addNotification({
-                           message: "Movie was successfully removed from watch list",
+                           message: translate[language].messageRemoved,
                            insert: "top",
                            type: 'success',
                            container: "top-right",
@@ -302,7 +331,7 @@ export default function HomeMoviesCards(props) {
                 <AddCircle onClick={() => {
                     handleClickAddWatchlist(id);
                     store.addNotification({
-                        message: "Movie was successfully added from watch list",
+                        message: translate[language].messageAdd,
                         type: 'success',
                         insert: "top",
                         container: "top-right",
@@ -401,3 +430,5 @@ export default function HomeMoviesCards(props) {
             </div>
     )
 }
+));
+export default HomeMoviesCards;

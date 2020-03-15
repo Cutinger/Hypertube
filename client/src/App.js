@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import Login from './components/Login/Login';
 import Signup from './components/Signup/Signup';
 import Forgot from './components/ForgotPassword/ForgotPassword';
@@ -13,6 +13,7 @@ import ResetPassword from './components/ResetPassword/ResetPassword';
 import ReactNotification from 'react-notifications-component';
 import { Route, Switch, Redirect, useHistory } from 'react-router-dom';
 import {makeStyles} from "@material-ui/core/styles";
+import Cookies from 'universal-cookie';
 
 const useStyles = makeStyles(theme => ({
   topBackground: {
@@ -28,12 +29,14 @@ const useStyles = makeStyles(theme => ({
 
 export default function App(props) {
 
-  // const [watchlist, setWatchlist] = useState([]);
-
   const homeRef = React.useRef();
+  const menuRef = React.useRef();
+  const signupRef = React.useRef();
+  const loginRef = React.useRef();
   const historicRef = React.useRef();
   const history = useHistory();
   const classes = useStyles();
+  const [language, setLanguage] = React.useState('us');
 
   const handleActiveSidebar = (bool) => {
     if (history && history.location.pathname === '/'){
@@ -46,42 +49,43 @@ export default function App(props) {
 
   };
 
-  const handleSearchMovie = (query, value) => {
-      homeRef.current && homeRef.current.setSearch(query, value);
+
+  useEffect(() => {
+    const cookies = new Cookies();
+    const getLg = cookies.get('lg');
+    if (getLg && getLg !== language) {
+      setLanguage(getLg);
+    }
+  },[language] );
+
+  const handleSetLanguage = (language) => {
+    if (language && typeof (language) !== 'undefined') {
+      const cookies = new Cookies();
+      menuRef.current && menuRef.current.setLanguageHandle(language);
+      signupRef.current && signupRef.current.setLanguageHandle(language);
+      loginRef.current && loginRef.current.setLanguageHandle(language);
+      homeRef.current && homeRef.current.setLanguageHandle(language);
+      cookies.set('lg', language, {path: '/'})
+    }
   };
+  const handleSearchMovie = (query, value) => { homeRef.current && homeRef.current.setSearch(query, value) };
 
   return (
     <div>
       <div className={classes.topBackground} />
-      <Route component={(props) => <Menu {...props} search={handleSearchMovie} setWatchlist={handleSetWatchlist} setSidebar={handleActiveSidebar}/>}/>
+      <Route component={(props) => <Menu {...props} ref={menuRef} setLanguage={handleSetLanguage} search={handleSearchMovie} setWatchlist={handleSetWatchlist} setSidebar={handleActiveSidebar}/>}/>
       <div className={"notifications"}>
         <ReactNotification />
     </div>
       <Switch>
-        <Route exact path="/movie/:movieId" component={
-          withAuth(
-          (matchProps) => <MovieCard {...props} {...matchProps} />
-          )
-        } />
-        <Route exact path="/" component={
-          withAuth(
-              (props) => <Home {...props} ref={homeRef} setSidebar={handleActiveSidebar} />
-               )
-        } />
-        <Route exact path="/historic" component={
-          withAuth(
-              (props) => <Home ref={historicRef} {...props} />
-          )
-        } />
-        <Route exact path="/profile" component={
-          withAuth(
-          (props) => <Profile {...props} />
-          )
-        } />
-        <Route exact path="/login" component={Login}/>
+        <Route exact path="/movie/:movieId" component={withAuth((matchProps) => <MovieCard {...props} {...matchProps} /> )} />
+        <Route exact path="/" component={withAuth((props) => <Home {...props} ref={homeRef} setSidebar={handleActiveSidebar} /> )} />
+        <Route exact path="/historic" component={withAuth((props) => <Home ref={historicRef} {...props} /> )} />
+        <Route exact path="/profile" component={withAuth((props) => <Profile {...props} /> )} />
+        <Route exact path="/login" component={(props) => <Login {...props} ref={loginRef} />}/>
         <Route exact path="/users/reset/:token" component={(props) => <ResetPassword {...props} />}/>
         <Route exact path="/users/active/:token" component={(props) => <ActiveAccount {...props} />}/>
-        <Route exact path="/signup" render={(props) => <Signup {...props} />}/>
+        <Route exact path="/signup" render={(props) => <Signup {...props} ref={signupRef} />}/>
         <Route exact path="/forgot" component={Forgot}/>
         <Redirect from="*" to=""/>
       </Switch>

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle} from 'react';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -15,8 +15,9 @@ import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import API from '../../utils/API';
-import {store} from "react-notifications-component";
 import Cookies from 'universal-cookie';
+import IcomoonReact from "icomoon-react";
+import iconSet from './../Icon/selection-languages.json';
 const cookies = new Cookies();
 
 
@@ -97,31 +98,41 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const key = 'f29f2233f1aa782b0f0dc8d6d9493c64';
-
-export default function PrimarySearchAppBar(props) {
+const PrimarySearchAppBar = (forwardRef((props, ref) => {
     const classes = useStyles();
     const [searchValue, setSearchValue] = React.useState('');
     const [anchorEl, setAnchorEl] = React.useState(null);
     const [isConnected, setConnected] = React.useState(false);
     const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+    const [anchorElLanguage, setAnchorElLanguage] = React.useState(null);
 
     const isMenuOpen = Boolean(anchorEl);
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+    const isLanguagePopover = Boolean(anchorElLanguage);
+    const [language, setLanguage] = React.useState('us');
+
+    const translate = {
+        fr: {
+            Connect: 'Connexion',
+            Language: 'Langue',
+            WhatsHot: "Top films",
+            MoviesList: 'Ma liste',
+            Profile: 'Profil',
+            SearchMovies: 'Rechercher un film...'
+
+        },
+        us: {
+            Connect: 'Connect',
+            Language: 'Language',
+            WhatsHot: "What's hot",
+            MoviesList: 'Movies list',
+            Profile: 'Profile',
+            SearchMovies: 'Search movies...'
+        }
+    }
 
     // Badge counter for list icon
     const [counterList, setCounterList] = React.useState(0);
-    const handleProfileMenuOpen = event => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleMobileMenuClose = () => {
-        setMobileMoreAnchorEl(null);
-    };
-
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-        handleMobileMenuClose();
-    };
 
     const handleLogout = () => {
         API.logout()
@@ -131,28 +142,6 @@ export default function PrimarySearchAppBar(props) {
             });
         handleMenuClose();
     }
-    const handleMobileMenuOpen = event => {
-        setMobileMoreAnchorEl(event.currentTarget);
-    };
-
-
-
-    useEffect(() => {
-        async function getWatchlist() {
-            API.getWatchlist()
-                .then(res => {
-                    if (res.status === 200 && res.data.watchlist) {
-                        setCounterList(res.data.watchlist.length);
-                        setConnected(true);
-                        props.setWatchlist(res.data.watchlist)
-                    }
-                })
-        }
-
-        if (cookies.get('token') && !isConnected) {
-            getWatchlist()
-        }
-    }, [props, isConnected]);
 
     const handleKeyDown = (e) => {
         if (e.keyCode === 13 && searchValue) {
@@ -160,45 +149,77 @@ export default function PrimarySearchAppBar(props) {
                 e.preventDefault();
                 props.history.push('/');
             }
-            props.search(`https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${searchValue}&page=`, searchValue);
+            const lg = language === 'us' ? 'language=en-US' : 'language=fr';
+            props.search(`https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${searchValue}&${lg}&page=`, searchValue);
             setSearchValue('');
         }
     };
 
-    const menuId = 'primary-search-account-menu';
-    const renderMenu = (
-        <Menu
-            anchorEl={anchorEl}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            id={menuId}
-            keepMounted
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            open={isMenuOpen}
-            onClose={handleMenuClose}
-            >
-            <MenuItem onClick={(e) => { handleMenuClose(); e.preventDefault(); props.history.push('/profile')} } >Profile</MenuItem>
-            <MenuItem onClick={handleLogout}>Log out</MenuItem>
-        </Menu>
-    );
-    const renderMenuOffline = (
-        <Menu
-            anchorEl={anchorEl}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            id={menuId}
-            keepMounted
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            open={isMenuOpen}
-            onClose={handleMenuClose}
-        >
-            <MenuItem onClick={(e) => { e.preventDefault(); props.history.push('/login')} }>Log in</MenuItem>
-            <MenuItem onClick={(e) => { e.preventDefault(); props.history.push('/signup')} }>Sign up</MenuItem>
-        </Menu>
-    );
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
+
+    useEffect(() => {
+        let _mounted = false;
+        async function getWatchlist() {
+            API.getWatchlist()
+                .then(res => {
+                    if (res.status === 200 && res.data.watchlist) {
+                        !_mounted && setCounterList(res.data.watchlist.length);
+                        !_mounted && setConnected(true);
+                        !_mounted && props.setWatchlist(res.data.watchlist)
+                    }
+                })
+        }
+
+        if (cookies.get('token') && !isConnected) {
+            getWatchlist()
+        }
+        return (() => _mounted = true)
+    }, [props, isConnected]);
+
+    const handleMobileMenuOpen = event => {
+        setMobileMoreAnchorEl(event.currentTarget);
+    };
+    const handleLanguageMenuOpen = event => { setAnchorElLanguage(event.currentTarget) };
+    const handleLanguageMenuClose = event => {
+        language === 'fr' ? setLanguage('us') : setLanguage('fr');
+        props.setLanguage(language === 'fr' ? 'us' : 'fr');
+        setAnchorElLanguage(null)
+    };
+    const handleProfileMenuOpen = event => { setAnchorEl(event.currentTarget) };
+    const handleMobileMenuClose = () => { setMobileMoreAnchorEl(null) };
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+        handleMobileMenuClose();
+    };
+
+
+    // Ref accessible by App.js
+    useImperativeHandle(ref, () => ({
+        setLanguageHandle(language) {
+            setLanguage(language);
+        }
+    }));
 
     function sectionDesktop(){
         if (isConnected)
             return (
                 <div className={classes.sectionDesktop}>
+                    <IconButton
+                        edge="start"
+                        aria-label="Language"
+                        aria-controls={menuLanguage}
+                        aria-haspopup="true"
+                        onClick={handleLanguageMenuOpen}
+                        color="inherit"
+                    >
+                        <IcomoonReact iconSet={iconSet} size={24} icon={language} />
+                    </IconButton>
                     <IconButton aria-label="show 17 new notifications" color="inherit">
                         <Badge badgeContent={'+'} color="secondary">
                             <WhatshotIcon onClick={(e) => {
@@ -231,6 +252,16 @@ export default function PrimarySearchAppBar(props) {
             return (
                 <div className={classes.sectionDesktop}>
                     <IconButton
+                        edge="start"
+                        aria-label="Language"
+                        aria-controls={menuLanguage}
+                        aria-haspopup="true"
+                        onClick={handleLanguageMenuOpen}
+                        color="inherit"
+                    >
+                        <IcomoonReact iconSet={iconSet} size={24} icon={language} />
+                    </IconButton>
+                    <IconButton
                         edge="end"
                         aria-label="account of current user"
                         aria-controls={menuId}
@@ -243,78 +274,136 @@ export default function PrimarySearchAppBar(props) {
                 </div>
             )
 }
+    // Mobile
     const mobileMenuId = 'primary-search-account-menu-mobile';
-    const renderMobileMenu = (
-        <Menu
-            anchorEl={mobileMoreAnchorEl}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            id={mobileMenuId}
-            keepMounted
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            open={isMobileMenuOpen}
-            onClose={handleMobileMenuClose}
-            className={classes.mobileDotContainer}
-        >
-
-            <MenuItem>
-                <IconButton aria-label="show 11 new notifications" color="inherit">
-                    <Badge badgeContent={'20+'} color="secondary">
-                        <WhatshotIcon onClick={(e) => {
+    const renderMobileMenu = () => {
+        return (
+            <Menu
+                anchorEl={mobileMoreAnchorEl}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                id={mobileMenuId}
+                keepMounted
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                open={isMobileMenuOpen}
+                onClose={handleMobileMenuClose}
+                className={classes.mobileDotContainer}
+            >
+                {!isConnected ?
+                    <div>
+                        <MenuItem onClick={handleProfileMenuOpen}>
+                            <IconButton
+                                aria-label="account of current user"
+                                aria-controls="primary-search-account-menu"
+                                aria-haspopup="true"
+                                color="inherit"
+                            >
+                                <AccountCircle />
+                            </IconButton>
+                            <p>{translate[language]['Connect']}</p>
+                        </MenuItem>
+                        <MenuItem onClick={handleLanguageMenuOpen}>
+                            <IconButton color="inherit" >
+                                <IcomoonReact iconSet={iconSet} size={24} icon={language} />
+                            </IconButton>
+                            <p>Language</p>
+                        </MenuItem>
+                    </div>
+                    :
+                    <div>
+                        <MenuItem>
+                            <IconButton aria-label="show 11 new notifications" color="inherit">
+                                <Badge badgeContent={'20+'} color="secondary">
+                                    <WhatshotIcon onClick={(e) => {
+                                        e.preventDefault();
+                                        props.history.push('/historic')
+                                    }}/>
+                                </Badge>
+                            </IconButton>
+                            <p>{translate[language]['WhatsHot']}</p>
+                        </MenuItem>
+                        <MenuItem onClick={(e) => {
                             e.preventDefault();
                             props.history.push('/historic')
-                        }}/>
-                    </Badge>
-                </IconButton>
-                <p>What's hot</p>
-            </MenuItem>
-            <MenuItem onClick={(e) => {
-                e.preventDefault();
-                props.history.push('/historic')
-            }}>
-                <IconButton aria-label="show 11 new notifications" color="inherit">
-                    <Badge badgeContent={counterList} color="secondary">
-                        <SubscriptionsIcon />
-                    </Badge>
-                </IconButton>
-                <p>Movies list</p>
-            </MenuItem>
-            <MenuItem onClick={handleProfileMenuOpen}>
-                <IconButton
-                    aria-label="account of current user"
-                    aria-controls="primary-search-account-menu"
-                    aria-haspopup="true"
-                    color="inherit"
-                    >
-                    <AccountCircle />
-                </IconButton>
-                <p>Profile</p>
+                        }}>
+                            <IconButton aria-label="show 11 new notifications" color="inherit">
+                                <Badge badgeContent={counterList} color="secondary">
+                                    <SubscriptionsIcon />
+                                </Badge>
+                            </IconButton>
+                            <p>{translate[language]['MoviesList']}</p>
+                        </MenuItem>
+                        <MenuItem onClick={handleProfileMenuOpen}>
+                            <IconButton
+                                aria-label="account of current user"
+                                aria-controls="primary-search-account-menu"
+                                aria-haspopup="true"
+                                color="inherit"
+                                >
+                                <AccountCircle />
+                            </IconButton>
+                            <p>{translate[language]['Profile']}</p>
+                        </MenuItem>
+                        <MenuItem onClick={handleLanguageMenuOpen}>
+                            <IconButton
+                                color="inherit"
+                                onClick={handleLanguageMenuOpen}
+                            >
+                                <IcomoonReact iconSet={iconSet} size={24} icon={language} />
+                            </IconButton>
+                            <p>{translate[language]['Language']}</p>
+                        </MenuItem>
+                    </div>}
+            </Menu>)
+    };
+
+    // Popovers
+    const menuId = 'primary-search-account-menu';
+    const menuLanguage = 'primary-select-language-menu';
+    const renderMenuLanguage = (
+        <Menu
+            anchorEl={anchorElLanguage}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            id={menuLanguage}
+            keepMounted
+            style={{zIndex: '2000'}}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            open={isLanguagePopover}
+            onClose={() => setAnchorElLanguage(null)}
+        >
+            <MenuItem onClick={handleLanguageMenuClose}>
+                <IcomoonReact iconSet={iconSet} size={24} icon={language === 'fr' ? 'us' : 'fr'} />
             </MenuItem>
         </Menu>
     );
-    const renderMobileMenuOffline = (
+    const renderMenu = (
         <Menu
-            anchorEl={mobileMoreAnchorEl}
+            anchorEl={anchorEl}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            id={mobileMenuId}
+            id={menuId}
             keepMounted
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            open={isMobileMenuOpen}
-            onClose={handleMobileMenuClose}
-            className={classes.mobileDotContainer}
+            open={isMenuOpen}
+            onClose={handleMenuClose}
         >
-        <MenuItem onClick={handleProfileMenuOpen}>
-            <IconButton
-                aria-label="account of current user"
-                aria-controls="primary-search-account-menu"
-                aria-haspopup="true"
-                color="inherit"
-            >
-                <AccountCircle />
-            </IconButton>
-            <p>Connect</p>
-        </MenuItem>
+            <MenuItem onClick={(e) => { handleMenuClose(); e.preventDefault(); props.history.push('/profile')} } >Profile</MenuItem>
+            <MenuItem onClick={handleLogout}>Log out</MenuItem>
         </Menu>
     );
+    const renderMenuOffline = (
+        <Menu
+            anchorEl={anchorEl}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            id={menuId}
+            keepMounted
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            open={isMenuOpen}
+            onClose={handleMenuClose}
+        >
+            <MenuItem onClick={(e) => { e.preventDefault(); props.history.push('/login')} }>Log in</MenuItem>
+            <MenuItem onClick={(e) => { e.preventDefault(); props.history.push('/signup')} }>Sign up</MenuItem>
+        </Menu>
+    );
+
     return (
         <div className={classes.grow}>
             <AppBar style={{boxShadow: 'none'}} position="fixed">
@@ -339,7 +428,7 @@ export default function PrimarySearchAppBar(props) {
                         <SearchIcon />
                     </div>
                     <InputBase
-                        placeholder="Search movies..."
+                        placeholder={translate[language]['SearchMovies']}
                         classes={{root: classes.inputRoot, input: classes.inputInput }}
                         inputProps={{ 'aria-label': 'search' }}
                         value={searchValue}
@@ -362,8 +451,10 @@ export default function PrimarySearchAppBar(props) {
                 </div>
                 </Toolbar>
             </AppBar>
-            {isConnected ? renderMobileMenu : renderMobileMenuOffline}
+            {renderMenuLanguage}
+            {renderMobileMenu()}
             {isConnected ? renderMenu : renderMenuOffline}
         </div>
         );
-}
+}));
+export default PrimarySearchAppBar;

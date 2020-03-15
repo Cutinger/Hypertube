@@ -17,6 +17,7 @@
     "classnames": "^2.2.6",
     "eslint-plugin-flowtype": "^4.6.0",
     "icomoon-react": "^2.0.16",
+    "material-ui-country-flags": "^3.0.1",
     "material-ui-icons": "^1.0.0-beta.36",
     "material-ui-image": "^3.2.3",
     "moment": "^2.24.0",
