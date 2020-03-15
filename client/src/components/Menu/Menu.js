@@ -164,22 +164,19 @@ const PrimarySearchAppBar = (forwardRef((props, ref) => {
     },[language] );
 
     useEffect(() => {
-        let _mounted = false;
-        async function getWatchlist() {
+        function getWatchlist() {
             API.getWatchlist()
                 .then(res => {
                     if (res.status === 200 && res.data.watchlist) {
-                        !_mounted && setCounterList(res.data.watchlist.length);
-                        !_mounted && setConnected(true);
-                        !_mounted && props.setWatchlist(res.data.watchlist)
+                        setCounterList(res.data.watchlist.length);
+                        setConnected(true);
+                        props.setWatchlists(res.data.watchlist)
                     }
                 })
         }
-
-        if (cookies.get('token') && !isConnected) {
+        if (cookies.get('token') && !isConnected && props) {
             getWatchlist()
         }
-        return (() => _mounted = true)
     }, [props, isConnected]);
 
     const handleMobileMenuOpen = event => {

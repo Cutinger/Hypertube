@@ -79,7 +79,7 @@ const Home = (forwardRef((props, ref) => {
     const [topMoviesList, setTopMoviesList] = useState(false);
     const [moviesGenres, setMoviesGenres] = useState(false);
     const [sidebarQuery, setSidebarQuery] = useState(false);
-    const [watchlist, setWatchlist] = useState(false);
+    const [watchlist, setWatchlist] = useState([]);
     const [searchValue, setSearchValue] = useState(false)
     const [loadPage, setLoadPage] = useState(1);
     const [load, setLoad] = useState(false);
@@ -194,6 +194,7 @@ const Home = (forwardRef((props, ref) => {
             }
         }
         setWatchlist(watchlistTab.reverse());
+        return watchlistTab
     };
     // Ref accessible by App.js
     useImperativeHandle(ref, () => ({
@@ -202,9 +203,12 @@ const Home = (forwardRef((props, ref) => {
             setSidebarQuery(query);
             setSearchValue(searchValue);
         },
-        async getWatchlist(watchlist){
-            setWatchlist(watchlist);
-            await transormWatchlist(watchlist);
+        async setWatchlists(watchlist){
+            if (watchlist){
+                let watchlistTab = await transormWatchlist(watchlist);
+                setWatchlist(watchlistTab);
+                moviesCardsRef.current && moviesCardsRef.current.setWatchlists(watchlistTab);
+            }
         },
         setLanguageHandle(language) {
             if (language){
@@ -214,7 +218,6 @@ const Home = (forwardRef((props, ref) => {
             }
         }
     }));
-
 
     useEffect(() => {
         const cookies = new Cookies();

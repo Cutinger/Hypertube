@@ -45,10 +45,9 @@ export default function App(props) {
       homeRef.current && homeRef.current.setSidebar(bool);
     }
   };
-  const handleSetWatchlist= (watchlist) => {
-      homeRef.current && homeRef.current.getWatchlist(watchlist);
-      historicRef.current && historicRef.current.getWatchlist(watchlist);
-
+  const handleSetWatchlist = (watchlist) => {
+    homeRef.current && homeRef.current.setWatchlists(watchlist);
+    historicRef.current && historicRef.current.getWatchlists(watchlist);
   };
 
 
@@ -77,10 +76,8 @@ export default function App(props) {
   return (
     <div>
       <div className={classes.topBackground} />
-      <Route component={(props) => <Menu {...props} ref={menuRef} setLanguage={handleSetLanguage} search={handleSearchMovie} setWatchlist={handleSetWatchlist} setSidebar={handleActiveSidebar}/>}/>
-      <div className={"notifications"}>
-        <ReactNotification />
-    </div>
+      <Menu history={history} ref={menuRef} setLanguage={handleSetLanguage} search={handleSearchMovie} setWatchlists={handleSetWatchlist} setSidebar={handleActiveSidebar}/>
+      <div className={"notifications"}> <ReactNotification /> </div>
       <Switch>
         <Route exact path="/movie/:movieId" component={withAuth((matchProps) => <MovieCard {...props} ref={movieRef} {...matchProps} /> )} />
         <Route exact path="/" component={withAuth((props) => <Home {...props} ref={homeRef} setSidebar={handleActiveSidebar} /> )} />

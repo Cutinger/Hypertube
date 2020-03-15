@@ -1,13 +1,12 @@
 import React, {useState, useEffect, useCallback, useImperativeHandle, forwardRef} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
-import AddCircle from '@material-ui/icons/AddCircle';
 import StarRatings from 'react-star-ratings';
 import { Grow, Grid } from '@material-ui/core';
 import API from './../../utils/API';
-import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import { store } from 'react-notifications-component';
 import Cookies from "universal-cookie";
+import AddMovie from './AddMovie/AddMovie'
 
 const useStyles = makeStyles(theme => ({
     movieCover: {
@@ -178,26 +177,6 @@ const useStyles = makeStyles(theme => ({
         marginBottom: '1em',
         paddingRight: '7px',
         paddingLeft: '7px'
-    },
-    movieAddList: {
-        opacity: '0.5',
-        color: '#f7c12d',
-        paddingTop: '5px',
-        verticalAlign: 'middle' ,
-        '&:hover': {
-            opacity: '1',
-            transform: 'scale(1.05)'
-        }
-    },
-    movieRemoveList: {
-        opacity: '0.5',
-        color: '#4bbe4b',
-        paddingTop: '5px',
-        verticalAlign: 'middle' ,
-        '&:hover': {
-            opacity: '1',
-            transform: 'scale(1.05)'
-        }
     }
 }));
 
@@ -205,10 +184,13 @@ const translate = {
     fr: {
         messageRemoved: "Le film a bien été retiré de votre liste",
         messageAdd: "Le film a bien été ajouté à votre liste",
+        addTooltip: 'Ajouter à ma list'
     },
     us:{
         messageRemoved: "Movie was successfully removed from watch list",
         messageAdd: "Movie was successfully added from watch list",
+        addTooltip: 'Add to my list'
+
     }
 }
 
@@ -227,6 +209,9 @@ const HomeMoviesCards = (forwardRef((props, ref) => {
         setLanguageHandle(language) {
             if(language)
                 setLanguage(language);
+        },
+        setWatchlists(watchlist){
+            setWatchlist(watchlist);
         }
     }));
     // Load cookies for language
@@ -285,70 +270,49 @@ const HomeMoviesCards = (forwardRef((props, ref) => {
 
     // Get watchlist
     useEffect(() => {
-        if (props && props.watchlist) {
-            setWatchlist(props.watchlist);
+        if (props.watchlist) {
+            setWatchlist(watchlist);
         }
-    }, [props])
+    }, [props.watchlist, watchlist])
 
-    const handleClickAddWatchlist = (id) => {
+    const handleClickAddWatchlist = (id, action, j) => {
         API.likeWatchlist(id)
             .catch((err) => console.log(err));
+        if (action === 'remove'){
+            store.addNotification({
+                message: translate[language].messageRemoved,
+                insert: "top",
+                type: 'success',
+                container: "top-right",
+                animationIn: ["animated", "fadeIn"],
+                animationOut: ["animated", "fadeOut"],
+                dismiss: {
+                    duration: 5000,
+                    onScreen: true
+                }
+            });
+            setWatchlist(watchlist.splice(j, 1))
+        } else if (action === 'add'){
+            store.addNotification({
+                message: translate[language].messageAdd,
+                type: 'success',
+                insert: "top",
+                container: "top-right",
+                animationIn: ["animated", "fadeIn"],
+                animationOut: ["animated", "fadeOut"],
+                dismiss: {
+                    duration: 5000,
+                    onScreen: true
+                }
+            })
+            let newMovie = {
+                id: id
+            }
+            watchlist.push(newMovie);
+            setWatchlist(watchlist);
+        }
     };
 
-    const addMovie = (id) => {
-        let find = false;
-        let indexFind = null;
-        if (watchlist && watchlist.length){
-           for(var i = 0; i < watchlist.length; i++) {
-               if (watchlist[i].id === id) {
-                   indexFind = i;
-                   find = true;
-               }
-           }
-           if (find)
-               return <Grid item xs={'auto'} className={classes.movieRemoveList}>
-                   <HighlightOffIcon onClick={() =>{
-                       handleClickAddWatchlist(id);
-                       store.addNotification({
-                           message: translate[language].messageRemoved,
-                           insert: "top",
-                           type: 'success',
-                           container: "top-right",
-                           animationIn: ["animated", "fadeIn"],
-                           animationOut: ["animated", "fadeOut"],
-                           dismiss: {
-                               duration: 5000,
-                               onScreen: true
-                           }
-                       });
-                       setWatchlist(watchlist.slice(indexFind, -1))
-                   }} id="removeCircle"/>
-               </Grid>
-        }
-        else
-        return (
-            <Grid item xs={'auto'} className={classes.movieAddList}>
-                <AddCircle onClick={() => {
-                    handleClickAddWatchlist(id);
-                    store.addNotification({
-                        message: translate[language].messageAdd,
-                        type: 'success',
-                        insert: "top",
-                        container: "top-right",
-                        animationIn: ["animated", "fadeIn"],
-                        animationOut: ["animated", "fadeOut"],
-                        dismiss: {
-                            duration: 5000,
-                            onScreen: true
-                        }
-                    });
-                    let newMovie = Object.assign({id: id});
-                    watchlist.push(newMovie);
-                    setWatchlist(watchlist);
-                }} id="addCircle"/>
-            </Grid>
-        )
-    }
 
     function GridMovies(obj, key) {
         return (
@@ -381,7 +345,7 @@ const HomeMoviesCards = (forwardRef((props, ref) => {
                                                 <Grid item xs={6} className={classes.movieRating}>
                                                     <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />
                                                 </Grid>
-                                                {addMovie(obj.id)}
+                                                <AddMovie handleClickAddWatchlist={handleClickAddWatchlist} watchlist={watchlist} id={obj.id} />
                                             </Grid>
                                         </Grid>
                                         <Grid item>

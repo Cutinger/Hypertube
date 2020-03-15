@@ -16,6 +16,7 @@ import SendIcon from '@material-ui/icons/Send';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Cookies from "universal-cookie";
 import 'moment/locale/fr';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 const moment = require('moment');
 const burl = 'http://localhost:5000/api';
 const Aux = (props) => props.children;
@@ -243,14 +244,16 @@ const translate = {
         chooseSrc: 'Choisir une source',
         noSrc: 'Aucune source disponible',
         noComments: 'Aucun commentaire',
-        pressEnter: 'Entrée pour envoyer'
+        pressEnter: 'Entrée pour envoyer',
+        views: 'vues'
     },
     us: {
         chooseSrc: 'Choose a source',
         noSrc: 'No source available',
         noComments: 'No comments',
         pressEnter: 'Press enter to send',
-        commentInfos: 'Between 8 and 130 characters'
+        commentInfos: 'Between 8 and 130 characters',
+        views: 'views'
     }
 }
 
@@ -339,12 +342,14 @@ const MovieCard = (forwardRef((props, ref) => {
     const [commentValue, setCommentValue] = React.useState([]);
     const [userID, setUserID] = React.useState(false);
     const [loadingComment, setLoadingComment] = React.useState(true);
+    const [views, setViews] = React.useState('');
     // Sockets
     const handleGetComments = async(movieID) => {
         await API.getComments(movieID)
             .then(res => {
                 if (res.status === 200 && res.data.commentsList) {
-                    setComments(res.data.commentsList)
+                    setComments(res.data.commentsList);
+                    setViews(res.data.views);
                     if (res.data.userID)
                         setUserID(res.data.userID);
                 }
@@ -610,7 +615,18 @@ const MovieCard = (forwardRef((props, ref) => {
                                         </Grid>
                                     </Grid>
                                     <Grid item xs={12}>
-                                        <h1 className={classes.movieTitle}>{movieDetails.title}</h1>
+                                        <div style={{display: 'flex', alignItems: 'center'}}>
+                                            <div style={{marginRight:'10px'}}>
+                                                <h1 className={classes.movieTitle}>{movieDetails.title}</h1>
+                                            </div>
+                                            <div>
+                                                <Tooltip title={`${views} ${translate[language].views}`} placement="right">
+                                                    <Badge badgeContent={views ? parseInt(views) : ''}  color="primary">
+                                                        <VisibilityIcon style={{color: 'white'}} />
+                                                    </Badge>
+                                                </Tooltip>
+                                            </div>
+                                        </div>
                                     </Grid>
                                     <Grid item xs={12}>
                                         <p className={classes.movieOverview}>
