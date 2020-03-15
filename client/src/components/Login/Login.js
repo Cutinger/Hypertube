@@ -230,7 +230,7 @@ const Login = (forwardRef((props, ref) => {
                     });
                     setDisplayResend(true);
                 }
-              if (err.response.status === 400) {
+              if (err.response && err.response.data && err.response.data.status && err.response.data.status === 400) {
                   let incorrect = translate[language].errors.incorrect
                   setValidationErrors({err_username: incorrect, err_password: false})
               }
