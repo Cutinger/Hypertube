@@ -91,7 +91,7 @@ const Login = (forwardRef((props, ref) => {
               dontHaveAccount: "Pas de compte ? S'inscrire",
               forgotPassword: "Mot de passe oublié ?",
               resendActivation: "Renvoyer un mail de confirmation",
-              incorrectUsernamePassword: "Nom d'utilisateur ou mot de passe incorrect",
+              incorrect: "Nom d'utilisateur ou mot de passe incorrect",
               mailConfirm : "Un mail de confirmation à été envoyé",
               activeAccount: "Merci d'activer votre compte",
               SignIn: 'Se connecter',
@@ -108,7 +108,7 @@ const Login = (forwardRef((props, ref) => {
               dontHaveAccount: "Don't have an account? Sign up",
               forgotPassword : "Forgot password ?",
               resendActivation: "Resend activation link",
-              incorrectUsernamePassword: 'Incorrect username or password',
+              incorrect: 'Incorrect username or password',
               mailConfirm: "Mail confirmation was succesfully sent",
               activeAccount: 'Please active your account',
               SignIn: 'Sign in',
@@ -230,8 +230,10 @@ const Login = (forwardRef((props, ref) => {
                     });
                     setDisplayResend(true);
                 }
-                else
-                    setValidationErrors({...validationErrors, err_username: translate[language].errors.incorrectUsernamePassword })
+              if (err.response.status === 400) {
+                  let incorrect = translate[language].errors.incorrect
+                  setValidationErrors({err_username: incorrect, err_password: false})
+              }
             });
         }
     }

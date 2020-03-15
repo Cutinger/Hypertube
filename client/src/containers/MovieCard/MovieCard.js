@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, forwardRef, useImperativeHandle} from 'react';
 import {fade, makeStyles} from '@material-ui/core/styles';
-import {Container, Badge,  Popover, Divider, Typography, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText} from '@material-ui/core';
+import {Container, Badge, Popover, Divider, Typography, Grid, Grow, Button, Dialog, DialogTitle, List, ListItem, Fade, ListItemAvatar, Avatar, ListItemText} from '@material-ui/core';
 import StarRatings from 'react-star-ratings';
+import Tooltip from '@material-ui/core/Tooltip';
 import InputBase from '@material-ui/core/InputBase';
 import axios from 'axios';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
@@ -13,8 +14,10 @@ import API from './../../utils/API';
 import CommentIcon from '@material-ui/icons/Sms';
 import SendIcon from '@material-ui/icons/Send';
 import DeleteIcon from '@material-ui/icons/Delete';
-const burl = 'http://localhost:5000/api';
+import Cookies from "universal-cookie";
+import 'moment/locale/fr';
 const moment = require('moment');
+const burl = 'http://localhost:5000/api';
 const Aux = (props) => props.children;
 const io = require('socket.io-client');
 const socket = io('http://localhost:8000');
@@ -234,9 +237,26 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+const translate = {
+    fr: {
+        commentInfos: 'Entre 8 et 130 caractères',
+        chooseSrc: 'Choisir une source',
+        noSrc: 'Aucune source disponible',
+        noComments: 'Aucun commentaire',
+        pressEnter: 'Entrée pour envoyer'
+    },
+    us: {
+        chooseSrc: 'Choose a source',
+        noSrc: 'No source available',
+        noComments: 'No comments',
+        pressEnter: 'Press enter to send',
+        commentInfos: 'Between 8 and 130 characters'
+    }
+}
+
 function SimpleDialog(props) {
     const classes = useStyles();
-    const { onClose, selectedValue, open, movieSources, movieID } = props;
+    const { onClose, selectedValue, open, movieSources, movieID, language } = props;
 
     const handleClose = () => {
         onClose(selectedValue)
@@ -250,7 +270,7 @@ function SimpleDialog(props) {
 
     return (
         <Dialog onClose={handleClose} aria-labelledby="simple-dialog-title" open={open}>
-            <DialogTitle id="simple-dialog-title">Choose a source</DialogTitle>
+            <DialogTitle id="simple-dialog-title">{translate[language].chooseSrc}</DialogTitle>
             <List>
                 {movieSources && movieSources.ytsInfo && Array.isArray(movieSources.ytsInfo) && movieSources.ytsInfo.map((obj, key) => (
                     <ListItem button onClick={() => handleListItemClick('yts-' + obj.quality.substring(0, obj.quality.length - 1))} key={key}>
@@ -281,7 +301,7 @@ function SimpleDialog(props) {
     );
 }
 
-export default function MovieCard(props){
+const MovieCard = (forwardRef((props, ref) => {
     let classes = useStyles();
     const [movieDetails, setMovieDetails] = useState(null);
     const [movieSources, setMovieSources] = useState(null);
@@ -294,8 +314,26 @@ export default function MovieCard(props){
     const [movieSrc, setMovieSrc] = useState(null);
     // Set subtitles
     const [subtitles, setSubtitles] = useState([]);
+    // Translation
+    const [language, setLanguage] = React.useState('us');
+
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
+
+    // Ref accessible by App.js
+    useImperativeHandle(ref, () => ({
+        setLanguageHandle(language) {
+            setLanguage(language);
+        }
+    }));
 
     // Comments
+    const [openTool, setOpenTool] = React.useState(false);
     const [anchorEl, setAnchorEl] = React.useState(null);
     const [getComments, setComments] = React.useState([]);
     const [commentValue, setCommentValue] = React.useState([]);
@@ -324,7 +362,8 @@ export default function MovieCard(props){
                         setComments(getComments)
                     }
 
-                });
+                })
+                .catch(err => setOpenTool(true))
             setCommentValue('');
         }
         setLoadingComment(false);
@@ -361,9 +400,10 @@ export default function MovieCard(props){
                 return subObject;
             }
         };
-        function setMovieDetail() {
+        function setMovieDetail(lang) {
             let data = null;
-            axios.get(`https://api.themoviedb.org/3/movie/${props.match.params.movieId}?api_key=c91b62254304ec5dbb322351b0dc1094`)
+            const lg = lang === 'us' ? 'language=en-US' : 'language=fr-FR';
+            axios.get(`https://api.themoviedb.org/3/movie/${props.match.params.movieId}?api_key=c91b62254304ec5dbb322351b0dc1094&${lg}`)
                 .then(res => {
                     if (res.data) {
                         data = res.data;
@@ -392,7 +432,9 @@ export default function MovieCard(props){
         let _mounted = true;
         // Get movie infos (vote, title, overview, poster...)
         if (_mounted && props.match.params.movieId) {
-            setMovieDetail();
+            const cookies = new Cookies();
+            let lang = cookies.get('lg');
+            setMovieDetail(lang);
             getMovieSources();
             handleGetComments(props.match.params.movieId);
         }
@@ -441,9 +483,17 @@ export default function MovieCard(props){
 
     const sourceMessage = () => {
         if (movieSources)
-            return selectedValue ? selectedValue : `Choose a source (${movieSources.ytsInfo.length + movieSources.leetInfo.length})`;
+            return selectedValue ? selectedValue : `${translate[language].chooseSrc} (${movieSources.ytsInfo.length + movieSources.leetInfo.length})`;
         else
-            return 'No source available'
+            return translate[language].noSrc
+    };
+
+    const handleCloseTool = () => {
+        setOpenTool(false);
+    };
+
+    const handleOpenTool = () => {
+        setOpenTool(true);
     };
     const poster = movieDetails && movieDetails.poster_path ? `https://image.tmdb.org/t/p/w185${movieDetails.poster_path}` : 'https://i.ibb.co/hgvJPFb/default-Img-Profile.png';
     const movieCardContainer = () => {
@@ -504,14 +554,19 @@ export default function MovieCard(props){
                                                 <div className={classes.sendIcon}>
                                                     {loadingComment ? <CircularProgress size={24} className={classes.commentProgress} /> : <SendIcon /> }
                                                 </div>
-                                                <InputBase
-                                                    placeholder="Press enter to send"
-                                                    classes={{root: classes.inputRoot, input: classes.inputInput }}
-                                                    inputProps={{ 'aria-label': 'comment' }}
-                                                    value={commentValue}
-                                                    onChange={(e) => setCommentValue(e.target.value)}
-                                                    onKeyDown={handleKeyDownComment}
-                                                />
+                                                <Tooltip open={openTool} onClose={handleCloseTool} onOpen={handleOpenTool} title={translate[language].commentInfos}>
+                                                    <InputBase
+                                                        placeholder={translate[language].pressEnter}
+                                                        classes={{root: classes.inputRoot, input: classes.inputInput }}
+                                                        inputProps={{ 'aria-label': 'comment' }}
+                                                        value={commentValue}
+                                                        onChange={(e) => {
+                                                            setCommentValue(e.target.value);
+                                                            commentValue.length > 2 ? setOpenTool(false) : setOpenTool(true);
+                                                        }}
+                                                        onKeyDown={handleKeyDownComment}
+                                                    />
+                                                </Tooltip>
                                             </div>
                                         </div>
                                     </List>
@@ -579,7 +634,7 @@ export default function MovieCard(props){
                                         >
                                             {sourceMessage()}
                                         </Button>
-                                        <SimpleDialog movieSources={movieSources} selectedValue={selectedValue}
+                                        <SimpleDialog language={language} movieSources={movieSources} selectedValue={selectedValue}
                                                       open={open} onClose={handleClose} movieID={props.match.params.movieId}/>
                                     </Grid>
 
@@ -623,6 +678,7 @@ export default function MovieCard(props){
 
     const handleClickComment = event => { setAnchorEl(event.currentTarget) };
     const handleCloseComment = () => { setAnchorEl(null) };
+
     const comments = () => {
         if (getComments && getComments.length){
             return getComments.map((obj, key) => {
@@ -654,13 +710,13 @@ export default function MovieCard(props){
                             />
                         </ListItem>
                         <div className={classes.bottomCommentInfos}>
-                            <span className={classes.bottomItemDate}>
-                                {moment(new Date(obj.date * 1000)).fromNow()}
-                            </span>
-                            {userID === obj.userID ?
-                                <span className={classes.bottomItemDelete}>
-                                    <DeleteIcon  onClick={ () => handleDeleteComment(obj.id, key)}/>
-                                </span> : null }
+                                <span className={classes.bottomItemDate}>
+                                    {moment(new Date(obj.date * 1000)).fromNow()}
+                                </span>
+                                {userID === obj.userID ?
+                                    <span className={classes.bottomItemDelete}>
+                                        <DeleteIcon  onClick={ () => handleDeleteComment(obj.id, key)}/>
+                                    </span> : null }
                         </div>
                         {key < getComments.length - 1 ?
                             <Divider style={{backgroundColor: '#f7c12d', opacity: '0.5'}} variant="inset" component="li" />
@@ -672,7 +728,7 @@ export default function MovieCard(props){
         else
             return (
                 <div className={classes.commentContainer}>
-                    <p style={{ color : 'white', paddingLeft: '10px', opacity: '0.7', fontSize: '0.8em'}}>No Comments </p>
+                    <p style={{ color : 'white', paddingLeft: '10px', opacity: '0.7', fontSize: '0.8em'}}>{translate[language].noComments} </p>
                 </div>
             )
     };
@@ -685,4 +741,5 @@ export default function MovieCard(props){
 
     }
     return null
-}
+}));
+export default MovieCard;

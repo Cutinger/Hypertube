@@ -32,6 +32,7 @@ export default function App(props) {
   const homeRef = React.useRef();
   const menuRef = React.useRef();
   const signupRef = React.useRef();
+  const movieRef = React.useRef();
   const loginRef = React.useRef();
   const historicRef = React.useRef();
   const history = useHistory();
@@ -65,6 +66,7 @@ export default function App(props) {
       signupRef.current && signupRef.current.setLanguageHandle(language);
       loginRef.current && loginRef.current.setLanguageHandle(language);
       homeRef.current && homeRef.current.setLanguageHandle(language);
+      movieRef.current && movieRef.current.setLanguageHandle(language);
       cookies.set('lg', language, {path: '/'})
     }
   };
@@ -78,7 +80,7 @@ export default function App(props) {
         <ReactNotification />
     </div>
       <Switch>
-        <Route exact path="/movie/:movieId" component={withAuth((matchProps) => <MovieCard {...props} {...matchProps} /> )} />
+        <Route exact path="/movie/:movieId" component={withAuth((matchProps) => <MovieCard {...props} ref={movieRef} {...matchProps} /> )} />
         <Route exact path="/" component={withAuth((props) => <Home {...props} ref={homeRef} setSidebar={handleActiveSidebar} /> )} />
         <Route exact path="/historic" component={withAuth((props) => <Home ref={historicRef} {...props} /> )} />
         <Route exact path="/profile" component={withAuth((props) => <Profile {...props} /> )} />

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef, useImperativeHandle} from 'react';
 import {
     Container,
     Divider,
@@ -186,12 +186,83 @@ const useStyles = makeStyles(theme => ({
 
 const defaultSrc = "https://i.ibb.co/hgvJPFb/default-Img-Profile.png";
 
-export default function Profile(props){
+const Profile = (forwardRef((props, ref) => {
     const classes = useStyles();
     const [mounted, setMounted] = useState(false);
     const [loader, setLoader] = useState(false);
     const [defaultImg, setDefaultImg] = useState(defaultSrc);
     const [editPassword, setEditPassword] = useState(false)
+    const [language, setLanguage] = React.useState('us');
+
+    const translate = {
+        fr: {
+            fileWarning: "Désolé, nous acceptons uniquement jpg, jpeg, png / taille limite 2mb",
+            MyProfile: "Mon profil",
+            firstname: 'Prénom',
+            lastname: 'Nom',
+            email: 'Adresse e-mail',
+            password: 'Mot de passe',
+            password_confirm: 'Confirmation',
+            username: "Nom d'utilisateur",
+            errors: {
+                email: "Merci d'utiliser une adresse e-mail valide",
+                firstname: "Merci d'utiliser un prénom valide",
+                lastname: "Merci d'utiliser un nom valide",
+                password_strong: 'Mot de passe trop faible',
+                password_required: 'Mot de passe requis',
+                username: "Merci d'utiliser un nom d'utilisateur valide",
+                password_confirm: 'Les mots de passe ne correspondent pas',
+                usernameExist: "Nom d'utilisateur déjà pris",
+                emailExist: "E-mail déjà pris"
+            },
+            useDefault: 'Image par défaut',
+            addPicture: 'Ajouter une image',
+            editPassword: 'Editer mot de passe',
+            saveChanges: 'Sauvegarder'
+        },
+        us: {
+            fileWarning: "Sorry, we only accept jpg, jpeg, png and max file size of 2mb",
+            mailConfirmation: "A mail confirmation was send. Please active your account.",
+            MyProfile: "My profile",
+            firstname: 'First name',
+            lastname: 'Last name',
+            email: 'Email Address',
+            password: 'Password',
+            password_confirm: 'Confirm password',
+            username: 'Username',
+            errors: {
+                email: 'Please use valid email',
+                firstname: 'Please use valid first name',
+                lastname: 'Please use valid last name',
+                password_strong: 'Password must be strong',
+                password_required: 'Password required',
+                username: 'Please use valid username',
+                password_confirm: 'Passwords must match',
+                usernameExist: 'Username already exist',
+                emailExist: 'Email already exist'
+            },
+            useDefault: 'Use default image',
+            addPicture: 'Add picture',
+            editPassword: 'Edit password',
+            saveChanges: 'Save changes'
+        }
+    };
+
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
+
+    // Ref accessible by App.js
+    useImperativeHandle(ref, () => ({
+        setLanguageHandle(language) {
+            setLanguage(language);
+        }
+    }));
+
     // Warnings after validation
     const [validationErrors, setValidationErrors] = React.useState({
         err_firstname: false,
@@ -220,7 +291,7 @@ export default function Profile(props){
     }
 
     const handleChange = (event) => {
-        const { err_email, err_password, err_firstname, err_lastname, err_username, err_password_confirm } = validationErrors;
+        const {err_email, err_password, err_firstname, err_lastname, err_username, err_password_confirm} = validationErrors;
         if (event.target.id === "email" && err_email)
             setValidationErrors({...validationErrors, err_email: false});
         if (event.target.id === "password" && err_password)
@@ -233,10 +304,10 @@ export default function Profile(props){
             setValidationErrors({...validationErrors, err_username: false});
         if (event.target.id === "lastname" && err_lastname)
             setValidationErrors({...validationErrors, err_lastname: false});
-        setTextFieldsValues({...fieldValue, [event.target.id]: event.target.value });
+        setTextFieldsValues({...fieldValue, [event.target.id]: event.target.value});
     };
 
-    const handleSaveChanges = async() => {
+    const handleSaveChanges = async () => {
         setLoader(true);
         /* VALIDATION */
         const errors = {
@@ -248,19 +319,19 @@ export default function Profile(props){
             username: false,
         }
         if (!VALIDATION.validateEmail(fieldValue.email))
-            errors.email = 'Please use valid email';
+            errors.email = translate[language].errors.email
         if (!VALIDATION.validateName(fieldValue.firstname))
-            errors.firstname = 'Please use valid first name';
+            errors.firstname = translate[language].errors.firstname
         if (!VALIDATION.validateName(fieldValue.lastname))
-            errors.lastname = 'Please use valid last name';
+            errors.lastname = translate[language].errors.lastname
         if (editPassword && (!fieldValue.password || !fieldValue.password.length))
-            errors.password = 'Password required';
+            errors.password = translate[language].errors.password
         else if (editPassword && !VALIDATION.validatePassword(fieldValue.password))
-            errors.password = 'Please use strong password';
+            errors.password = translate[language].errors.password_strong
         if (editPassword && fieldValue.password !== fieldValue.password_confirm)
-            errors.password_confirm = 'Passwords must match';
+            errors.password_confirm = translate[language].errors.password_confirm
         if (!VALIDATION.validateUsername(fieldValue.username))
-            errors.username = 'Please use valid username';
+            errors.username = translate[language].errors.username
         setValidationErrors({
             err_password: errors.password,
             err_password_confirm: errors.password_confirm,
@@ -274,49 +345,50 @@ export default function Profile(props){
             let img;
             if (defaultSrc === defaultImg) img = true;
             else img = !Boolean(defaultImg);
-            await API.updateUserProfil(fieldValue.firstname, fieldValue.lastname, fieldValue.username,fieldValue.email, fieldValue.password, fieldValue.password_confirm, img, editPassword)
+            await API.updateUserProfil(fieldValue.firstname, fieldValue.lastname, fieldValue.username, fieldValue.email, fieldValue.password, fieldValue.password_confirm, img, editPassword)
                 .then(response => {
                     if (response.status === 200)
-                       console.log(response.data);
+                        console.log(response.data);
                 })
                 .catch(err => {
-                    // if (err.response.data && typeof err.response.data.same_username !== 'undefined'){
-                    //     setValidationErrors({
-                    //         ...validationErrors,
-                    //         err_username: err.response.data.same_username ? 'Username already exist' : false,
-                    //         err_email: err.response.data.same_email ? 'Email already exist' : false
-                    //     })
-                    // }
-                    console.log(err);
+                    if (err.response.data){
+                        setValidationErrors({
+                            ...validationErrors,
+                            err_username: err.response.data.err_username ?  translate[language].errors.usernameExist : false,
+                            err_email: err.response.data.err_email ? translate[language].errors.emailExist : false
+                        })
+                    }
+                    console.log(err.response.data);
                 });
         }
         setLoader(false);
     }
 
     useEffect(() => {
-       async function getUserProfile(){
-           await API.getUserProfile()
-               .then(res => {
-                   if (res.status === 200 && res.data) {
-                       setTextFieldsValues({
-                           firstname: res.data.firstname,
-                           lastname: res.data.lastname,
-                           username: res.data.username,
-                           email: res.data.email
-                       })
-                       setDefaultImg(res.data.img);
-                       setMounted(true);
-                   }
-               })
-       }
-       if (!mounted) {
-           getUserProfile()
-       }
+        async function getUserProfile() {
+            await API.getUserProfile()
+                .then(res => {
+                    if (res.status === 200 && res.data) {
+                        setTextFieldsValues({
+                            firstname: res.data.firstname,
+                            lastname: res.data.lastname,
+                            username: res.data.username,
+                            email: res.data.email
+                        })
+                        setDefaultImg(res.data.img);
+                        setMounted(true);
+                    }
+                })
+        }
+
+        if (!mounted) {
+            getUserProfile()
+        }
     }, [mounted]);
 
     const handleNotifFile = () => {
         store.addNotification({
-            message: "Sorry, we only accept jpg, jpeg, png and max file size of 2mb ",
+            message:  translate[language].errors.fileWarning,
             insert: "top",
             type: 'success',
             container: "top-right",
@@ -345,7 +417,7 @@ export default function Profile(props){
                             setDefaultImg(res.data.img);
                     })
                     .catch(err => {
-                       handleNotifFile();
+                        handleNotifFile();
                     });
             }
         }
@@ -358,15 +430,16 @@ export default function Profile(props){
         <Container component="main" maxWidth={"md"} className={classes.containerGridTopMovie}>
             <form noValidate>
                 {/* Loader -> when page load */}
-                <Backdrop className={classes.backdrop} open={!mounted} >
-                    <CircularProgress color="inherit" />
+                <Backdrop className={classes.backdrop} open={!mounted}>
+                    <CircularProgress color="inherit"/>
                 </Backdrop>
                 <div className={classes.titleContainer}>
-                    <h1 className={classes.title}>My profile</h1>
+                    <h1 className={classes.title}>{translate[language].MyProfile}</h1>
                     <Divider className={classes.dividerTitle}/>
                 </div>
                 <div className={classes.profileContainer}>
-                    <Grid style={{marginTop: '1.5em'}} container alignContent={"center"} direction="row" justify="space-evenly" alignItems="center">
+                    <Grid style={{marginTop: '1.5em'}} container alignContent={"center"} direction="row"
+                          justify="space-evenly" alignItems="center">
                         <Grid item sm={6}>
                             <Grid container direction={"column"} alignItems="center" alignContent={'center'}>
                                 <Grid item>
@@ -378,9 +451,9 @@ export default function Profile(props){
                                 </Grid>
                                 <Grid item>
                                     <div className={classes.imageUploadWrap}>
-                                        <Fab variant="extended" size="small" className={classes.addPicture} >
-                                            <AddIcon />
-                                            Add picture
+                                        <Fab variant="extended" size="small" className={classes.addPicture}>
+                                            <AddIcon/>
+                                            {translate[language].addPicture}
                                         </Fab>
                                         <input
                                             className={classes.fileUploadInput}
@@ -391,15 +464,17 @@ export default function Profile(props){
                                     </div>
                                 </Grid>
                                 <Grid item>
-                                    <Fab onClick={handleCheckboxImg} variant="extended" size="small" className={classes.addPicture} >
-                                        <ImageIcon />
-                                        Use default image
+                                    <Fab onClick={handleCheckboxImg} variant="extended" size="small"
+                                         className={classes.addPicture}>
+                                        <ImageIcon/>
+                                        {translate[language].useDefault}
                                     </Fab>
                                 </Grid>
                             </Grid>
                         </Grid>
                         <Grid item sm={6}>
-                            <Grid className={classes.containerInfos} container direction={"column"}  alignItems="stretch" alignContent={'center'}>
+                            <Grid className={classes.containerInfos} container direction={"column"} alignItems="stretch"
+                                  alignContent={'center'}>
                                 <Grid item xs={12} sm={8} style={{width: '100%'}}>
                                     <TextField
                                         value={fieldValue.firstname || ''}
@@ -410,7 +485,7 @@ export default function Profile(props){
                                         variant="filled"
                                         required
                                         id="firstname"
-                                        label="First Name"
+                                        label={translate[language].firstname}
                                         className={classes.textfield}
                                         fullWidth
                                     />
@@ -425,7 +500,8 @@ export default function Profile(props){
                                         variant="filled"
                                         fullWidth
                                         id="lastname"
-                                        label="Last Name"
+                                        required
+                                        label={translate[language].lastname}
                                         className={classnames(classes.textfield, classes.textfieldbetween)}
                                     />
                                 </Grid>
@@ -440,12 +516,12 @@ export default function Profile(props){
                                         required
                                         fullWidth
                                         id="username"
-                                        label="Username"
+                                        label={translate[language].username}
                                         className={classnames(classes.textfield, classes.textfieldbetween)}
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
-                                                    <AccountCircle />
+                                                    <AccountCircle/>
                                                 </InputAdornment>
                                             )
                                         }}
@@ -460,7 +536,7 @@ export default function Profile(props){
                                         variant="filled"
                                         fullWidth
                                         name="password"
-                                        label="Password"
+                                        label={translate[language].password}
                                         type="password"
                                         id="password"
                                         required={editPassword}
@@ -470,7 +546,7 @@ export default function Profile(props){
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
-                                                    <LockIcon />
+                                                    <LockIcon/>
                                                 </InputAdornment>
                                             )
                                         }}
@@ -485,7 +561,7 @@ export default function Profile(props){
                                         variant="filled"
                                         fullWidth
                                         name="password_confirm"
-                                        label="Password Confirm"
+                                        label={translate[language].password_confirm}
                                         type="password"
                                         id="password_confirm"
                                         autoComplete={"true"}
@@ -495,7 +571,7 @@ export default function Profile(props){
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
-                                                    <LockIcon />
+                                                    <LockIcon/>
                                                 </InputAdornment>
                                             )
                                         }}
@@ -511,13 +587,13 @@ export default function Profile(props){
                                         required
                                         fullWidth
                                         id="email"
-                                        label="Email Address"
+                                        label={translate[language].email}
                                         name="email"
                                         className={classnames(classes.textfield, classes.textfieldbottom)}
                                         InputProps={{
                                             startAdornment: (
                                                 <InputAdornment position="start">
-                                                    <MailIcon />
+                                                    <MailIcon/>
                                                 </InputAdornment>
                                             )
                                         }}
@@ -526,23 +602,27 @@ export default function Profile(props){
                             </Grid>
                         </Grid>
                     </Grid>
-                    <Grid style={{marginTop: '3em'}}container alignContent={'center'} justify={'center'} alignItems={'center'}>
+                    <Grid style={{marginTop: '3em'}} container alignContent={'center'} justify={'center'}
+                          alignItems={'center'}>
                         <Grid item>
                             <div className={classes.containerBottomButtons}>
-                                <Fab onClick={handleEditPassword} variant="extended" size="medium" className={classes.saveChanges} style={{marginRight: '10px'}}>
+                                <Fab onClick={handleEditPassword} variant="extended" size="medium"
+                                     className={classes.saveChanges} style={{marginRight: '10px'}}>
                                     <FormControlLabel
                                         className={classes.FormControlLabel}
                                         checked={editPassword}
                                         onClick={handleEditPassword}
-                                        value="Edit password"
-                                        control={<Checkbox color="primary" />}
-                                        label="Edit password"
+                                        value={translate[language].editPassword}
+                                        control={<Checkbox color="primary"/>}
+                                        label={translate[language].editPassword}
                                         labelPlacement="start"
                                     />
                                 </Fab>
-                                <Fab onClick={handleSaveChanges} variant="extended" size="medium" className={classes.saveChanges} >
-                                    {loader ? <CircularProgress size={24} className={classes.commentProgress} /> : <CheckIcon /> }
-                                    {loader ? null : 'Save changes'}
+                                <Fab onClick={handleSaveChanges} variant="extended" size="medium"
+                                     className={classes.saveChanges}>
+                                    {loader ? <CircularProgress size={24} className={classes.commentProgress}/> :
+                                        <CheckIcon/>}
+                                    {loader ? null : translate[language].saveChanges}
                                 </Fab>
                             </div>
                         </Grid>
@@ -551,4 +631,6 @@ export default function Profile(props){
             </form>
         </Container>
     )
-}
+}));
+
+export default Profile;

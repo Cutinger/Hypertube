@@ -159,7 +159,7 @@ const [file, setFile] = React.useState('');
 
     const translate = {
         fr: {
-            fileWarning: "Désoleé, nous acceptons uniquement jpg, jpeg, png / taille limite 2mb",
+            fileWarning: "Désolé, nous acceptons uniquement jpg, jpeg, png / taille limite 2mb",
             mailConfirmation : "Un mail de confirmation vient d'être envoyé.",
             SignUp: "S'inscrire",
             firstname: 'Prénom',

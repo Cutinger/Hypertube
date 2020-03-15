@@ -92,8 +92,6 @@ const deleteComment = async (req, res) => {
         let dataMovies = await Movie.findOne({imdb_code: imdbcode})
         if (!dataMovies) { throw new Error ('No movie found with this imdbcode: ', imdbcode); }
         for (let index = 0; index < dataMovies.comments.length; index++) {
-            console.log(dataMovies.comments[index]);
-            console.log(id)
             if (dataMovies.comments[index].user == username && dataMovies.comments[index].id == id) {
                 dataMovies.comments.splice(index, 1)
                 deleted = true;
@@ -133,12 +131,20 @@ const getInfos = async (req, res) => {
             dataMovies = await Movie.findOne({imdb_code: imdbcode});
             return res.status(200).json({userID: userID, username: username, commentsList: [], views: 1})
         }
-        if (dataMovies && dataMovies.comments)
-            commentsList = dataMovies.comments.sort( (a, b) => {
-                return b.date - a.date;
+        if (dataMovies && dataMovies.comments) {
+            dataMovies.views = dataMovies.views + 1
+            dataMovies.save( (err) => {console.log(err) })
+            let comments = dataMovies;
+            commentsList = comments.comments.sort((a, b) => {
+                return a.date - b.date;
             });
-        dataMovies.views = dataMovies.views + 1
-        dataMovies.save( (err) => { console.log(err) })
+            for (var i = 0; i < commentsList.length; i++){
+               let user = await User.findOne({_id: commentsList[i].userID})
+                if (user) {
+                    commentsList[i].user = user.username;
+                }
+            }
+        }
         return res.status(200).json({userID: userID, username: username, commentsList: commentsList, views: dataMovies.views})
     } catch (err) { console.log(err); res.status(403).json({}) }
 }
