@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback, forwardRef} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
 import StarRatings from 'react-star-ratings';
@@ -7,7 +7,9 @@ import {
     Grid
 } from '@material-ui/core';
 import API from './../../utils/API';
-import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import AddMovie from './AddMovie/AddMovie'
+import Cookies from "universal-cookie";
+import {store} from "react-notifications-component";
 
 const useStyles = makeStyles(theme => ({
     movieCover: {
@@ -179,45 +181,51 @@ const useStyles = makeStyles(theme => ({
         paddingRight: '7px',
         paddingLeft: '7px'
     },
-    movieAddList: {
-        opacity: '0.5',
-        color: '#f7c12d',
-        paddingTop: '5px',
-        verticalAlign: 'middle' ,
-        '&:hover': {
-            opacity: '1',
-            transform: 'scale(1.05)'
-        }
-    },
-    movieRemoveList: {
-        opacity: '0.5',
-        color: '#4bbe4b',
-        paddingTop: '5px',
-        verticalAlign: 'middle' ,
-        '&:hover': {
-            opacity: '1',
-            transform: 'scale(1.05)'
-        }
-    }
 }));
 
+const translate = {
+    fr: {
+        messageRemoved: "Le film a bien été retiré de votre liste",
+        messageAdd: "Le film a bien été ajouté à votre liste",
+        addTooltip: 'Ajouter à ma liste'
+    },
+    us:{
+        messageRemoved: "Movie was successfully removed from watch list",
+        messageAdd: "Movie was successfully added from watch list",
+        addTooltip: 'Add to my list'
 
-export default function HomeMoviesCards(props) {
+    }
+}
+
+const Historic = (forwardRef((props, ref) => {
     const classes = useStyles();
     const [movieFocus, setMovieFocus] = useState(false);
     const [topMoviesList, setTopMoviesList] = useState(false);
     const [activeTextAutoScroll, setActiveTextAutoScroll] = useState(false);
+    const [language, setLanguage] = React.useState('us');
+    const [watchlist, setWatchlist] = useState([]);
+    const [moviesGenres, setMoviesGenres] = useState(false);
+
+    // Load cookies for language
+    useEffect(() => {
+        const cookies = new Cookies();
+        const getLg = cookies.get('lg');
+        if (getLg && getLg !== language) {
+            setLanguage(getLg);
+        }
+    },[language] );
+
 
     // Get props on load (moviesGenres && topMoviesList)
     useEffect(() => {
         function setProps() {
-            if (props.topMoviesList){
+            if (props.moviesGenres && props.topMoviesList){
                 setTopMoviesList(props.topMoviesList);
+                setMoviesGenres(props.moviesGenres);
             }
         }
         setProps();
-    }, [props.topMoviesList])
-
+    }, [props.moviesGenres, props.topMoviesList])
     // Movie:hover
     const handleMouseEnterMovie = (key) => { setMovieFocus(key) };
     const handleMouseLeaveMovie = () => { setMovieFocus(false) };
@@ -232,22 +240,75 @@ export default function HomeMoviesCards(props) {
         }
     }, []);
 
-    // Movies genres generator
-    const genMovieGenres = (obj) => {
-        if (obj && obj.genres && Object.values(obj.genres))
-            return Object.values(obj.genres).map((obj, key) => {
-                return <Grid key={key} className={classes.moviesGenres} item>
-                        <span >{obj.name}</span>
-                    </Grid>
-            });
-        return null;
-    };
+        // Movies genres generator
+        const genMovieGenres = (obj) => {
+            if(moviesGenres && moviesGenres.length)
+                return moviesGenres.map((genre) => {
+                    if (obj.genre_ids && Object.keys(obj.genre_ids.length))
+                        return Object.keys(obj.genre_ids).map((genreO, key) => {
+                            if (obj.genre_ids[key] === genre.id)
+                                return key < 4 ?
+                                    <Grid key={key} className={classes.moviesGenres} item>
+                                        <span >{genre.name}</span>
+                                    </Grid> : null;
+                            return null
+                        });
+                    return null
+                });
+            return null;
+        };
 
     // Get watchlist
+    useEffect(() => {
+        if (props.watchlist) {
+            setWatchlist(props.watchlist);
+        }
+    }, [props.watchlist])
 
-    const handleClickAddWatchlist = (id) => {
+    const handleClickAddWatchlist = (id, action) => {
         API.likeWatchlist(id)
             .catch((err) => console.log(err));
+        if (action === 'remove'){
+            store.addNotification({
+                message: translate[language].messageRemoved,
+                insert: "top",
+                type: 'success',
+                container: "top-right",
+                animationIn: ["animated", "fadeIn"],
+                animationOut: ["animated", "fadeOut"],
+                dismiss: {
+                    duration: 5000,
+                    onScreen: true
+                }
+            });
+            let j = 0;
+            watchlist.map((obj, i) => {
+                if (obj.id === id)
+                    j = i;
+                return true
+            });
+            watchlist.splice(j, 1)
+            setWatchlist(watchlist);
+            props.updateWatchlist(watchlist);
+
+        } else if (action === 'add'){
+            store.addNotification({
+                message: translate[language].messageAdd,
+                type: 'success',
+                insert: "top",
+                container: "top-right",
+                animationIn: ["animated", "fadeIn"],
+                animationOut: ["animated", "fadeOut"],
+                dismiss: {
+                    duration: 5000,
+                    onScreen: true
+                }
+            })
+            watchlist.push(id);
+            setWatchlist(watchlist);
+            props.updateWatchlist(watchlist);
+
+        }
     };
 
     function GridMovies(obj, key) {
@@ -282,9 +343,7 @@ export default function HomeMoviesCards(props) {
                                                     <StarRatings rating={obj.vote_average / 2} starRatedColor="#f7c12d" starDimension="14px" starSpacing="0.5px" />
                                                 </Grid>
                                                 <Grid item xs={'auto'} className={classes.movieRemoveList}>
-                                                    <HighlightOffIcon onClick={() =>{
-                                                        handleClickAddWatchlist(obj.id);
-                                                    }} id="removeCircle"/>
+                                                    <AddMovie handleClickAddWatchlist={handleClickAddWatchlist} watchlist={watchlist} id={obj.id} />
                                                 </Grid>
                                             </Grid>
                                         </Grid>
@@ -348,3 +407,7 @@ export default function HomeMoviesCards(props) {
         </div>
     )
 }
+));
+
+export default Historic;
+

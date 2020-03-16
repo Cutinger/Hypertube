@@ -85,7 +85,6 @@ const Home = (forwardRef((props, ref) => {
     const [load, setLoad] = useState(false);
     const [language, setLanguage] = React.useState('us');
     const sidebarRef = React.useRef();
-    const moviesCardsRef = React.useRef();
 
     const translate = {
         fr: {
@@ -96,13 +95,15 @@ const Home = (forwardRef((props, ref) => {
             TopMovies: 'Top Movies',
             searchTitle: 'Search for '
         }
-    }
+    };
     // Ref accessible by App.js
     useImperativeHandle(ref, () => ({
         setLanguageHandle(language) {
             setLanguage(language);
         }
     }));
+
+
     useEffect(() => {
         const cookies = new Cookies();
         const getLg = cookies.get('lg');
@@ -172,30 +173,43 @@ const Home = (forwardRef((props, ref) => {
             if (props.history.location.pathname === '/') {
                 getTopMoviesList(lang);
             }
+
             return () => { isCancelled = true }
         }, [props.history.location.pathname]);
 
+    useEffect(() => {
+        const cookies = new Cookies();
+        let lang = cookies.get('lg');
+        async function transformWatchlist(watchlist) {
+            let watchlistTab = [];
+            if (watchlist && watchlist.length){
+                for(let i = 0; i < watchlist.length; i++){
+                    const id = watchlist[i].imdb_id ? watchlist[i].imdb_id : watchlist[i]
+                    const lg = lang === 'us' ? 'language=en-US' : 'language=fr-FR';
+                    await axios.get(`https://api.themoviedb.org/3/movie/${id}?${lg}&api_key=c91b62254304ec5dbb322351b0dc1094`)
+                        .then(res => {
+                            if (res.status === 200 && res.data) {
+                                watchlistTab.push(res.data);
+                            }
+                        });
+                }
+            }
+            setWatchlist(watchlistTab.reverse());
+            return watchlistTab
+        };
+        async function setWatchs(watchlist) {
+            let watchlistTab = await transformWatchlist(watchlist);
+            setWatchlist(watchlistTab);
+
+        }
+        if (props.watchlist) {
+          setWatchs(props.watchlist)
+        }
+    }, [props.watchlist])
     // Sidebar
     const [open, setOpen] = React.useState(false);
     const handleDrawerClose = () => setOpen(false)
 
-
-    const transormWatchlist = async(watchlist) => {
-        let watchlistTab = [];
-        if (watchlist && watchlist.length){
-            for(let i = 0; i < watchlist.length; i++){
-                const lg = language === 'us' ? 'language=en-US' : 'language=fr-FR';
-                await axios.get(`https://api.themoviedb.org/3/movie/${watchlist[i]}?${lg}&api_key=c91b62254304ec5dbb322351b0dc1094`)
-                    .then(res => {
-                        if (res.status === 200 && res.data) {
-                            watchlistTab.push(res.data);
-                        }
-                    });
-            }
-        }
-        setWatchlist(watchlistTab.reverse());
-        return watchlistTab
-    };
     // Ref accessible by App.js
     useImperativeHandle(ref, () => ({
         setSidebar(bool){ setOpen(bool) },
@@ -203,21 +217,17 @@ const Home = (forwardRef((props, ref) => {
             setSidebarQuery(query);
             setSearchValue(searchValue);
         },
-        async setWatchlists(watchlist){
-            if (watchlist){
-                let watchlistTab = await transormWatchlist(watchlist);
-                setWatchlist(watchlistTab);
-                moviesCardsRef.current && moviesCardsRef.current.setWatchlists(watchlistTab);
-            }
-        },
         setLanguageHandle(language) {
             if (language){
                 setLanguage(language);
                 sidebarRef.current && sidebarRef.current.setLanguageHandle(language);
-                moviesCardsRef.current && moviesCardsRef.current.setLanguageHandle(language);
             }
+        },
+        setWatchlists(watchlist) {
+            setWatchlist(watchlist);
         }
     }));
+
 
     useEffect(() => {
         const cookies = new Cookies();
@@ -251,6 +261,9 @@ const Home = (forwardRef((props, ref) => {
         return () => { isCancelled = true }
     }, [sidebarQuery, loadPage]);
 
+    const updateWatchlist = (watchlist) => {
+       setWatchlist(watchlist);
+    }
     return (
         props.history.location.pathname === "/" ?
             <Container component="main" className={classes.containerGridTopMovie}>
@@ -275,7 +288,7 @@ const Home = (forwardRef((props, ref) => {
                 <InfiniteScroll next={handleSetLoadMovies} hasMore={true} dataLength={topMoviesList ? topMoviesList.length : 0} ></InfiniteScroll>
                 {/* Movies card map */}
                 <HomeMovieCards
-                    ref={moviesCardsRef}
+                    updateWatchlist={updateWatchlist}
                     watchlist={watchlist}
                     topMoviesList={topMoviesList}
                     moviesGenres={moviesGenres}
@@ -308,7 +321,8 @@ const Home = (forwardRef((props, ref) => {
                 </div>
                 {/* Movies card map */}
                 <Historic
-                    ref={moviesCardsRef}
+                    updateWatchlist={updateWatchlist}
+                    watchlist={watchlist}
                     topMoviesList={watchlist}
                     moviesGenres={moviesGenres}
                     pushHistory={(link) => props.history.push(link)}
@@ -317,11 +331,11 @@ const Home = (forwardRef((props, ref) => {
                     <h1 className={classes.title}>Recent views</h1>
                     <Divider className={classes.dividerTitle}/>
                 </div>
-                {/* Movies card map */}
-                <Historic
-                    topMoviesList={watchlist}
-                    pushHistory={(link, e) => { e.preventDefault(); props.history.push(link) }}
-                />
+                {/* Movies card map*/}
+                {/*<Historic*/}
+                {/*    topMoviesList={watchlist}*/}
+                {/*    pushHistory={(link, e) => { e.preventDefault(); props.history.push(link) }}*/}
+                {/*/>*/}
                 {/* Scroll to top */}
                 <Zoom in={trigger}>
                     <div onClick={handleClick} role="presentation" className={classes.rootScroll}>

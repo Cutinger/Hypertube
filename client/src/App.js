@@ -39,6 +39,7 @@ export default function App(props) {
   const history = useHistory();
   const classes = useStyles();
   const [language, setLanguage] = React.useState('us');
+  const [watchlist, setWatchlist] = React.useState(null);
 
   const handleActiveSidebar = (bool) => {
     if (history && history.location.pathname === '/'){
@@ -46,8 +47,7 @@ export default function App(props) {
     }
   };
   const handleSetWatchlist = (watchlist) => {
-    homeRef.current && homeRef.current.setWatchlists(watchlist);
-    historicRef.current && historicRef.current.getWatchlists(watchlist);
+    setWatchlist(watchlist);
   };
 
 
@@ -58,6 +58,7 @@ export default function App(props) {
       setLanguage(getLg);
     }
   },[language] );
+
 
   const handleSetLanguage = (language) => {
     if (language && typeof (language) !== 'undefined') {
@@ -80,8 +81,8 @@ export default function App(props) {
       <div className={"notifications"}> <ReactNotification /> </div>
       <Switch>
         <Route exact path="/movie/:movieId" component={withAuth((matchProps) => <MovieCard {...props} ref={movieRef} {...matchProps} /> )} />
-        <Route exact path="/" component={withAuth((props) => <Home {...props} ref={homeRef} setSidebar={handleActiveSidebar} /> )} />
-        <Route exact path="/historic" component={withAuth((props) => <Home ref={historicRef} {...props} /> )} />
+        <Route exact path="/" component={withAuth((props) => <Home {...props} watchlist={watchlist} ref={homeRef} setSidebar={handleActiveSidebar} /> )} />
+        <Route exact path="/historic" component={withAuth((props) => <Home watchlist={watchlist} ref={historicRef} {...props} /> )} />
         <Route exact path="/profile" component={withAuth((props) => <Profile {...props} ref={profileRef} /> )} />
         <Route exact path="/login" component={(props) => <Login {...props} ref={loginRef} />}/>
         <Route exact path="/users/reset/:token" component={(props) => <ResetPassword {...props} />}/>

@@ -33,25 +33,27 @@ const AddMovie = (props) => {
     const classes = useStyles();
 
     useEffect(() => {
-        console.log(1);
-        if (props && props.watchlist && props.watchlist !== watchlist) {
+        if (props && props.watchlist) {
             setWatchlist(props.watchlist);
             setClicked(null);
         }
-    }, [props, clicked])
-
-
-    if (watchlist && watchlist.length){
-        for (var j = 0; j < watchlist.length; j++){
-            if (props.id === watchlist[j].id)
-                return  <Grid item xs={'auto'} className={classes.movieRemoveList}>
-                    <HighlightOffIcon onClick={() =>{setClicked(true) ; props.handleClickAddWatchlist(props.id, 'remove', j) }} id="removeCircle"/>
-                </Grid>
+        if (watchlist && watchlist.length) {
+            for (var j = 0; j < watchlist.length; j++) {
+                if (props.id === watchlist[j].id)
+                    setClicked(true);
+            }
         }
-    }
-    return   <Grid item xs={'auto'} className={classes.movieAddList}>
-        <AddCircle onClick={() => { setClicked(false) ; props.handleClickAddWatchlist(props.id, 'add', j) }} id="addCircle"/>
-    </Grid>
+    }, [props, clicked, watchlist]);
+
+
+    return (
+        clicked ? <Grid item xs={'auto'} className={classes.movieRemoveList}>
+                        <HighlightOffIcon onClick={() =>{setClicked(false) ; props.handleClickAddWatchlist(props.id, 'remove') }} id="removeCircle"/>
+                    </Grid> :
+                    <Grid item xs={'auto'} className={classes.movieAddList}>
+                        <AddCircle onClick={() => { setClicked(true) ; props.handleClickAddWatchlist(props.id, 'add') }} id="addCircle"/>
+                    </Grid>
+    )
 
 }
 

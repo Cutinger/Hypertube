@@ -14,6 +14,8 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
+import Link from '@material-ui/core/Link';
+
 import API from '../../utils/API';
 import Cookies from 'universal-cookie';
 import IcomoonReact from "icomoon-react";
@@ -110,7 +112,6 @@ const PrimarySearchAppBar = (forwardRef((props, ref) => {
     const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
     const isLanguagePopover = Boolean(anchorElLanguage);
     const [language, setLanguage] = React.useState('us');
-
     const translate = {
         fr: {
             Connect: 'Connexion',
@@ -170,7 +171,7 @@ const PrimarySearchAppBar = (forwardRef((props, ref) => {
                     if (res.status === 200 && res.data.watchlist) {
                         setCounterList(res.data.watchlist.length);
                         setConnected(true);
-                        props.setWatchlists(res.data.watchlist)
+                        props.setWatchlists(res.data.watchlist);
                     }
                 })
         }
@@ -225,14 +226,13 @@ const PrimarySearchAppBar = (forwardRef((props, ref) => {
                             }}/>
                         </Badge>
                     </IconButton>
-                    <IconButton aria-label="show 17 new notifications" color="inherit">
-                        <Badge badgeContent={counterList} color="secondary">
-                            <SubscriptionsIcon onClick={(e) => {
-                                e.preventDefault();
-                                props.history.push('/historic')
-                            }}/>
-                        </Badge>
-                    </IconButton>
+                    <Link underline={'none'} href="/historic" color="inherit">
+                        <IconButton aria-label="show 17 new notifications" color="inherit">
+                            <Badge badgeContent={counterList} color="secondary">
+                                <SubscriptionsIcon />
+                            </Badge>
+                        </IconButton>
+                    </Link>
                     <IconButton
                         edge="end"
                         aria-label="account of current user"
@@ -311,24 +311,22 @@ const PrimarySearchAppBar = (forwardRef((props, ref) => {
                             <IconButton aria-label="show 11 new notifications" color="inherit">
                                 <Badge badgeContent={'20+'} color="secondary">
                                     <WhatshotIcon onClick={(e) => {
-                                        e.preventDefault();
-                                        props.history.push('/historic')
+                                        props.history.push('/')
                                     }}/>
                                 </Badge>
                             </IconButton>
                             <p>{translate[language]['WhatsHot']}</p>
                         </MenuItem>
-                        <MenuItem onClick={(e) => {
-                            e.preventDefault();
-                            props.history.push('/historic')
-                        }}>
-                            <IconButton aria-label="show 11 new notifications" color="inherit">
-                                <Badge badgeContent={counterList} color="secondary">
-                                    <SubscriptionsIcon />
-                                </Badge>
-                            </IconButton>
-                            <p>{translate[language]['MoviesList']}</p>
-                        </MenuItem>
+                        <Link underline={'none'} href="/historic" color="inherit">
+                            <MenuItem>
+                                    <IconButton aria-label="show 11 new notifications" color="inherit">
+                                        <Badge badgeContent={counterList} color="secondary">
+                                            <SubscriptionsIcon />
+                                        </Badge>
+                                    </IconButton>
+                                <p>{translate[language]['MoviesList']}</p>
+                            </MenuItem>
+                        </Link>
                         <MenuItem onClick={handleProfileMenuOpen}>
                             <IconButton
                                 aria-label="account of current user"

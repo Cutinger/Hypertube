@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useImperativeHandle, forwardRef} from 'react';
+import React, {useState, useEffect, useCallback, forwardRef} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import PlayCircleFilled from '@material-ui/icons/PlayCircleFilled';
 import StarRatings from 'react-star-ratings';
@@ -7,6 +7,7 @@ import API from './../../utils/API';
 import { store } from 'react-notifications-component';
 import Cookies from "universal-cookie";
 import AddMovie from './AddMovie/AddMovie'
+import axios from 'axios'
 
 const useStyles = makeStyles(theme => ({
     movieCover: {
@@ -184,7 +185,7 @@ const translate = {
     fr: {
         messageRemoved: "Le film a bien été retiré de votre liste",
         messageAdd: "Le film a bien été ajouté à votre liste",
-        addTooltip: 'Ajouter à ma list'
+        addTooltip: 'Ajouter à ma liste'
     },
     us:{
         messageRemoved: "Movie was successfully removed from watch list",
@@ -204,16 +205,7 @@ const HomeMoviesCards = (forwardRef((props, ref) => {
     const [watchlist, setWatchlist] = useState([]);
     const [language, setLanguage] = React.useState('us');
 
-    // Ref accessible by App.js
-    useImperativeHandle(ref, () => ({
-        setLanguageHandle(language) {
-            if(language)
-                setLanguage(language);
-        },
-        setWatchlists(watchlist){
-            setWatchlist(watchlist);
-        }
-    }));
+
     // Load cookies for language
     useEffect(() => {
         const cookies = new Cookies();
@@ -271,48 +263,72 @@ const HomeMoviesCards = (forwardRef((props, ref) => {
     // Get watchlist
     useEffect(() => {
         if (props.watchlist) {
-            setWatchlist(watchlist);
+            setWatchlist(props.watchlist);
         }
-    }, [props.watchlist, watchlist])
+    }, [props.watchlist])
 
-    const handleClickAddWatchlist = (id, action, j) => {
-        API.likeWatchlist(id)
-            .catch((err) => console.log(err));
-        if (action === 'remove'){
-            store.addNotification({
-                message: translate[language].messageRemoved,
-                insert: "top",
-                type: 'success',
-                container: "top-right",
-                animationIn: ["animated", "fadeIn"],
-                animationOut: ["animated", "fadeOut"],
-                dismiss: {
-                    duration: 5000,
-                    onScreen: true
-                }
-            });
-            setWatchlist(watchlist.splice(j, 1))
-        } else if (action === 'add'){
-            store.addNotification({
-                message: translate[language].messageAdd,
-                type: 'success',
-                insert: "top",
-                container: "top-right",
-                animationIn: ["animated", "fadeIn"],
-                animationOut: ["animated", "fadeOut"],
-                dismiss: {
-                    duration: 5000,
-                    onScreen: true
-                }
-            })
-            let newMovie = {
-                id: id
+
+        const createWatchlistEntry = async(id)  =>{
+            const cookies = new Cookies();
+            let lang = cookies.get('lg');
+            const lg = lang === 'us' ? 'language=en-US' : 'language=fr-FR';
+            try {
+                let data = await axios.get(`https://api.themoviedb.org/3/movie/${id}?${lg}&api_key=c91b62254304ec5dbb322351b0dc1094`)
+                if (data && data.res.status === 200)
+                    return data.res.data;
+                console.log(data);
+            } catch (err){
+                console.log(4);
+                return null;
             }
-            watchlist.push(newMovie);
-            setWatchlist(watchlist);
-        }
-    };
+        };
 
+        const handleClickAddWatchlist = async(id, action) => {
+            API.likeWatchlist(id)
+                .catch((err) => console.log(err));
+            if (action === 'remove'){
+                store.addNotification({
+                    message: translate[language].messageRemoved,
+                    insert: "top",
+                    type: 'success',
+                    container: "top-right",
+                    animationIn: ["animated", "fadeIn"],
+                    animationOut: ["animated", "fadeOut"],
+                    dismiss: {
+                        duration: 5000,
+                        onScreen: true
+                    }
+                });
+                let j = 0;
+                watchlist.map((obj, i) => {
+                    if (obj.id === id)
+                        j = i;
+                    return true
+                });
+                watchlist.splice(j, 1);
+                setWatchlist(watchlist);
+                props.updateWatchlist(watchlist);
+            } else if (action === 'add'){
+                store.addNotification({
+                    message: translate[language].messageAdd,
+                    type: 'success',
+                    insert: "top",
+                    container: "top-right",
+                    animationIn: ["animated", "fadeIn"],
+                    animationOut: ["animated", "fadeOut"],
+                    dismiss: {
+                        duration: 5000,
+                        onScreen: true
+                    }
+                });
+                let entry = await createWatchlistEntry(id);
+                if (entry){
+                    watchlist.push(entry);
+                    setWatchlist(watchlist);
+                    props.updateWatchlist(watchlist);
+                }
+            }
+        };
 
     function GridMovies(obj, key) {
         return (
