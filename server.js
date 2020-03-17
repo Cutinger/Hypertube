@@ -81,7 +81,7 @@ app.use ("/api/auth", auth);
 app.post('/api/picture/add/:token',  withAuth, picture.upload.single('file'), picture.uploadPhoto);
 // Stream routes
 app.get('/api/movies/:stream/:quality/:imdbcode', (req, res) => {
-    withAuth, stream.getDataMovie(req, res, userslist) 
+    withAuth(req, res, stream.getDataMovie(req, res, userslist))
 })
 // Catch Movies route
 app.get('/api/movies/:id', moviesData.parseData);

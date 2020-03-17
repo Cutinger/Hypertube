@@ -1,8 +1,5 @@
 import axios from "axios";
-const headers = { 'Content-Type': 'application/json',
-'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS,POST,PUT',
-'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-'X-Requested-With': 'XMLHttpRequest' };
+const headers = { 'Content-Type': 'application/json' };
 const burl = 'http://localhost:5000/api'
 
 export default {
