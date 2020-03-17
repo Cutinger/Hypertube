@@ -169,7 +169,7 @@ const Login = (forwardRef((props, ref) => {
     // HandleFacebookConnection
     const handleFacebookConnection = () => {
         API.facebookAuth()
-            .then(res => {
+             .then(res => {
                 if (res.status === 200)
                     props.history.push('/');
                 else
@@ -177,7 +177,21 @@ const Login = (forwardRef((props, ref) => {
             })
             .catch(err => {
                 console.log(['Catch error', err]);
+            }) 
+    }
+
+    // Handle42Connection
+    const handle42Connection = () => {
+        API.fortyTwoAuth()
+             .then(res => {
+                if (res.status === 200)
+                    props.history.push('/');
+                else
+                    console.log(['Res error', res]);
             })
+            .catch(err => {
+                console.log(['Catch error', err]);
+            }) 
     }
 
     // Warnings after validation
@@ -356,8 +370,8 @@ const Login = (forwardRef((props, ref) => {
                                     className={classes.buttonGroup}>
                                 <Button 
                                     startIcon={<IcomoonReact iconSet={iconSet} color="#ffff" size={22} icon="42" />} 
-                                    className={classes.button42}>
-                                    Auth
+                                    className={classes.button42}
+                                    onClick={handle42Connection}>
                                 </Button>
                                 <Button
                                     onClick={handleFacebookConnection}

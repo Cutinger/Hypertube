@@ -1,5 +1,8 @@
 import axios from "axios";
-const headers = { "Content-Type": "application/json" };
+const headers = { 'Content-Type': 'application/json',
+'Access-Control-Allow-Methods': 'GET,HEAD,OPTIONS,POST,PUT',
+'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+'X-Requested-With': 'XMLHttpRequest' };
 const burl = 'http://localhost:5000/api'
 
 export default {
@@ -60,13 +63,22 @@ export default {
         )
     },
     facebookAuth: () => {
-        return axios.get(
+        window.location.href = `${burl}/auth/facebook/callback`
+        /* return axios.get(
             `${burl}/auth/facebook`,
             {
-                withCredentials: 'true',
                 headers: headers
             }
-        )
+        ) */
+    },
+    fortyTwoAuth: () => {
+        window.location.href = `${burl}/auth/42/callback`
+        /* return axios.get(
+            `${burl}/auth/facebook`,
+            {
+                headers: headers
+            }
+        ) */
     },
     getWatchlist: () => {
         return axios.get(

@@ -2,8 +2,8 @@ var id = {
     quarantedeux: {
         authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
 		tokenURL: 'https://api.intra.42.fr/oauth/token',
-        clientID: 'f46bec54d6ec171c0d6f1aefe304cf05803acc1e1e16ac12593cdd523bd20762',
-        clientSecret: '39cf2faca2e0129090a5854cae73aa6a933d32f900dece0df987b390f49b9c49',
+        clientID: '73cdf3a9a369e87333d87e6cd80f5eac124d339d4265e1317ac11753782eb35e',
+        clientSecret: '75607f7c0cffbc57db66d160efd1c4ef5d7b2ce7ae0ef4697efae1892a9bcb6a',
         callbackURL: "http://localhost:5000/api/auth/42/callback",
     }
 };
