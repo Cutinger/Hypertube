@@ -17,8 +17,7 @@ const userSchema = new mongoose.Schema({
         required:true,
     },
     password:{
-        type:String,
-        required:true,
+        type:String
     },
     date:{
         type: Date,
@@ -55,7 +54,10 @@ const userSchema = new mongoose.Schema({
       type: String,
       default: 'us'
     },
-    oauthID:String,
+    oauthID: {
+        type: String,
+        default: ''
+    },
     facebook: JSON,
     github: JSON,
     42: JSON,
