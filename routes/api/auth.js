@@ -45,7 +45,7 @@ passport.use( new facebookStrategy({
                     email: profile._json.email,
                     firstname: profile._json.first_name ? profile._json.first_name : '',
                     lastname: profile._json.last_name ? profile._json.last_name : '',
-                    username: profile._json.first_name,
+                    username: profile.id,
                     img: profile.photos[0].value ? profile.photos[0].value : '',
                     oauthID: profile.id,
                     active: 1,
