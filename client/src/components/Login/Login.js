@@ -169,7 +169,7 @@ const Login = (forwardRef((props, ref) => {
     // HandleFacebookConnection
     const handleFacebookConnection = () => {
         API.facebookAuth()
-             .then(res => {
+/*              .then(res => {
                 if (res.status === 200)
                     props.history.push('/');
                 else
@@ -177,13 +177,13 @@ const Login = (forwardRef((props, ref) => {
             })
             .catch(err => {
                 console.log(['Catch error', err]);
-            }) 
+            })  */
     }
 
     // Handle42Connection
     const handle42Connection = () => {
         API.fortyTwoAuth()
-             .then(res => {
+/*              .then(res => {
                 if (res.status === 200)
                     props.history.push('/');
                 else
@@ -191,7 +191,7 @@ const Login = (forwardRef((props, ref) => {
             })
             .catch(err => {
                 console.log(['Catch error', err]);
-            }) 
+            })  */
     }
 
     // Warnings after validation

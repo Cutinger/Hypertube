@@ -6,8 +6,6 @@ const genToken = require("../../utils/lib");
 const passport = require('passport')
 , facebookStrategy = require('passport-facebook').Strategy;
 const FortyTwoStrategy = require('passport-42').Strategy;
-const gitconfig = require("../../config/Oauthgithub");
-const GitHubStrategy = require('passport-github').Strategy;
 const express = require("express");
 const fortytwoconfig = require('../../config/Oauth42');
 const router = express.Router();
@@ -22,6 +20,12 @@ passport.serializeUser(function(user, done) {
   passport.deserializeUser(function(obj, done) {
     done(null, obj);
   });
+
+router.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    next();
+});
 
 passport.use( new facebookStrategy({
     clientID: fbconfig.facebook.clientID,
@@ -63,7 +67,6 @@ passport.use( new FortyTwoStrategy({
     callbackURL: 'http://localhost:5000/api/auth/42/callback'
   },
     function(accessToken, refreshToken, profile, done) {
-        console.log(profile)
         User.findOne({ oauthID: profile.id }, (err, data) => {
             if (err) { return done(err) }
             if (data) {
@@ -104,16 +107,17 @@ function(req, res) {
         jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 },
             (err, token) => {
                 if (!err) {
+                    res.header('Access-Control-Allow-Credentials', true);
                     res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
                     res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
-                    return res.status(200).json({});
+                    return res.redirect('http://localhost:3000/');
                 }
                 console.log(err)
                 return res.status(400).json({});
             }
         )
     });
-    res.redirect('http://localhost:3000/');
+    
 });
 
 
@@ -126,16 +130,16 @@ router.get('/facebook/callback', passport.authenticate('facebook', { failureRedi
         jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 },
             (err, token) => {
                 if (!err) {
+                    res.header('Access-Control-Allow-Credentials', true);
                     res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
                     res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
-                    return res.status(200).json({});
+                    return res.redirect('http://localhost:3000/');
                 }
                 console.log(err)
                 return res.status(400).json({});
             }
         )
     });
-    res.redirect('http://localhost:3000/');
 })
 
 module.exports = router;
