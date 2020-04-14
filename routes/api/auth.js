@@ -113,8 +113,8 @@ function(req, res) {
             (err, token) => {
                 if (!err) {
                     res.header('Access-Control-Allow-Credentials', true);
-                    res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain: domain});
-                    res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:domain});
+                    res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain: domain, sameSite: true});
+                    res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:domain, sameSite: true});
                     return res.redirect(`${http}${domain}${port}`);
                 }
                 console.log(err);
@@ -136,8 +136,8 @@ router.get('/facebook/callback', passport.authenticate('facebook', { failureRedi
             (err, token) => {
                 if (!err) {
                     res.header('Access-Control-Allow-Credentials', true);
-                    res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain: domain});
-                    res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain: domain});
+                    res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain: domain, sameSite: true});
+                    res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain: domain, sameSite: true});
                     return res.redirect(`${http}${domain}${port}`);
                 }
                 console.log(err)

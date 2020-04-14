@@ -368,10 +368,10 @@ const Login = (forwardRef((props, ref) => {
                                     variant="contained"
                                     aria-label="contained primary button group" 
                                     className={classes.buttonGroup}>
-                                <Button 
-                                    startIcon={<IcomoonReact iconSet={iconSet} color="#ffff" size={22} icon="42" />} 
+                                <Button
                                     className={classes.button42}
                                     onClick={handle42Connection}>
+                                    <IcomoonReact iconSet={iconSet} color="#ffff" size={22} icon="42" />
                                 </Button>
                                 <Button
                                     onClick={handleFacebookConnection}

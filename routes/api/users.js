@@ -267,8 +267,8 @@ router.post("/login", async(req, res) => {
           jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 },
             (err, token) => {
               if (!err){
-                res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain:domaim});
-                res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:domain});
+                res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain:domain, sameSite: 'none'});
+                res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:domain, sameSite: 'none'});
                 return res.status(200).json({});
               }
               console.log(err)
