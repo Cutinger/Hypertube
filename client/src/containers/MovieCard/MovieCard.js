@@ -21,7 +21,7 @@ const moment = require('moment');
 const burl = 'http://localhost:5000/api';
 const Aux = (props) => props.children;
 const io = require('socket.io-client');
-const socket = io('http://localhost:8000');
+const socket = process.env.SERVER_LOCALHOST === JSON.stringify(true) ? io('http://localhost:8000') : io('https://hypertube.jv-g.fr');
 
 const useStyles = makeStyles(theme => ({
     containerMovieDetails: {

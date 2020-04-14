@@ -32,7 +32,7 @@ const upload = multer({
 
 async function uploadPhoto(req, res) {
     const userID = res.locals.id;
-    const pathImg = `http://localhost:5000/${req.file.path}`;
+    const pathImg = process.env.SERVER_LOCALHOST === JSON.stringify(true) ? `http://localhost:5000/${req.file.path}` : `http://hypertube.jv-g.fr/${req.file.path}`;
     const fsize = req.file.size;
 
     const file = Math.round((fsize / 1024));

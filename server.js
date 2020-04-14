@@ -15,7 +15,7 @@ const cookieParser = require('cookie-parser');
 const db = require("./config/keys").mongoURI;
 const auth = require("./routes/api/auth");
 const withAuth = require('./utils/middleware');
-const port = 5000;
+const port = 6000;
 const io = require('socket.io')(server, {
     path: '/',
     serveClient: false,

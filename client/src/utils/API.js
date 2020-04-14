@@ -1,6 +1,6 @@
 import axios from "axios";
 const headers = { 'Content-Type': 'application/json' };
-const burl = 'http://localhost:5000/api'
+const burl = process.env.SERVER_LOCALHOST === JSON.stringify(true) ? `http://localhost:6000/api`: `https://hypertube.jv-g.fr/api`;
 
 export default {
     withAuth: () => {
