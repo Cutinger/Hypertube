@@ -18,7 +18,7 @@ import Cookies from "universal-cookie";
 import 'moment/locale/fr';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 const moment = require('moment');
-const burl = 'http://localhost:5000/api';
+const burl = process.env.SERVER_LOCALHOST === JSON.stringify(true) ? 'http://localhost:5000/api' : 'https://hypertube.jv-g.fr';
 const Aux = (props) => props.children;
 const io = require('socket.io-client');
 const socket = process.env.SERVER_LOCALHOST === JSON.stringify(true) ? io('http://localhost:8000') : io('https://hypertube.jv-g.fr');

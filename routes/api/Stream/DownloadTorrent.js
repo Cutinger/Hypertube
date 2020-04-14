@@ -62,7 +62,7 @@ const printLeet = async (req, res, quality, imdbcode, userslist) => {
         var imdbID = await axiosQuery(urlID, 'imdb_id')
         if ( !imdbID )
             return res.sendStatus(404)
-        var restReq = await axiosQuery('http://localhost:5000/api/movies/' + imdbID, 'leet');
+        var restReq = await axiosQuery(process.env.SERVER_LOCALHOST === JSON.stringify(true) ? 'http://localhost:5000/api/movies/' : 'https://hypertube.jv-g.fr/api/movies/' + imdbID, 'leet');
         var quality = checkQuality1377(restReq.leetInfo, quality)
         if ( !restReq || quality === false)
             return res.sendStatus(404)

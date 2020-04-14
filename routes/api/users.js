@@ -14,6 +14,10 @@ const validateResetSend = require("../../validation/resetSend");
 const validateLoginInput = require("../../validation/login");
 const Validator         = require("validator");
 const passwordValidator = require('password-validator');
+const domain = process.env.SERVER_LOCALHOST === JSON.stringify(true) ? 'localhost' : 'hypertube.jv-g.fr';
+const http = domain === 'localhost' ? 'http://' : 'https://';
+const port = domain === 'localhost' ? ':3000' : '';
+
 
 // Mailtrap
 let transport = nodemailer.createTransport({
@@ -75,7 +79,7 @@ router.post('/active/resend', async(req, res) => {
                 from: 'matcha@app.com',
                 to: user.email,
                 subject: 'Activate your account',
-                text: `Hello ${user.username}!\nHere is the link for activate your account\nhttp://localhost:3000/users/active/${hashtoken}`,
+                text: `Hello ${user.username}!\nHere is the link for activate your account\n${http}${domain}${port}/users/active/${hashtoken}`,
             };
             transport.sendMail(message, function(err, info) {
                 if (err) console.log(err)
@@ -107,7 +111,7 @@ router.post('/reset/send', async(req, res) => {
                 from: 'matcha@app.com',
                 to: req.body.email,
                 subject: 'Activate your account',
-                text: `Hello ${user.username}!\nHere is the link to reset your password\nhttp://localhost:3000/users/reset/${hashtoken}`,
+                text: `Hello ${user.username}!\nHere is the link to reset your password\n${http}${domain}${port}/users/reset/${hashtoken}`,
             };
             transport.sendMail(message, function(err, info) {
                 if (err) console.log(err)
@@ -214,7 +218,7 @@ router.post("/register", (req, res) => {
                               from: 'matcha@app.com',
                               to: req.body.email,
                               subject: 'Activate your account',
-                              text: `Hello ${user.username}!\nHere is the link to confirm your account\n http://localhost:3000/users/active/${hashtoken}`,
+                              text: `Hello ${user.username}!\nHere is the link to confirm your account\n ${http}${domain}${port}/users/active/${hashtoken}`,
                             };
                             transport.sendMail(message, function(err, info) {
                               if (err) console.log(err)
@@ -263,8 +267,8 @@ router.post("/login", async(req, res) => {
           jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 },
             (err, token) => {
               if (!err){
-                res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
-                res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
+                res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain:domaim});
+                res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:domain});
                 return res.status(200).json({});
               }
               console.log(err)

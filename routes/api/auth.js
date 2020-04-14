@@ -1,5 +1,4 @@
-// const facebookStrategy = require("passport-facebook");
-const fbconfig = require("../../config/Oauthfacebook");
+dotenv.config();
 const User = require("../../models/User");
 const keys = require("../../config/keys");
 const genToken = require("../../utils/lib");
@@ -7,19 +6,25 @@ const passport = require('passport')
 , facebookStrategy = require('passport-facebook').Strategy;
 const FortyTwoStrategy = require('passport-42').Strategy;
 const express = require("express");
-const fortytwoconfig = require('../../config/Oauth42');
 const router = express.Router();
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 
-dotenv.config();
-passport.serializeUser(function(user, done) {
-    done(null, user);
-  });
-  
-  passport.deserializeUser(function(obj, done) {
-    done(null, obj);
-  });
+// Config for localhost or production
+const domain = process.env.SERVER_LOCALHOST === JSON.stringify(true) ? 'localhost' : 'hypertube.jv-g.fr';
+const http = domain === 'localhost' ? 'http://' : 'https://';
+const port = domain === 'localhost' ? ':3000' : '';
+
+const fbconfig = {
+    facebook: {
+        clientID: '641627723293057',
+        clientSecret: 'c0d8618606f6efd23201999fc3def531',
+        callbackURL: `${http}${domain}${port}/api/auth/facebook/callback`,
+    }
+};
+
+passport.serializeUser(function(user, done) { done(null, user) });
+passport.deserializeUser(function(obj, done) { done(null, obj) });
 
 router.use(function(req, res, next) {
     res.header('Access-Control-Allow-Credentials', true);
@@ -64,7 +69,7 @@ passport.use( new facebookStrategy({
 passport.use( new FortyTwoStrategy({
     clientID: '75607f7c0cffbc57db66d160efd1c4ef5d7b2ce7ae0ef4697efae1892a9bcb6a',
     clientSecret: '73cdf3a9a369e87333d87e6cd80f5eac124d339d4265e1317ac11753782eb35e',
-    callbackURL: 'http://localhost:5000/api/auth/42/callback'
+    callbackURL: `${http}${domain}/api/auth/42/callback`
   },
     function(accessToken, refreshToken, profile, done) {
         User.findOne({ oauthID: profile.id }, (err, data) => {
@@ -108,11 +113,11 @@ function(req, res) {
             (err, token) => {
                 if (!err) {
                     res.header('Access-Control-Allow-Credentials', true);
-                    res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
-                    res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
-                    return res.redirect('http://localhost:3000/');
+                    res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain: domain});
+                    res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:domain});
+                    return res.redirect(`${http}${domain}${port}`);
                 }
-                console.log(err)
+                console.log(err);
                 return res.status(400).json({});
             }
         )
@@ -123,7 +128,7 @@ function(req, res) {
 
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
-router.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: 'http://localhost:3000/login' }), (req, res) => {
+router.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: `${http}${domain}${port}/login` }), (req, res) => {
     User.findOne({ oauthID: req.user.oauthID }).then(async(user) => {
         if (!user) { return res.status(400).json({}); }
         const payload = { id: user.id };
@@ -131,9 +136,9 @@ router.get('/facebook/callback', passport.authenticate('facebook', { failureRedi
             (err, token) => {
                 if (!err) {
                     res.header('Access-Control-Allow-Credentials', true);
-                    res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
-                    res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain:'localhost'});
-                    return res.redirect('http://localhost:3000/');
+                    res.cookie('language', user.language, { maxAge: 2 * 60 * 60 * 1000, domain: domain});
+                    res.cookie('token', token, { maxAge: 2 * 60 * 60 * 1000, domain: domain});
+                    return res.redirect(`${http}${domain}${port}`);
                 }
                 console.log(err)
                 return res.status(400).json({});
