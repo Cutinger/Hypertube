@@ -1,4 +1,3 @@
-dotenv.config();
 const User = require("../../models/User");
 const keys = require("../../config/keys");
 const genToken = require("../../utils/lib");
@@ -8,6 +7,7 @@ const FortyTwoStrategy = require('passport-42').Strategy;
 const express = require("express");
 const router = express.Router();
 const dotenv = require("dotenv");
+dotenv.config();
 const jwt = require("jsonwebtoken");
 
 // Config for localhost or production
